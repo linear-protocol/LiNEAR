@@ -18,3 +18,7 @@ neardev
 
 # WASM files to be released
 /res/
+
+# AVA tests
+node_modules/
+compiled-contracts/

@@ -21,5 +21,6 @@ test:
 	make test-staking-pool
 
 test-staking-pool: staking-pool
+	mkdir -p ./tests/compiled-contracts/
 	cp ./res/staking_pool.wasm ./tests/compiled-contracts/staking_pool.wasm
 	cd tests && npx near-workspaces-ava __tests__/staking-pool/**.ts

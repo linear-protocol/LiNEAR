@@ -38,9 +38,6 @@ pub struct LiquidStakingContract {
     /// NOTE: This is different from the current account ID which is used as a validator account.
     /// The owner of the staking pool can change staking public key and adjust reward fees.
     pub owner_id: AccountId,
-    /// The public key which is used for staking action. It's the public key of the validator node
-    /// that validates on behalf of the pool.
-    pub stake_public_key: PublicKey,
     /// The last epoch height when `ping` was called.
     pub last_epoch_height: EpochHeight,
     /// The last total balance of the account (consists of staked and unstaked balances).
@@ -66,8 +63,8 @@ pub struct LiquidStakingContract {
 #[near_bindgen]
 impl LiquidStakingContract {
 
-    /// Initializes the contract with the given owner_id, initial staking public key (with ED25519
-    /// curve) and initial reward fee fraction that owner charges for the validation work.
+    /// Initializes the contract with the given owner_id and initial reward fee fraction that 
+    /// owner charges for the validation work.
     ///
     /// The entire current balance of this contract will be used to stake. This allows contract to
     /// always maintain staking shares that can't be unstaked or withdrawn.
@@ -75,7 +72,6 @@ impl LiquidStakingContract {
     #[init]
     pub fn new(
         owner_id: AccountId,
-        stake_public_key: PublicKey,
         reward_fee_fraction: RewardFeeFraction,
     ) -> Self {
         assert!(!env::state_exists(), "Already initialized");
@@ -93,7 +89,6 @@ impl LiquidStakingContract {
         );
         let mut this = Self {
             owner_id,
-            stake_public_key: stake_public_key.into(),
             last_epoch_height: env::epoch_height(),
             last_total_balance: account_balance,
             total_staked_balance,
@@ -110,6 +105,11 @@ impl LiquidStakingContract {
     /*******************************/
     /* Staking Pool change methods */
     /*******************************/
+
+    /// Distributes rewards and restakes if needed.
+    pub fn ping(&mut self) {
+        panic!("ping is not available for liquid staking");
+    }
 
     /// Deposits the attached amount into the inner account of the predecessor.
     #[payable]
@@ -250,7 +250,7 @@ impl LiquidStakingContract {
 
     /// Returns the staking public key
     pub fn get_staking_key(&self) -> PublicKey {
-        self.stake_public_key.clone()
+        panic!("no need to specify public key for liquid staking pool");
     }
 
     /// Returns true if the staking is paused

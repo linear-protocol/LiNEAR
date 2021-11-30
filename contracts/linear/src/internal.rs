@@ -15,13 +15,13 @@ impl LiquidStakingContract {
         }
         // Stakes with the staking public key. If the public key is invalid the entire function
         // call will be rolled back.
-        Promise::new(env::current_account_id())
-            .stake(self.total_staked_balance, self.stake_public_key.clone())
-            .then(ext_self::on_stake_action(
-                env::current_account_id(),
-                NO_DEPOSIT,
-                ON_STAKE_ACTION_GAS,
-            ));
+        // Promise::new(env::current_account_id())
+        //     .stake(self.total_staked_balance, self.stake_public_key.clone())
+        //     .then(ext_self::on_stake_action(
+        //         env::current_account_id(),
+        //         NO_DEPOSIT,
+        //         ON_STAKE_ACTION_GAS,
+        //     ));
     }
 
     pub(crate) fn internal_deposit(&mut self) -> u128 {

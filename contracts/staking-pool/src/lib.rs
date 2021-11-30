@@ -3,8 +3,6 @@ use near_sdk::json_types::{U128};
 use near_sdk::collections::{LookupMap};
 use near_sdk::{ env, near_bindgen, AccountId, PanicOnDefault, Promise };
 
-pub const NEAR: u128 = 1_000_000_000_000_000_000_000_000;
-
 /// Staking pool interface
 trait StakingPool {
     fn get_account_staked_balance(&self, account_id: AccountId) -> U128;

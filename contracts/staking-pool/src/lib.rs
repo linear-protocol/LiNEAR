@@ -102,6 +102,20 @@ impl StakingPool for MockStakingPool {
     }
 }
 
+#[near_bindgen]
+impl MockStakingPool {
+    /// manually generate some reward for the caller,
+    /// for testing purpose only
+    pub fn add_reward(&mut self, amount: U128) {
+        let account_id = env::predecessor_account_id();
+        let staked_amount = self.internal_get_staked(&account_id);
+        assert!(staked_amount > 0);
+
+        let new_amount = staked_amount + amount.0;
+        self.staked.insert(&account_id, &new_amount);
+    }
+}
+
 impl MockStakingPool {
     fn internal_deposit(&mut self) {
         let account_id = env::predecessor_account_id();

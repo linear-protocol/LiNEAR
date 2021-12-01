@@ -16,6 +16,7 @@ trait StakingPool {
     fn deposit_and_stake(&mut self);
 
     fn withdraw(&mut self, amount: U128);
+
     fn withdraw_all(&mut self);
 
     fn stake(&mut self, amount: U128);

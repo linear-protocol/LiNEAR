@@ -5,7 +5,7 @@ const workspace = Workspace.init(async ({root}) => {
 
   const contract = await root.createAndDeploy(
     'staking-pool',
-    'compiled-contracts/staking_pool.wasm',
+    'compiled-contracts/mock_staking_pool.wasm',
     {
       method: 'new',
       args: {},

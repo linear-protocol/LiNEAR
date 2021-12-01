@@ -1,6 +1,6 @@
 RFLAGS="-C link-arg=-s"
 
-all: linear staking-pool
+all: linear mock-staking-pool
 
 linear: contracts/linear
 	rustup target add wasm32-unknown-unknown
@@ -8,11 +8,11 @@ linear: contracts/linear
 	mkdir -p res
 	cp target/wasm32-unknown-unknown/release/linear.wasm ./res/linear.wasm
 
-staking-pool: contracts/staking-pool
+mock-staking-pool: contracts/mock-staking-pool
 	rustup target add wasm32-unknown-unknown
-	RUSTFLAGS=$(RFLAGS) cargo build -p staking-pool --target wasm32-unknown-unknown --release
+	RUSTFLAGS=$(RFLAGS) cargo build -p mock-staking-pool --target wasm32-unknown-unknown --release
 	mkdir -p res
-	cp target/wasm32-unknown-unknown/release/staking_pool.wasm ./res/staking_pool.wasm
+	cp target/wasm32-unknown-unknown/release/mock_staking_pool.wasm ./res/mock_staking_pool.wasm
 
 clean:
 	rm res/*.wasm
@@ -20,7 +20,7 @@ clean:
 test:
 	make test-staking-pool
 
-test-staking-pool: staking-pool
+test-staking-pool: mock-staking-pool
 	mkdir -p ./tests/compiled-contracts/
-	cp ./res/staking_pool.wasm ./tests/compiled-contracts/staking_pool.wasm
-	cd tests && npx near-workspaces-ava __tests__/staking-pool/**.ts --verbose
+	cp ./res/mock_staking_pool.wasm ./tests/compiled-contracts/mock_staking_pool.wasm
+	cd tests && npx near-workspaces-ava __tests__/mock-staking-pool/**.ts --verbose

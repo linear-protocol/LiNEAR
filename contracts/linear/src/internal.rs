@@ -325,7 +325,8 @@ impl LiquidStakingContract {
 
     /// Inner method to get the given account or a new default value account.
     pub(crate) fn internal_get_account(&self, account_id: &AccountId) -> Account {
-        self.accounts.get(account_id).unwrap_or_default()
+        // remove default() to be compatible with storage_deposit()
+        self.accounts.get(account_id).unwrap()
     }
 
     /// Inner method to save the given account for a given account ID.
@@ -335,6 +336,70 @@ impl LiquidStakingContract {
             self.accounts.insert(account_id, &account);
         } else {
             self.accounts.remove(account_id);
+        }
+    }
+
+    pub fn internal_unwrap_ft_balance_of(&self, account_id: &AccountId) -> Balance {
+        let account = self.internal_get_account(account_id);
+        return account.stake_shares;
+    }
+
+    pub fn internal_ft_deposit(&mut self, account_id: &AccountId, amount: Balance) {
+        let account = self.internal_get_account(account_id);
+        let mut balance = account.stake_shares;
+        if let Some(new_balance) = balance.checked_add(amount) {
+            account.stake_shares = new_balance;
+            self.internal_save_account(account_id, &account);
+            self.total_stake_shares = self
+                .total_stake_shares
+                .checked_add(amount)
+                .unwrap_or_else(|| env::panic_str("Total supply overflow"));
+        } else {
+            env::panic_str("Balance overflow");
+        }
+    }
+
+    pub fn internal_ft_withdraw(&mut self, account_id: &AccountId, amount: Balance) {
+        let account = self.internal_get_account(account_id);
+        let mut balance = account.stake_shares;
+        if let Some(new_balance) = balance.checked_sub(amount) {
+            account.stake_shares = new_balance;
+            self.internal_save_account(account_id, &account);
+            self.total_stake_shares = self
+                .total_stake_shares
+                .checked_sub(amount)
+                .unwrap_or_else(|| env::panic_str("Total supply overflow"));
+        } else {
+            env::panic_str("The account doesn't have enough balance");
+        }
+    }
+
+    /// Inner method to transfer LINEAR from sender to receiver
+    pub(crate) fn internal_ft_transfer(
+        &mut self,
+        sender_id: &AccountId,
+        receiver_id: &AccountId,
+        amount: Balance,
+        memo: Option<String>,
+    ) {
+        assert_ne!(
+            sender_id, receiver_id,
+            "Sender and receiver should be different"
+        );
+        assert!(amount > 0, "The amount should be a positive number");
+
+        self.internal_ft_withdraw(sender_id, amount);
+        self.internal_ft_deposit(receiver_id, amount);
+
+        env::log_str(format!("Transfer {} from {} to {}", amount, sender_id, receiver_id));
+        if let Some(memo) = memo {
+            env::log_str(format!("Memo: {}", memo));
+        }
+    }
+
+    pub fn internal_register_account(&mut self, account_id: &AccountId) {
+        if self.accounts.insert(account_id, &Account::default()).is_some() {
+            env::panic_str("The account is already registered");
         }
     }
 }

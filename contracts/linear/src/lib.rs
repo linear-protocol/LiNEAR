@@ -1,16 +1,22 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::json_types::{U128};
-use near_sdk::{env, ext_contract, log, near_bindgen, AccountId, Balance, PanicOnDefault, PromiseOrValue, EpochHeight, PublicKey};
+use near_sdk::{env, ext_contract, near_bindgen, AccountId, Balance, PanicOnDefault,
+    PromiseOrValue, EpochHeight, PublicKey, StorageUsage};
 use near_sdk::collections::{UnorderedMap};
-
 
 mod types;
 mod account;
 mod internal;
+mod fungible_token_core;
+mod fungible_token_metadata;
+mod fungible_token_storage;
 
 use crate::types::*;
 use crate::account::*;
 use crate::internal::*;
+pub use crate::fungible_token_core::*;
+pub use crate::fungible_token_metadata::*;
+pub use crate::fungible_token_storage::*;
 
 
 /// The number of epochs required for the locked balance to become unlocked.
@@ -58,6 +64,9 @@ pub struct LiquidStakingContract {
     /// Pausing is useful for node maintenance. Only the owner can pause and resume staking.
     /// The contract is not paused by default.
     pub paused: bool,
+
+    /// The storage size in bytes for one account.
+    pub account_storage_usage: StorageUsage,
 }
 
 #[near_bindgen]
@@ -96,10 +105,20 @@ impl LiquidStakingContract {
             reward_fee_fraction,
             accounts: UnorderedMap::new(b"u".to_vec()),
             paused: false,
+            account_storage_usage: 0
         };
+        this.measure_account_storage_usage();
         // Staking with the current pool to make sure the staking key is valid.
         this.internal_restake();
         this
+    }
+
+    fn measure_account_storage_usage(&mut self) {
+        let initial_storage_usage = env::storage_usage();
+        let tmp_account_id = AccountId::new_unchecked("a".repeat(64));
+        self.accounts.insert(&tmp_account_id, &Account::default());
+        self.account_storage_usage = env::storage_usage() - initial_storage_usage;
+        self.accounts.remove(&tmp_account_id);
     }
 
     /*******************************/

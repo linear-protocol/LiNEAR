@@ -345,7 +345,7 @@ impl LiquidStakingContract {
     }
 
     pub fn internal_ft_deposit(&mut self, account_id: &AccountId, amount: Balance) {
-        let account = self.internal_get_account(account_id);
+        let mut account = self.internal_get_account(account_id);
         let mut balance = account.stake_shares;
         if let Some(new_balance) = balance.checked_add(amount) {
             account.stake_shares = new_balance;
@@ -360,7 +360,7 @@ impl LiquidStakingContract {
     }
 
     pub fn internal_ft_withdraw(&mut self, account_id: &AccountId, amount: Balance) {
-        let account = self.internal_get_account(account_id);
+        let mut account = self.internal_get_account(account_id);
         let mut balance = account.stake_shares;
         if let Some(new_balance) = balance.checked_sub(amount) {
             account.stake_shares = new_balance;
@@ -391,9 +391,9 @@ impl LiquidStakingContract {
         self.internal_ft_withdraw(sender_id, amount);
         self.internal_ft_deposit(receiver_id, amount);
 
-        env::log_str(format!("Transfer {} from {} to {}", amount, sender_id, receiver_id));
+        env::log_str(format!("Transfer {} from {} to {}", amount, sender_id, receiver_id).as_ref());
         if let Some(memo) = memo {
-            env::log_str(format!("Memo: {}", memo));
+            env::log_str(format!("Memo: {}", memo).as_ref());
         }
     }
 

@@ -10,8 +10,6 @@ use near_contract_standards::fungible_token::resolver::FungibleTokenResolver;
 const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(8_000_000_000_000);
 const GAS_FOR_FT_TRANSFER_CALL: Gas = Gas(25_000_000_000_000 + GAS_FOR_RESOLVE_TRANSFER.0);
 
-const NO_DEPOSIT: Balance = 0;
-
 #[ext_contract(ext_fungible_token_receiver)]
 pub trait FungibleTokenReceiver {
     fn ft_on_transfer(
@@ -125,7 +123,7 @@ impl FungibleTokenResolver for LiquidStakingContract {
                     format!(
                         "Refund {} from {} to {}",
                         refund_amount, receiver_id, sender_id
-                    ),
+                    ).as_ref()
                 );
                 return (amount - refund_amount).into();
             }

@@ -2,11 +2,7 @@ use crate::*;
 use near_contract_standards::storage_management::{
     StorageBalance, StorageBalanceBounds, StorageManagement,
 };
-use std::convert::TryInto;
-use std::mem::size_of;
 use near_sdk::{assert_one_yocto, env, log, AccountId, Balance, Promise};
-
-const STORAGE_AMOUNT_BYTES: usize = size_of::<Account>() + 68 + 40 + 100;
 
 impl LiquidStakingContract {
     /// Internal method that returns the Account ID and the balance in case the account was

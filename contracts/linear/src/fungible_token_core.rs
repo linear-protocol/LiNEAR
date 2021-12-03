@@ -84,7 +84,6 @@ impl FungibleTokenCore for LiquidStakingContract {
     }
 }
 
-// TODO
 #[near_bindgen]
 impl FungibleTokenResolver for LiquidStakingContract {
     fn ft_resolve_transfer(

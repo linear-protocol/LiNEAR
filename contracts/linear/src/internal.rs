@@ -346,7 +346,7 @@ impl LiquidStakingContract {
 
     pub fn internal_ft_deposit(&mut self, account_id: &AccountId, amount: Balance) {
         let mut account = self.internal_get_account(account_id);
-        let mut balance = account.stake_shares;
+        let balance = account.stake_shares;
         if let Some(new_balance) = balance.checked_add(amount) {
             account.stake_shares = new_balance;
             self.internal_save_account(account_id, &account);
@@ -361,7 +361,7 @@ impl LiquidStakingContract {
 
     pub fn internal_ft_withdraw(&mut self, account_id: &AccountId, amount: Balance) {
         let mut account = self.internal_get_account(account_id);
-        let mut balance = account.stake_shares;
+        let balance = account.stake_shares;
         if let Some(new_balance) = balance.checked_sub(amount) {
             account.stake_shares = new_balance;
             self.internal_save_account(account_id, &account);

@@ -325,8 +325,7 @@ impl LiquidStakingContract {
 
     /// Inner method to get the given account or a new default value account.
     pub(crate) fn internal_get_account(&self, account_id: &AccountId) -> Account {
-        // remove default() to be compatible with storage_deposit()
-        self.accounts.get(account_id).unwrap()
+        self.accounts.get(account_id).unwrap_or_default()
     }
 
     /// Inner method to save the given account for a given account ID.
@@ -339,13 +338,17 @@ impl LiquidStakingContract {
         }
     }
 
-    pub fn internal_unwrap_ft_balance_of(&self, account_id: &AccountId) -> Balance {
-        let account = self.internal_get_account(account_id);
-        return account.stake_shares;
+    pub fn internal_ft_get_account(&self, account_id: &AccountId) -> Account {
+        match self.accounts.get(account_id) {
+            Some(account) => account,
+            None => {
+                env::panic_str(format!("The account {} is not registered", &account_id).as_str())
+            }
+        }
     }
 
     pub fn internal_ft_deposit(&mut self, account_id: &AccountId, amount: Balance) {
-        let mut account = self.internal_get_account(account_id);
+        let mut account = self.internal_ft_get_account(account_id);
         let balance = account.stake_shares;
         if let Some(new_balance) = balance.checked_add(amount) {
             account.stake_shares = new_balance;
@@ -360,7 +363,7 @@ impl LiquidStakingContract {
     }
 
     pub fn internal_ft_withdraw(&mut self, account_id: &AccountId, amount: Balance) {
-        let mut account = self.internal_get_account(account_id);
+        let mut account = self.internal_ft_get_account(account_id);
         let balance = account.stake_shares;
         if let Some(new_balance) = balance.checked_sub(amount) {
             account.stake_shares = new_balance;

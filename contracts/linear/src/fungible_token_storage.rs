@@ -45,6 +45,7 @@ impl LiquidStakingContract {
 impl StorageManagement for LiquidStakingContract {
     // `registration_only` doesn't affect the implementation for vanilla fungible token.
     #[allow(unused_variables)]
+    #[payable]
     fn storage_deposit(
         &mut self,
         account_id: Option<AccountId>,
@@ -78,6 +79,7 @@ impl StorageManagement for LiquidStakingContract {
     /// * panics if `amount > 0`
     /// * never transfers Ⓝ to caller
     /// * returns a `storage_balance` struct if `amount` is 0
+    #[payable]
     fn storage_withdraw(&mut self, amount: Option<U128>) -> StorageBalance {
         assert_one_yocto();
         let predecessor_account_id = env::predecessor_account_id();
@@ -95,6 +97,7 @@ impl StorageManagement for LiquidStakingContract {
         }
     }
 
+    #[payable]
     fn storage_unregister(&mut self, force: Option<bool>) -> bool {
         self.internal_storage_unregister(force).is_some()
     }

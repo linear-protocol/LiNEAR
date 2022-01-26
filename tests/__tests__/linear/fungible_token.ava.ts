@@ -1,4 +1,19 @@
- import {Workspace, NEAR} from 'near-workspaces-ava';
+import { Workspace, NEAR, NearAccount } from 'near-workspaces-ava';
+
+async function registerUser(ft: NearAccount, user: NearAccount) {
+  const storage_balance = await ft.view(
+    'storage_balance_bounds',
+    {}
+  ) as any;
+
+  await user.call(
+    ft,
+    'storage_deposit',
+    { account_id: user },
+    // Deposit pulled from ported sim test
+    { attachedDeposit: storage_balance.min.toString() },
+  );
+}
 
 const workspace = Workspace.init(async ({root}) => {
   const owner = await root.createAccount('linear_owner');
@@ -19,205 +34,44 @@ const workspace = Workspace.init(async ({root}) => {
     },
   );
 
-  return {contract, alice};
+  return { contract, alice };
 });
 
-workspace.test('get ft_metadata after initialization', async (test, {contract, alice}) => {
+workspace.test('fungible token: metadata', async (test, {contract, alice}) => {
   const metadata = await contract.view('ft_metadata', {}) as any;
   test.is(
     metadata.symbol,
     'LINEAR',
   );
-  // test.is(
-  //   await contract.view('get_account_unstaked_balance', {account_id: alice}),
-  //   '0',
-  // );
-  // test.is(
-  //   await contract.view('get_account_total_balance', {account_id: alice}),
-  //   '0',
-  // );
+  test.is(
+    metadata.decimals,
+    24
+  );
 });
 
-// workspace.test('deposit and stake', async (test, {contract, alice}) => {
-//   const deposit = NEAR.parse('10');
+// TODO: not fully tested yet; we need to call `stake()` first to get LiNEAR
+workspace.test('fungible token: transfer', async (test, {contract, alice}) => {
+  const ONE_YOCTO_NEAR = '1';
 
-//   await alice.call(
-//     contract,
-//     'deposit',
-//     {},
-//     { attachedDeposit: deposit },
-//   );
+  await registerUser(contract, alice);
 
-//   test.is(
-//     await contract.view('get_account_unstaked_balance', { account_id: alice }),
-//     deposit.toString()
-//   );
-
-//   // stake
-//   const stakeAmount = NEAR.parse('9');
-//   await alice.call(
-//     contract,
-//     'stake',
-//     { amount: stakeAmount.toString() }
-//   );
-
-//   test.is(
-//     await contract.view('get_account_staked_balance', { account_id: alice }),
-//     stakeAmount.toString()
-//   );
-//   test.is(
-//     await contract.view('get_account_unstaked_balance', { account_id: alice }),
-//     deposit.sub(stakeAmount).toString()
-//   );
-// });
-
-// workspace.test('add reward', async (test, { contract, alice }) => {
-//   // deposit
-//   const deposit = NEAR.parse('10');
-
-//   await alice.call(
-//     contract,
-//     'deposit',
-//     {},
-//     { attachedDeposit: deposit },
-//   );
-
-//   // stake
-//   const stakeAmount = NEAR.parse('9');
-//   await alice.call(
-//     contract,
-//     'stake',
-//     { amount: stakeAmount.toString() }
-//   );
-
-//   // add reward
-//   const reward = NEAR.parse('1');
-//   await alice.call(
-//     contract,
-//     'add_reward',
-//     { amount: reward.toString() }
-//   );
-
-//   test.is(
-//     await contract.view('get_account_staked_balance', { account_id: alice }),
-//     stakeAmount.add(reward).toString()
-//   );
-//   test.is(
-//     await contract.view('get_account_unstaked_balance', { account_id: alice }),
-//     deposit.sub(stakeAmount).toString()
-//   );
-// });
-
-// workspace.test('unstake', async (test, { contract, alice }) => {
-//   // deposit
-//   const deposit = NEAR.parse('10');
-
-//   await alice.call(
-//     contract,
-//     'deposit',
-//     {},
-//     { attachedDeposit: deposit },
-//   );
-
-//   // stake
-//   const stakeAmount = NEAR.parse('9');
-//   await alice.call(
-//     contract,
-//     'stake',
-//     { amount: stakeAmount.toString() }
-//   );
-
-//   // add reward
-//   const reward = NEAR.parse('1');
-//   await alice.call(
-//     contract,
-//     'add_reward',
-//     { amount: reward.toString() }
-//   );
-
-//   // unstake
-//   const unstakeAmount = NEAR.parse('5');
-//   await alice.call(
-//     contract,
-//     'unstake',
-//     { amount: unstakeAmount.toString() }
-//   );
-
-//   test.is(
-//     await contract.view('get_account_staked_balance', { account_id: alice }),
-//     stakeAmount.add(reward).sub(unstakeAmount).toString()
-//   );
-//   test.is(
-//     await contract.view('get_account_unstaked_balance', { account_id: alice }),
-//     deposit.sub(stakeAmount).add(unstakeAmount).toString()
-//   );
-// });
-
-// workspace.test('withdraw', async (test, { contract, alice }) => {
-//   // deposit
-//   const deposit = NEAR.parse('10');
-
-//   await alice.call(
-//     contract,
-//     'deposit',
-//     {},
-//     { attachedDeposit: deposit },
-//   );
-
-//   // stake
-//   const stakeAmount = NEAR.parse('9');
-//   await alice.call(
-//     contract,
-//     'stake',
-//     { amount: stakeAmount.toString() }
-//   );
-
-//   // add reward
-//   const reward = NEAR.parse('1');
-//   await alice.call(
-//     contract,
-//     'add_reward',
-//     { amount: reward.toString() }
-//   );
-
-//   // first withdraw
-//   const firstWithdrawAmount = NEAR.parse('0.5');
-//   await alice.call(
-//     contract,
-//     'withdraw',
-//     { amount: firstWithdrawAmount.toString() }
-//   );
-
-//   test.is(
-//     await contract.view('get_account_staked_balance', { account_id: alice }),
-//     stakeAmount.add(reward).toString()
-//   );
-//   test.is(
-//     await contract.view('get_account_unstaked_balance', { account_id: alice }),
-//     deposit.sub(stakeAmount).sub(firstWithdrawAmount).toString()
-//   );
-
-//   // unstake
-//   const unstakeAmount = NEAR.parse('5');
-//   await alice.call(
-//     contract,
-//     'unstake',
-//     { amount: unstakeAmount.toString() }
-//   ); 
-
-//   // withdraw all
-//   await alice.call(
-//     contract,
-//     'withdraw_all',
-//     {}
-//   );
-
-//   test.is(
-//     await contract.view('get_account_staked_balance', { account_id: alice }),
-//     stakeAmount.add(reward).sub(unstakeAmount).toString()
-//   );
-//   test.is(
-//     await contract.view('get_account_unstaked_balance', { account_id: alice }),
-//     '0'
-//   );
-// });
+  try {
+    await alice.call(
+      contract,
+      'ft_transfer',
+      {
+        receiver_id: 'bob.test.near',
+        amount: NEAR.parse('1').toString()
+      },
+      {
+        attachedDeposit: ONE_YOCTO_NEAR
+      }
+    );
+  } catch(e) {
+    test.is(
+      e.kind.ExecutionError,
+      'Smart contract panicked: The account doesn\'t have enough balance'
+    );
+  }
+  
+});

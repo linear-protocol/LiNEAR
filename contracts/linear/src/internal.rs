@@ -346,8 +346,8 @@ impl LiquidStakingContract {
         if let Some(new_balance) = balance.checked_add(amount) {
             account.stake_shares = new_balance;
             self.internal_save_account(account_id, &account);
-            self.total_stake_shares = self
-                .total_stake_shares
+            self.total_share_amount = self
+                .total_share_amount
                 .checked_add(amount)
                 .unwrap_or_else(|| env::panic_str("Total supply overflow"));
         } else {
@@ -361,8 +361,8 @@ impl LiquidStakingContract {
         if let Some(new_balance) = balance.checked_sub(amount) {
             account.stake_shares = new_balance;
             self.internal_save_account(account_id, &account);
-            self.total_stake_shares = self
-                .total_stake_shares
+            self.total_share_amount = self
+                .total_share_amount
                 .checked_sub(amount)
                 .unwrap_or_else(|| env::panic_str("Total supply overflow"));
         } else {

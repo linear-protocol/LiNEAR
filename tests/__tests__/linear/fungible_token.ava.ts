@@ -26,7 +26,7 @@ const workspace = Workspace.init(async ({root}) => {
       method: 'new',
       args: {
         owner_id: 'linear_owner',
-        reward_fee_fraction: {
+        reward_fee: {
           numerator: 1,
           denominator: 100 
         }

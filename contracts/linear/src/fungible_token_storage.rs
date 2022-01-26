@@ -17,7 +17,7 @@ impl LiquidStakingContract {
         if let Some(account) = self.accounts.get(&account_id) {
             if account.stake_shares == 0 || force {
                 self.accounts.remove(&account_id);
-                self.total_stake_shares -= account.stake_shares;
+                self.total_share_amount -= account.stake_shares;
                 Promise::new(account_id.clone()).transfer(self.storage_balance_bounds().min.0 + 1);
                 Some((account_id, account.stake_shares))
             } else {

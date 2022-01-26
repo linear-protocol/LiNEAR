@@ -4,7 +4,7 @@ use near_sdk::{
     json_types::{U128},
     collections::{UnorderedMap},
     env, near_bindgen, ext_contract, require,
-    AccountId, Balance, PanicOnDefault, EpochHeight, PublicKey
+    AccountId, Balance, PanicOnDefault, EpochHeight, PublicKey, StorageUsage
 };
 
 mod types;
@@ -144,7 +144,6 @@ impl LiquidStakingContract {
         this.internal_restake();
         this
     }
-}
 
     fn measure_account_storage_usage(&mut self) {
         let initial_storage_usage = env::storage_usage();
@@ -153,6 +152,7 @@ impl LiquidStakingContract {
         self.account_storage_usage = env::storage_usage() - initial_storage_usage;
         self.accounts.remove(&tmp_account_id);
     }
+}
 
 
 /// -- Staking pool change methods

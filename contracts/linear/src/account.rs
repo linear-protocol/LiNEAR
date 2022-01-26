@@ -1,10 +1,11 @@
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::json_types::{U128};
-use near_sdk::{Balance, EpochHeight, AccountId};
+use near_sdk::{
+    borsh::{self, BorshDeserialize, BorshSerialize},
+    serde::{Deserialize, Serialize},
+    json_types::{U128},
+    Balance, EpochHeight, AccountId,
+};
 
-/// A type to distinguish between a balance and "stake" shares for better readability.
-pub type NumStakeShares = Balance;
+use crate::types::*;
 
 /// Inner account data of a delegate.
 #[derive(BorshDeserialize, BorshSerialize, Debug, PartialEq)]
@@ -16,7 +17,7 @@ pub struct Account {
     /// NOTE: The number of shares should always be less or equal than the amount of staked balance.
     /// This means the price of stake share should always be at least `1`.
     /// The price of stake share can be computed as `total_staked_balance` / `total_stake_shares`.
-    pub stake_shares: NumStakeShares,
+    pub stake_shares: ShareBalance,
     /// The minimum epoch height when the withdrawn is allowed.
     /// This changes after unstaking action, because the amount is still locked for 3 epochs.
     pub unstaked_available_epoch_height: EpochHeight,

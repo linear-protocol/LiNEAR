@@ -1,24 +1,20 @@
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::json_types::{U128};
-use near_sdk::{env, ext_contract, log, near_bindgen, AccountId, Balance, PanicOnDefault, PromiseOrValue, EpochHeight, PublicKey};
-use near_sdk::collections::{UnorderedMap};
-
+use near_sdk::{
+    borsh::{self, BorshDeserialize, BorshSerialize,},
+    serde::{Deserialize, Serialize,},
+    json_types::{U128},
+    collections::{UnorderedMap},
+    env, near_bindgen, ext_contract, require,
+    AccountId, Balance, PanicOnDefault, EpochHeight, PublicKey
+};
 
 mod types;
+mod errors;
 mod account;
 mod internal;
 
 use crate::types::*;
+use crate::errors::*;
 use crate::account::*;
-use crate::internal::*;
-
-
-/// The number of epochs required for the locked balance to become unlocked.
-/// NOTE: The actual number of epochs when the funds are unlocked is 3. But there is a corner case
-/// when the unstaking promise can arrive at the next epoch, while the inner state is already
-/// updated in the previous epoch. It will not unlock the funds for 4 epochs.
-const NUM_EPOCHS_TO_UNLOCK: EpochHeight = 4;
-
 
 /// Interface for the contract itself.
 #[ext_contract(ext_self)]
@@ -29,6 +25,35 @@ pub trait SelfContract {
     /// follow withdraw calls might fail. To mitigate this, the contract will issue a new unstaking
     /// action in case of the failure of the first staking action.
     fn on_stake_action(&mut self);
+}
+
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
+pub struct RewardFeeFraction {
+    pub numerator: u32,
+    pub denominator: u32,
+}
+
+impl RewardFeeFraction {
+    pub fn new(numerator: u32, denominator: u32) -> Self {
+        require!(
+            denominator != 0,
+            ERR_FRACTION_BAD_DENOMINATOR
+        );
+        require!(
+            numerator <= denominator,
+            ERR_FRACTION_BAD_NUMERATOR
+        );
+
+        Self {
+            numerator,
+            denominator,
+        }
+    }
+
+    pub fn multiply(&self, value: Balance) -> Balance {
+        (U256::from(self.numerator) * U256::from(value) / U256::from(self.denominator)).as_u128()
+    }
 }
 
 #[near_bindgen]
@@ -42,11 +67,14 @@ pub struct LiquidStakingContract {
     pub last_epoch_height: EpochHeight,
     /// The last total balance of the account (consists of staked and unstaked balances).
     pub last_total_balance: Balance,
-    /// The total amount of shares. It should be equal to the total amount of shares across all
-    /// accounts.
-    pub total_stake_shares: NumStakeShares,
-    /// The total staked balance.
-    pub total_staked_balance: Balance,
+    /// Total amount of LiNEAR that was minted (minus burned).
+    pub total_share_amount: ShareBalance,
+    /// Total amount of NEAR that was staked by users to this contract.         
+    /// 
+    /// This is effectively 1) amount of NEAR that was deposited to this contract but hasn't yet been staked on any validators 
+    /// plus 2) amount of NEAR that has already been staked on validators.    
+    /// Note that the amount of NEAR that is pending release or is already released by hasn't been withdrawn is not considered.
+    pub total_staked_near_amount: Balance,
     /// The fraction of the reward that goes to the owner of the staking pool for running the
     /// validator node.
     pub reward_fee_fraction: RewardFeeFraction,
@@ -62,7 +90,6 @@ pub struct LiquidStakingContract {
 
 #[near_bindgen]
 impl LiquidStakingContract {
-
     /// Initializes the contract with the given owner_id and initial reward fee fraction that 
     /// owner charges for the validation work.
     ///
@@ -72,49 +99,54 @@ impl LiquidStakingContract {
     #[init]
     pub fn new(
         owner_id: AccountId,
-        reward_fee_fraction: RewardFeeFraction,
+        reward_fee: RewardFeeFraction,
     ) -> Self {
-        assert!(!env::state_exists(), "Already initialized");
-        reward_fee_fraction.assert_valid();
-        assert!(
-            env::is_valid_account_id(owner_id.as_bytes()),
-            "The owner account ID is invalid"
+        require!(!env::state_exists(), ERR_ALREADY_INITIALZED);
+        require!(
+            env::account_locked_balance() == 0,
+            ERR_ACCOUNT_STAKING_WHILE_INIT
         );
+        
+        let reward_fee_fraction = RewardFeeFraction::new(
+            reward_fee.numerator, 
+            reward_fee.denominator
+        );
+
         let account_balance = env::account_balance();
-        let total_staked_balance = account_balance; // - STAKE_SHARE_PRICE_GUARANTEE_FUND;
-        assert_eq!(
-            env::account_locked_balance(),
-            0,
-            "The staking pool shouldn't be staking at the initialization"
+        require!(
+            account_balance >= ONE_NEAR,
+            ERR_NO_ENOUGH_INIT_DEPOSIT
         );
         let mut this = Self {
             owner_id,
             last_epoch_height: env::epoch_height(),
             last_total_balance: account_balance,
-            total_staked_balance,
-            total_stake_shares: NumStakeShares::from(total_staked_balance),
+            total_share_amount: account_balance,
+            total_staked_near_amount: account_balance,
             reward_fee_fraction,
-            accounts: UnorderedMap::new(b"u".to_vec()),
+            accounts: UnorderedMap::new(b"a".to_vec()),
             paused: false,
         };
         // Staking with the current pool to make sure the staking key is valid.
         this.internal_restake();
         this
     }
+}
 
-    /*******************************/
-    /* Staking Pool change methods */
-    /*******************************/
+/// -- Staking pool change methods
 
+#[near_bindgen]
+impl LiquidStakingContract {
     /// Distributes rewards and restakes if needed.
     pub fn ping(&mut self) {
-        panic!("ping is not available for liquid staking");
+        // panic!("ping is not available for liquid staking");
+        return
     }
 
     /// Deposits the attached amount into the inner account of the predecessor.
     #[payable]
     pub fn deposit(&mut self) {
-        panic!("please use deposit_and_stake instead");
+        panic!("{}", ERR_CALL_DEPOSIT);
     }
 
     /// Deposits the attached amount into the inner account of the predecessor and stakes it.
@@ -205,11 +237,12 @@ impl LiquidStakingContract {
 
         self.internal_restake();
     }
+}
 
-    /*******************************/
-    /* Staking Pool view methods */
-    /*******************************/
+/// -- Staking pool view methods
 
+#[near_bindgen]
+impl LiquidStakingContract {
     /// Returns the unstaked balance of the given account.
     pub fn get_account_unstaked_balance(&self, account_id: AccountId) -> U128 {
         self.get_account(account_id).unstaked_balance
@@ -235,7 +268,7 @@ impl LiquidStakingContract {
 
     /// Returns the total staking balance.
     pub fn get_total_staked_balance(&self) -> U128 {
-        self.total_staked_balance.into()
+        self.total_staked_near_amount.into()
     }
 
     /// Returns account ID of the staking pool owner.
@@ -290,7 +323,6 @@ impl LiquidStakingContract {
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod tests {
     use near_sdk::test_utils::{accounts, VMContextBuilder};
-    use near_sdk::MockedBlockchain;
     use near_sdk::{testing_env};
 
     use super::*;

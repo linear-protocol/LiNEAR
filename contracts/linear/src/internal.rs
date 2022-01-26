@@ -32,12 +32,11 @@ impl LiquidStakingContract {
         self.internal_save_account(&account_id, &account);
         self.last_total_balance += amount;
 
-        env::log(
-            format!(
+        env::log_str(
+            &format!(
                 "@{} deposited {}. New unstaked balance is {}",
                 account_id, amount, account.unstaked
             )
-            .as_bytes(),
         );
         amount
     }
@@ -58,12 +57,11 @@ impl LiquidStakingContract {
         account.unstaked -= amount;
         self.internal_save_account(&account_id, &account);
 
-        env::log(
-            format!(
+        env::log_str(
+            &format!(
                 "@{} withdrawing {}. New unstaked balance is {}",
                 account_id, amount, account.unstaked
             )
-            .as_bytes(),
         );
 
         Promise::new(account_id).transfer(amount);
@@ -105,22 +103,20 @@ impl LiquidStakingContract {
         // from the allocated STAKE_SHARE_PRICE_GUARANTEE_FUND.
         let stake_amount = self.staked_amount_from_num_shares_rounded_up(num_shares);
 
-        self.total_staked_balance += stake_amount;
-        self.total_stake_shares += num_shares;
+        self.total_staked_near_amount += stake_amount;
+        self.total_share_amount += num_shares;
 
-        env::log(
-            format!(
+        env::log_str(
+            &format!(
                 "@{} staking {}. Received {} new staking shares. Total {} unstaked balance and {} staking shares",
                 account_id, charge_amount, num_shares, account.unstaked, account.stake_shares
             )
-                .as_bytes(),
         );
-        env::log(
-            format!(
+        env::log_str(
+            &format!(
                 "Contract total staked balance is {}. Total number of shares {}",
-                self.total_staked_balance, self.total_stake_shares
+                self.total_staked_near_amount, self.total_share_amount
             )
-            .as_bytes(),
         );
     }
 
@@ -131,7 +127,7 @@ impl LiquidStakingContract {
         let mut account = self.internal_get_account(&account_id);
 
         assert!(
-            self.total_staked_balance > 0,
+            self.total_staked_near_amount > 0,
             "The contract doesn't have staked balance"
         );
         // Calculate the number of shares required to unstake the given amount.
@@ -164,22 +160,20 @@ impl LiquidStakingContract {
         // paid from the allocated STAKE_SHARE_PRICE_GUARANTEE_FUND.
         let unstake_amount = self.staked_amount_from_num_shares_rounded_down(num_shares);
 
-        self.total_staked_balance -= unstake_amount;
-        self.total_stake_shares -= num_shares;
+        self.total_staked_near_amount -= unstake_amount;
+        self.total_share_amount -= num_shares;
 
-        env::log(
-            format!(
+        env::log_str(
+            &format!(
                 "@{} unstaking {}. Spent {} staking shares. Total {} unstaked balance and {} staking shares",
                 account_id, receive_amount, num_shares, account.unstaked, account.stake_shares
             )
-                .as_bytes(),
         );
-        env::log(
-            format!(
+        env::log_str(
+            &format!(
                 "Contract total staked balance is {}. Total number of shares {}",
-                self.total_staked_balance, self.total_stake_shares
+                self.total_staked_near_amount, self.total_share_amount
             )
-            .as_bytes(),
         );
     }
 
@@ -219,7 +213,7 @@ impl LiquidStakingContract {
 
             // Distributing the remaining reward to the delegators first.
             let remaining_reward = total_reward - owners_fee;
-            self.total_staked_balance += remaining_reward;
+            self.total_staked_near_amount += remaining_reward;
 
             // Now buying "stake" shares for the contract owner at the new share price.
             let num_shares = self.num_shares_from_staked_amount_rounded_down(owners_fee);
@@ -230,21 +224,20 @@ impl LiquidStakingContract {
                 account.stake_shares += num_shares;
                 self.internal_save_account(&owner_id, &account);
                 // Increasing the total amount of "stake" shares.
-                self.total_stake_shares += num_shares;
+                self.total_share_amount += num_shares;
             }
             // Increasing the total staked balance by the owners fee, no matter whether the owner
             // received any shares or not.
-            self.total_staked_balance += owners_fee;
+            self.total_staked_near_amount += owners_fee;
 
-            env::log(
-                format!(
+            env::log_str(
+                &format!(
                     "Epoch {}: Contract received total rewards of {} tokens. New total staked balance is {}. Total number of shares {}",
-                    epoch_height, total_reward, self.total_staked_balance, self.total_stake_shares,
+                    epoch_height, total_reward, self.total_staked_near_amount, self.total_share_amount,
                 )
-                    .as_bytes(),
             );
             if num_shares > 0 {
-                env::log(format!("Total rewards fee is {} stake shares.", num_shares).as_bytes());
+                env::log_str(&format!("Total rewards fee is {} stake shares.", num_shares));
             }
         }
 
@@ -264,13 +257,13 @@ impl LiquidStakingContract {
     pub(crate) fn num_shares_from_staked_amount_rounded_down(
         &self,
         amount: Balance,
-    ) -> NumStakeShares {
+    ) -> ShareBalance {
         assert!(
-            self.total_staked_balance > 0,
+            self.total_staked_near_amount > 0,
             "The total staked balance can't be 0"
         );
-        (U256::from(self.total_stake_shares) * U256::from(amount)
-            / U256::from(self.total_staked_balance))
+        (U256::from(self.total_share_amount) * U256::from(amount)
+            / U256::from(self.total_staked_near_amount))
         .as_u128()
     }
 
@@ -281,28 +274,28 @@ impl LiquidStakingContract {
     pub(crate) fn num_shares_from_staked_amount_rounded_up(
         &self,
         amount: Balance,
-    ) -> NumStakeShares {
+    ) -> ShareBalance {
         assert!(
-            self.total_staked_balance > 0,
+            self.total_staked_near_amount> 0,
             "The total staked balance can't be 0"
         );
-        ((U256::from(self.total_stake_shares) * U256::from(amount)
-            + U256::from(self.total_staked_balance - 1))
-            / U256::from(self.total_staked_balance))
+        ((U256::from(self.total_share_amount) * U256::from(amount)
+            + U256::from(self.total_staked_near_amount - 1))
+            / U256::from(self.total_staked_near_amount))
         .as_u128()
     }
 
     /// Returns the staked amount rounded down corresponding to the given number of "stake" shares.
     pub(crate) fn staked_amount_from_num_shares_rounded_down(
         &self,
-        num_shares: NumStakeShares,
+        num_shares: ShareBalance,
     ) -> Balance {
         assert!(
-            self.total_stake_shares > 0,
+            self.total_share_amount > 0,
             "The total number of stake shares can't be 0"
         );
-        (U256::from(self.total_staked_balance) * U256::from(num_shares)
-            / U256::from(self.total_stake_shares))
+        (U256::from(self.total_staked_near_amount) * U256::from(num_shares)
+            / U256::from(self.total_share_amount))
         .as_u128()
     }
 
@@ -311,15 +304,15 @@ impl LiquidStakingContract {
     /// Rounding up division of `a / b` is done using `(a + b - 1) / b`.
     pub(crate) fn staked_amount_from_num_shares_rounded_up(
         &self,
-        num_shares: NumStakeShares,
+        num_shares: ShareBalance,
     ) -> Balance {
         assert!(
-            self.total_stake_shares > 0,
+            self.total_share_amount > 0,
             "The total number of stake shares can't be 0"
         );
-        ((U256::from(self.total_staked_balance) * U256::from(num_shares)
-            + U256::from(self.total_stake_shares - 1))
-            / U256::from(self.total_stake_shares))
+        ((U256::from(self.total_staked_near_amount) * U256::from(num_shares)
+            + U256::from(self.total_share_amount - 1))
+            / U256::from(self.total_share_amount))
         .as_u128()
     }
 

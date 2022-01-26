@@ -17,10 +17,14 @@ mock-staking-pool: contracts/mock-staking-pool
 clean:
 	rm res/*.wasm
 
-test:
-	make test-staking-pool
+test: test-linear test-mock-staking-pool
 
-test-staking-pool: mock-staking-pool
+test-linear: linear
+	mkdir -p ./tests/compiled-contracts/
+	cp ./res/linear.wasm ./tests/compiled-contracts/linear.wasm
+	cd tests && npx near-workspaces-ava __tests__/linear/**.ts --verbose
+
+test-mock-staking-pool: mock-staking-pool
 	mkdir -p ./tests/compiled-contracts/
 	cp ./res/mock_staking_pool.wasm ./tests/compiled-contracts/mock_staking_pool.wasm
 	cd tests && npx near-workspaces-ava __tests__/mock-staking-pool/**.ts --verbose

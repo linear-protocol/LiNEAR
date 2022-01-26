@@ -69,9 +69,9 @@ pub struct LiquidStakingContract {
     pub last_total_balance: Balance,
     /// Total amount of LiNEAR that was minted (minus burned).
     pub total_share_amount: ShareBalance,
-    /// Total amount of NEAR that was staked by users to this contract.     
-    /// This is effectively 
-    /// 1) amount of NEAR that was deposited to this contract but hasn't yet been staked on any validators 
+    /// Total amount of NEAR that was staked by users to this contract.         
+    /// 
+    /// This is effectively 1) amount of NEAR that was deposited to this contract but hasn't yet been staked on any validators 
     /// plus 2) amount of NEAR that has already been staked on validators.    
     /// Note that the amount of NEAR that is pending release or is already released by hasn't been withdrawn is not considered.
     pub total_staked_near_amount: Balance,

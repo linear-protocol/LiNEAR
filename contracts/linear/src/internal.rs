@@ -33,7 +33,7 @@ impl LiquidStakingContract {
         self.last_total_balance += amount;
 
         env::log_str(
-            format!(
+            &format!(
                 "@{} deposited {}. New unstaked balance is {}",
                 account_id, amount, account.unstaked
             )
@@ -58,7 +58,7 @@ impl LiquidStakingContract {
         self.internal_save_account(&account_id, &account);
 
         env::log_str(
-            format!(
+            &format!(
                 "@{} withdrawing {}. New unstaked balance is {}",
                 account_id, amount, account.unstaked
             )
@@ -107,15 +107,15 @@ impl LiquidStakingContract {
         self.total_share_amount += num_shares;
 
         env::log_str(
-            format!(
+            &format!(
                 "@{} staking {}. Received {} new staking shares. Total {} unstaked balance and {} staking shares",
                 account_id, charge_amount, num_shares, account.unstaked, account.stake_shares
             )
         );
         env::log_str(
-            format!(
+            &format!(
                 "Contract total staked balance is {}. Total number of shares {}",
-                self.total_staked_near_amount, self.total_share_amount.
+                self.total_staked_near_amount, self.total_share_amount
             )
         );
     }
@@ -164,13 +164,13 @@ impl LiquidStakingContract {
         self.total_share_amount -= num_shares;
 
         env::log_str(
-            format!(
+            &format!(
                 "@{} unstaking {}. Spent {} staking shares. Total {} unstaked balance and {} staking shares",
                 account_id, receive_amount, num_shares, account.unstaked, account.stake_shares
             )
         );
         env::log_str(
-            format!(
+            &format!(
                 "Contract total staked balance is {}. Total number of shares {}",
                 self.total_staked_near_amount, self.total_share_amount
             )
@@ -231,13 +231,13 @@ impl LiquidStakingContract {
             self.total_staked_near_amount += owners_fee;
 
             env::log_str(
-                format!(
+                &format!(
                     "Epoch {}: Contract received total rewards of {} tokens. New total staked balance is {}. Total number of shares {}",
                     epoch_height, total_reward, self.total_staked_near_amount, self.total_share_amount,
                 )
             );
             if num_shares > 0 {
-                env::log_str(format!("Total rewards fee is {} stake shares.", num_shares));
+                env::log_str(&format!("Total rewards fee is {} stake shares.", num_shares));
             }
         }
 

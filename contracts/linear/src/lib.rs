@@ -29,7 +29,7 @@ pub trait SelfContract {
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
 #[serde(crate = "near_sdk::serde")]
-struct RewardFeeFraction {
+pub struct RewardFeeFraction {
     pub numerator: u32,
     pub denominator: u32,
 }
@@ -146,7 +146,7 @@ impl LiquidStakingContract {
     /// Deposits the attached amount into the inner account of the predecessor.
     #[payable]
     pub fn deposit(&mut self) {
-        panic!(ERR_CALL_DEPOSIT);
+        panic!("{}", ERR_CALL_DEPOSIT);
     }
 
     /// Deposits the attached amount into the inner account of the predecessor and stakes it.

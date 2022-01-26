@@ -4,17 +4,25 @@ use near_sdk::{
     json_types::{U128},
     collections::{UnorderedMap},
     env, near_bindgen, ext_contract, require,
-    AccountId, Balance, PanicOnDefault, EpochHeight, PublicKey
+    AccountId, Balance, PanicOnDefault, EpochHeight, PublicKey, StorageUsage
 };
 
 mod types;
 mod errors;
 mod account;
 mod internal;
+mod fungible_token_core;
+mod fungible_token_metadata;
+mod fungible_token_storage;
 
 use crate::types::*;
 use crate::errors::*;
 use crate::account::*;
+use crate::internal::*;
+pub use crate::fungible_token_core::*;
+pub use crate::fungible_token_metadata::*;
+pub use crate::fungible_token_storage::*;
+
 
 /// Interface for the contract itself.
 #[ext_contract(ext_self)]
@@ -86,6 +94,9 @@ pub struct LiquidStakingContract {
     /// Pausing is useful for node maintenance. Only the owner can pause and resume staking.
     /// The contract is not paused by default.
     pub paused: bool,
+
+    /// The storage size in bytes for one account.
+    pub account_storage_usage: StorageUsage,
 }
 
 #[near_bindgen]
@@ -126,12 +137,23 @@ impl LiquidStakingContract {
             reward_fee_fraction,
             accounts: UnorderedMap::new(b"a".to_vec()),
             paused: false,
+            account_storage_usage: 0
         };
+        this.measure_account_storage_usage();
         // Staking with the current pool to make sure the staking key is valid.
         this.internal_restake();
         this
     }
+
+    fn measure_account_storage_usage(&mut self) {
+        let initial_storage_usage = env::storage_usage();
+        let tmp_account_id = AccountId::new_unchecked("a".repeat(64));
+        self.accounts.insert(&tmp_account_id, &Account::default());
+        self.account_storage_usage = env::storage_usage() - initial_storage_usage;
+        self.accounts.remove(&tmp_account_id);
+    }
 }
+
 
 /// -- Staking pool change methods
 

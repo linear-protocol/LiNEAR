@@ -1,11 +1,10 @@
 use near_sdk::{
-    Balance, EpochHeight,
+    Balance,
 };
 use uint::construct_uint;
 
 // -- CONSTANTS
 
-pub const NUM_EPOCHS_TO_UNLOCK: EpochHeight = 4;
 /// No deposit balance.
 pub const NO_DEPOSIT: Balance = 0;
 /// one NEAR

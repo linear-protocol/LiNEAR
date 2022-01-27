@@ -6,3 +6,6 @@ pub const ERR_FRACTION_BAD_DENOMINATOR: &str = "Denominator cannot be zero";
 pub const ERR_FRACTION_BAD_NUMERATOR: &str = "Numerator must <= denominator";
 
 pub const ERR_CALL_DEPOSIT: &str = "Deposit is not supported, please use deposit_and_stake";
+
+pub const ERR_MIN_RESERVE: &str = "Contract min reserve error";
+pub const ERR_VALIDATOR_NOT_EXIST: &str = "Validator not exist";

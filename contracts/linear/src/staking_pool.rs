@@ -1,6 +1,6 @@
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
-    ext_contract, AccountId, Balance, EpochHeight, env,
+    ext_contract, AccountId, Balance, EpochHeight, env, Promise,
     json_types::{U128},
     collections::{LookupMap},
 };
@@ -32,42 +32,60 @@ pub trait ExtStakingPool {
 /// A pool of validators.
 /// The main function of this struct is to
 /// store validator info and calculate the best candidate to stake/unstake.
+#[derive(BorshSerialize, BorshDeserialize)]
 pub struct ValidatorPool {
     validators: LookupMap<AccountId, Validator>
 }
 
 impl ValidatorPool {
+    pub fn new() -> Self {
+        Self {
+            validators: LookupMap::new(b"vs".to_vec())
+        }
+    }
+
+    pub fn get_validator(
+        &self,
+        validator_id: &AccountId
+    ) -> Option<Validator> {
+        self.validators.get(validator_id)
+    }
+
     pub fn get_candidate_to_stake(
         & self,
         amount: Balance,
-    ) -> Validator {
+    ) -> (Validator, Balance) {
         // TODO
-        self.validators
+        let validator = self.validators
             .get(&AccountId::new_unchecked("foo.near".to_string()))
-            .unwrap()
+            .unwrap();
+
+        (validator, amount)
     }
 
     pub fn get_candidate_to_unstake(
         & self,
         amount: Balance,
-    ) -> Validator {
+    ) -> (Validator, Balance) {
         // TODO
-        self.validators
+        let validator = self.validators
             .get(&AccountId::new_unchecked("bar.near".to_string()))
-            .unwrap()
+            .unwrap();
+
+        (validator, amount)
     }
 }
 
 /// struct for staking pool validator
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Validator {
-    account_id: AccountId,
+    pub account_id: AccountId,
 
-    staked_amount: Balance,
-    unstaked_amount: Balance,
+    pub staked_amount: Balance,
+    pub unstaked_amount: Balance,
 
     /// the epoch num when latest unstake action happened on this validator
-    unstake_fired_epoch: EpochHeight,
+    pub unstake_fired_epoch: EpochHeight,
 }
 
 impl Validator {
@@ -86,5 +104,24 @@ impl Validator {
         let current_epoch = env::epoch_height();
         current_epoch >= self.unstake_fired_epoch &&
             current_epoch < self.unstake_fired_epoch + NUM_EPOCHS_TO_UNLOCK
+    }
+
+    pub fn deposit_and_stake(
+        &mut self,
+        amount: Balance
+    ) -> Promise {
+        self.staked_amount += amount;
+        ext_staking_pool::deposit_and_stake(
+            self.account_id.clone(),
+            amount,
+            GAS_EXT_DEPOSIT_AND_STAKE
+        )
+    }
+
+    pub fn on_stake_failed(
+        &mut self,
+        amount: Balance
+    ) {
+        self.staked_amount -= amount;
     }
 }

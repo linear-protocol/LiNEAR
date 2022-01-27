@@ -13,15 +13,6 @@ const MIN_AMOUNT_TO_PERFORM_STAKE: Balance = 10 * ONE_NEAR;
 /// storage and contract call fees.
 const CONTRACT_MIN_RESERVE_BALANCE: Balance = 30 * ONE_NEAR;
 
-#[ext_contract(ext_self_action_cb)]
-trait EpochActionCallbacks {
-    fn validator_staked_callback(
-        &mut self,
-        validator_id: AccountId,
-        amount: Balance
-    );
-}
-
 /// Actions that should be called by off-chain actors
 /// during each epoch.
 #[near_bindgen]
@@ -82,6 +73,17 @@ impl LiquidStakingContract {
     }
 }
 
+/// -- callbacks
+
+#[ext_contract(ext_self_action_cb)]
+trait EpochActionCallbacks {
+    fn validator_staked_callback(
+        &mut self,
+        validator_id: AccountId,
+        amount: Balance
+    );
+}
+
 /// callbacks
 /// functions here SHOULD NOT PANIC!
 impl LiquidStakingContract {
@@ -110,14 +112,4 @@ impl LiquidStakingContract {
 
         log_stake_failed(&validator_id, amount);
     }
-}
-
-pub fn a(&mut self) {
-    a.count += 1;
-    ext_contract::b();
-}
-
-pub fn a(&mut self) {
-    ext_contract::b();
-    a.count += 1;
 }

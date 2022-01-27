@@ -1,9 +1,10 @@
 use near_sdk::{
+    borsh::{self, BorshDeserialize, BorshSerialize},
     ext_contract, AccountId, Balance, EpochHeight, env,
     json_types::{U128},
+    collections::{LookupMap},
 };
-
-const NUM_EPOCHS_TO_UNLOCK: EpochHeight = 4;
+use crate::types::*;
 
 #[ext_contract(ext_staking_pool)]
 pub trait ExtStakingPool {
@@ -28,7 +29,37 @@ pub trait ExtStakingPool {
     fn unstake_all(&mut self);
 }
 
+/// A pool of validators.
+/// The main function of this struct is to
+/// store validator info and calculate the best candidate to stake/unstake.
+pub struct ValidatorPool {
+    validators: LookupMap<AccountId, Validator>
+}
+
+impl ValidatorPool {
+    pub fn get_candidate_to_stake(
+        & self,
+        amount: Balance,
+    ) -> Validator {
+        // TODO
+        self.validators
+            .get(&AccountId::new_unchecked("foo.near".to_string()))
+            .unwrap()
+    }
+
+    pub fn get_candidate_to_unstake(
+        & self,
+        amount: Balance,
+    ) -> Validator {
+        // TODO
+        self.validators
+            .get(&AccountId::new_unchecked("bar.near".to_string()))
+            .unwrap()
+    }
+}
+
 /// struct for staking pool validator
+#[derive(BorshDeserialize, BorshSerialize)]
 pub struct Validator {
     account_id: AccountId,
 

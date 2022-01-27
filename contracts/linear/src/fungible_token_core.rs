@@ -7,7 +7,7 @@ use near_sdk::{
 use near_contract_standards::fungible_token::core::FungibleTokenCore;
 use near_contract_standards::fungible_token::resolver::FungibleTokenResolver;
 
-const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(8_000_000_000_000);
+const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(12_000_000_000_000);
 const GAS_FOR_FT_TRANSFER_CALL: Gas = Gas(25_000_000_000_000 + GAS_FOR_RESOLVE_TRANSFER.0);
 
 #[ext_contract(ext_fungible_token_receiver)]

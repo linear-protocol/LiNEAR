@@ -1,4 +1,4 @@
-use near_sdk::{Promise};
+use near_sdk::{Promise,log};
 use crate::*;
 
 use crate::types::*;
@@ -32,12 +32,7 @@ impl LiquidStakingContract {
         self.internal_save_account(&account_id, &account);
         self.last_total_balance += amount;
 
-        env::log_str(
-            &format!(
-                "@{} deposited {}. New unstaked balance is {}",
-                account_id, amount, account.unstaked
-            )
-        );
+        log!("@{} deposited {}. New unstaked balance is {}", account_id, amount, account.unstaked);
         amount
     }
 
@@ -57,12 +52,7 @@ impl LiquidStakingContract {
         account.unstaked -= amount;
         self.internal_save_account(&account_id, &account);
 
-        env::log_str(
-            &format!(
-                "@{} withdrawing {}. New unstaked balance is {}",
-                account_id, amount, account.unstaked
-            )
-        );
+        log!("@{} withdrawing {}. New unstaked balance is {}", account_id, amount, account.unstaked);
 
         Promise::new(account_id).transfer(amount);
         self.last_total_balance -= amount;
@@ -106,17 +96,13 @@ impl LiquidStakingContract {
         self.total_staked_near_amount += stake_amount;
         self.total_share_amount += num_shares;
 
-        env::log_str(
-            &format!(
-                "@{} staking {}. Received {} new staking shares. Total {} unstaked balance and {} staking shares",
-                account_id, charge_amount, num_shares, account.unstaked, account.stake_shares
-            )
+        log!(
+            "@{} staking {}. Received {} new staking shares. Total {} unstaked balance and {} staking shares",
+            account_id, charge_amount, num_shares, account.unstaked, account.stake_shares
         );
-        env::log_str(
-            &format!(
-                "Contract total staked balance is {}. Total number of shares {}",
-                self.total_staked_near_amount, self.total_share_amount
-            )
+        log!(
+            "Contract total staked balance is {}. Total number of shares {}",
+            self.total_staked_near_amount, self.total_share_amount
         );
     }
 
@@ -163,17 +149,13 @@ impl LiquidStakingContract {
         self.total_staked_near_amount -= unstake_amount;
         self.total_share_amount -= num_shares;
 
-        env::log_str(
-            &format!(
-                "@{} unstaking {}. Spent {} staking shares. Total {} unstaked balance and {} staking shares",
-                account_id, receive_amount, num_shares, account.unstaked, account.stake_shares
-            )
+        log!(
+            "@{} unstaking {}. Spent {} staking shares. Total {} unstaked balance and {} staking shares",
+            account_id, receive_amount, num_shares, account.unstaked, account.stake_shares
         );
-        env::log_str(
-            &format!(
-                "Contract total staked balance is {}. Total number of shares {}",
-                self.total_staked_near_amount, self.total_share_amount
-            )
+        log!(
+            "Contract total staked balance is {}. Total number of shares {}",
+            self.total_staked_near_amount, self.total_share_amount
         );
     }
 
@@ -230,14 +212,12 @@ impl LiquidStakingContract {
             // received any shares or not.
             self.total_staked_near_amount += owners_fee;
 
-            env::log_str(
-                &format!(
-                    "Epoch {}: Contract received total rewards of {} tokens. New total staked balance is {}. Total number of shares {}",
-                    epoch_height, total_reward, self.total_staked_near_amount, self.total_share_amount,
-                )
+            log!(
+                "Epoch {}: Contract received total rewards of {} tokens. New total staked balance is {}. Total number of shares {}",
+                epoch_height, total_reward, self.total_staked_near_amount, self.total_share_amount,
             );
             if num_shares > 0 {
-                env::log_str(&format!("Total rewards fee is {} stake shares.", num_shares));
+                log!("Total rewards fee is {} stake shares.", num_shares);
             }
         }
 
@@ -387,9 +367,9 @@ impl LiquidStakingContract {
         self.internal_ft_withdraw(sender_id, amount);
         self.internal_ft_deposit(receiver_id, amount);
 
-        env::log_str(format!("Transfer {} from {} to {}", amount, sender_id, receiver_id).as_ref());
+        log!("Transfer {} from {} to {}", amount, sender_id, receiver_id);
         if let Some(memo) = memo {
-            env::log_str(format!("Memo: {}", memo).as_ref());
+            log!("Memo: {}", memo);
         }
     }
 

@@ -37,7 +37,7 @@ const workspace = Workspace.init(async ({root}) => {
   return { contract, alice };
 });
 
-workspace.test('fungible token: metadata', async (test, {contract, alice}) => {
+workspace.test('read metadata', async (test, {contract, alice}) => {
   const metadata = await contract.view('ft_metadata', {}) as any;
   test.is(
     metadata.symbol,
@@ -49,8 +49,7 @@ workspace.test('fungible token: metadata', async (test, {contract, alice}) => {
   );
 });
 
-// TODO: not fully tested yet; we need to call `stake()` first to get LiNEAR
-workspace.test('fungible token: transfer', async (test, {contract, alice}) => {
+workspace.test('cannot transfer with no balance', async (test, {contract, alice}) => {
   const ONE_YOCTO_NEAR = '1';
 
   await registerUser(contract, alice);

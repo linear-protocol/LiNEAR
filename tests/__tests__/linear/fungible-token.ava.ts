@@ -83,12 +83,10 @@ workspace.test('cannot transfer with no balance', async (test, {contract, alice,
 });
 
 workspace.test('stake NEAR and transfer LiNEAR', async (test, {contract, alice, bob}) => {
-  const ONE_YOCTO_NEAR = '1';
-
   await registerUser(contract, alice);
   await registerUser(contract, bob);
 
-  // deposit and stake
+  // deposit and stake 10 NEAR
   const stakeAmount = NEAR.parse('10');
   await alice.call(
     contract,

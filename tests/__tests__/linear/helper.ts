@@ -1,4 +1,4 @@
-import { Workspace } from "near-workspaces-ava";
+import { Workspace, NearAccount } from "near-workspaces-ava";
 
 interface RewardFee {
   numerator: number,
@@ -17,7 +17,7 @@ export function initWorkSpace() {
 }
 
 export async function deployLinear(
-  root: any,
+  root: NearAccount,
   owner_id: string,
   contractId = 'linear',
   reward_fee?: RewardFee,

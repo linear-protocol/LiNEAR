@@ -95,7 +95,7 @@ workspace.test('stake NEAR and transfer LiNEAR', async (test, {contract, alice, 
     { attachedDeposit: stakeAmount },
   );
 
-  // transfer 2 NEAR from alice to bob
+  // transfer 2 LiNEAR from alice to bob
   const transferAmount1 = NEAR.parse('2');
   await transfer(contract, alice, bob, transferAmount1);
   test.is(
@@ -107,7 +107,7 @@ workspace.test('stake NEAR and transfer LiNEAR', async (test, {contract, alice, 
     transferAmount1.toString()
   );
 
-  // transfer 1 NEAR from bob to alice
+  // transfer 1 LiNEAR from bob to alice
   const transferAmount2 = NEAR.parse('1');
   await transfer(contract, bob, alice, transferAmount2);
   test.is(
@@ -119,7 +119,7 @@ workspace.test('stake NEAR and transfer LiNEAR', async (test, {contract, alice, 
     transferAmount1.sub(transferAmount2).toString()
   );
 
-  // cannot transfer 2 NEAR from bob
+  // cannot transfer 2 LiNEAR from bob
   try {
     await transfer(contract, bob, alice, NEAR.parse('2'));
   } catch(e) {

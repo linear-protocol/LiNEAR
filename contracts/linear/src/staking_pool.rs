@@ -1,12 +1,13 @@
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
-    ext_contract, AccountId, Balance, EpochHeight, env, Promise,
+    ext_contract, AccountId, Balance, EpochHeight, Promise,
     require,
     json_types::{U128},
     collections::{LookupMap},
 };
 use crate::types::*;
 use crate::errors::*;
+use crate::utils::*;
 
 #[ext_contract(ext_staking_pool)]
 pub trait ExtStakingPool {
@@ -107,7 +108,7 @@ impl Validator {
     }
 
     pub fn pending_release(& self) -> bool {
-        let current_epoch = env::epoch_height();
+        let current_epoch = get_epoch_height();
         current_epoch >= self.unstake_fired_epoch &&
             current_epoch < self.unstake_fired_epoch + NUM_EPOCHS_TO_UNLOCK
     }
@@ -147,7 +148,7 @@ impl Validator {
         self.staked_amount -= amount;
         self.unstaked_amount += amount;
         self.last_unstake_fired_epoch = self.unstake_fired_epoch;
-        self.unstake_fired_epoch = env::epoch_height();
+        self.unstake_fired_epoch = get_epoch_height();
 
         ext_staking_pool::unstake(
             amount.into(),

@@ -183,7 +183,13 @@ impl LiquidStakingContract {
     /// Deposits the attached amount into the inner account of the predecessor.
     #[payable]
     pub fn deposit(&mut self) {
-        panic!("{}", ERR_CALL_DEPOSIT);
+        let need_to_restake = self.internal_ping();
+
+        self.internal_deposit();
+
+        if need_to_restake {
+            self.internal_restake();
+        }
     }
 
     /// Deposits the attached amount into the inner account of the predecessor and stakes it.

@@ -6,6 +6,12 @@ pub const ERR_FRACTION_BAD_DENOMINATOR: &str = "Denominator cannot be zero";
 pub const ERR_FRACTION_BAD_NUMERATOR: &str = "Numerator must <= denominator";
 
 pub const ERR_CALL_DEPOSIT: &str = "Deposit is not supported, please use deposit_and_stake";
+pub const ERR_NON_POSITIVE_STAKING_AMOUNT: &str = "Staking amount should be positive";
+pub const ERR_NON_POSITIVE_CALCULATED_STAKING_SHARE: &str = "The calculated number of \"stake\" shares received for staking should be positive";
+pub const ERR_NON_POSITIVE_CALCULATED_STAKING_AMOUNT: &str = "Invariant violation. Calculated staked amount must be positive, because \"stake\" share price should be at least 1";
+pub const ERR_NO_ENOUGH_UNSTAKED_BALANCE: &str = "Not enough unstaked balance to stake";
+
+pub const ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE: &str = "The total staked balance can't be 0";
 
 pub const ERR_MIN_RESERVE: &str = "Contract min reserve error";
 pub const ERR_VALIDATOR_NOT_EXIST: &str = "Validator not exist";

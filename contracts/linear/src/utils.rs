@@ -1,19 +1,18 @@
 use near_sdk::{
-    env, EpochHeight,
+    env, EpochHeight, near_bindgen,
 };
-#[cfg(test)]
 use crate::*;
 
 pub fn assert_is_callback() {
     assert_eq!(env::predecessor_account_id(), env::current_account_id());
 }
 
-#[cfg(not(test))]
+#[cfg(not(feature = "test"))]
 pub fn get_epoch_height() -> EpochHeight {
     env::epoch_height()
 }
 
-#[cfg(test)]
+#[cfg(feature = "test")]
 pub fn get_epoch_height() -> EpochHeight {
     let test_epoch_height_key: &[u8] = "_test_epoch_".as_bytes();
     let raw_epoch_option = env::storage_read(test_epoch_height_key);
@@ -25,11 +24,17 @@ pub fn get_epoch_height() -> EpochHeight {
     }
 }
 
-#[cfg(test)]
+/// Epoch height helper methods only available for testing
 #[near_bindgen]
 impl LiquidStakingContract {
-    pub fn set_epoch_height(epoch: EpochHeight) {
+    #[cfg(feature = "test")]
+    pub fn set_epoch_height(&mut self, epoch: EpochHeight) {
         let test_epoch_height_key: &[u8] = "_test_epoch_".as_bytes();
         env::storage_write(test_epoch_height_key, &epoch.try_to_vec().unwrap_or_default());
+    }
+
+    #[cfg(feature = "test")]
+    pub fn read_epoch_height(&self) -> EpochHeight {
+        get_epoch_height()
     }
 }

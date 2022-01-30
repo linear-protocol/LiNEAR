@@ -74,6 +74,11 @@ impl ValidatorPool {
 
         (validator, amount)
     }
+
+    pub fn get_num_epoch_to_unstake(amount: u128) -> EpochHeight {
+        // the num of epoches can be doubled or trippled if not enough stake is available
+        NUM_EPOCHS_TO_UNLOCK
+    }
 }
 
 /// struct for staking pool validator

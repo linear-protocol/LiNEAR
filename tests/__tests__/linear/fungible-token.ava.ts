@@ -1,4 +1,5 @@
 import { Workspace, NEAR, NearAccount } from 'near-workspaces-ava';
+import { initWorkSpace } from './helper';
 
 const ONE_YOCTO_NEAR = '1';
 const ERR_NO_ENOUGH_BALANCE = 'Smart contract panicked: The account doesn\'t have enough balance';
@@ -37,28 +38,7 @@ async function transfer(
   );
 }
 
-const workspace = Workspace.init(async ({root}) => {
-  const owner = await root.createAccount('linear_owner');
-  const alice = await root.createAccount('alice');
-  const bob = await root.createAccount('bob');
-
-  const contract = await root.createAndDeploy(
-    'linear',
-    'compiled-contracts/linear.wasm',
-    {
-      method: 'new',
-      args: {
-        owner_id: 'linear_owner',
-        reward_fee: {
-          numerator: 1,
-          denominator: 100 
-        }
-      },
-    },
-  );
-
-  return { contract, alice, bob };
-});
+const workspace = initWorkSpace();
 
 workspace.test('read ft metadata', async (test, {contract, alice}) => {
   const metadata = await contract.view('ft_metadata', {}) as any;

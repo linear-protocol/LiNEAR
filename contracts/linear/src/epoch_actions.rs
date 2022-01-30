@@ -8,8 +8,8 @@ use crate::types::*;
 use crate::utils::*;
 use crate::events::*;
 
-const MIN_AMOUNT_TO_PERFORM_STAKE: Balance = 10 * ONE_NEAR;
-const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = 10 * ONE_NEAR;
+const MIN_AMOUNT_TO_PERFORM_STAKE: Balance = ONE_NEAR;
+const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR;
 /// min NEAR balance this contract should hold in order to cover
 /// storage and contract call fees.
 const CONTRACT_MIN_RESERVE_BALANCE: Balance = 30 * ONE_NEAR;
@@ -23,7 +23,11 @@ impl LiquidStakingContract {
         let min_gas = GAS_EPOCH_STAKE + GAS_EXT_DEPOSIT_AND_STAKE + GAS_CB_VALIDATOR_STAKED;
         require!(
             env::prepaid_gas() >= min_gas,
-            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+            format!(
+                "{}. require at least {:?}", 
+                ERR_NO_ENOUGH_GAS, 
+                min_gas
+            )
         );
 
         self.epoch_cleanup();
@@ -37,7 +41,7 @@ impl LiquidStakingContract {
             .get_candidate_to_stake(self.epoch_requested_stake_amount);
 
         if amount_to_stake < MIN_AMOUNT_TO_PERFORM_STAKE {
-            log!(format!("stake amount too low: {}", amount_to_stake));
+            log!("stake amount too low: {}", amount_to_stake);
             return;
         }
 
@@ -82,7 +86,7 @@ impl LiquidStakingContract {
             .get_candidate_to_unstake(self.epoch_requested_unstake_amount);
 
         if amount_to_unstake < MIN_AMOUNT_TO_PERFORM_UNSTAKE {
-            log!(format!("unstake amount too low: {}", amount_to_unstake));
+            log!("unstake amount too low: {}", amount_to_unstake);
             return;
         }
 

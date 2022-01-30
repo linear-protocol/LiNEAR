@@ -5,7 +5,6 @@ pub const ERR_NO_ENOUGH_INIT_DEPOSIT: &str = "The account doesn't have enough ba
 pub const ERR_FRACTION_BAD_DENOMINATOR: &str = "Denominator cannot be zero";
 pub const ERR_FRACTION_BAD_NUMERATOR: &str = "Numerator must <= denominator";
 
-pub const ERR_CALL_DEPOSIT: &str = "Deposit is not supported, please use deposit_and_stake";
 pub const ERR_NON_POSITIVE_STAKING_AMOUNT: &str = "Staking amount should be positive";
 pub const ERR_NON_POSITIVE_CALCULATED_STAKING_SHARE: &str = "The calculated number of \"stake\" shares received for staking should be positive";
 pub const ERR_NON_POSITIVE_CALCULATED_STAKING_AMOUNT: &str = "Invariant violation. Calculated staked amount must be positive, because \"stake\" share price should be at least 1";

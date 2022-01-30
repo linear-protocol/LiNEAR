@@ -37,17 +37,13 @@ impl LiquidStakingContract {
     }
 
     pub(crate) fn internal_withdraw(&mut self, amount: Balance) {
-        assert!(amount > 0, "Withdrawal amount should be positive");
+        require!(amount > 0, ERR_NON_POSITIVE_WITHDRAWAL_AMOUNT);
 
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);
-        assert!(
-            account.unstaked >= amount,
-            "Not enough unstaked balance to withdraw"
-        );
-        assert!(
-            account.unstaked_available_epoch_height <= env::epoch_height(),
-            "The unstaked balance is not yet available due to unstaking delay"
+        require!(account.unstaked >= amount, ERR_NO_ENOUGH_UNSTAKED_BALANCE_TO_WITHDRAW);
+        require!(account.unstaked_available_epoch_height <= env::epoch_height(),
+            ERR_UNSTAKED_BALANCE_NOT_AVAILABLE
         );
         account.unstaked -= amount;
         self.internal_save_account(&account_id, &account);

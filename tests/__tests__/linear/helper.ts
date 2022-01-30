@@ -9,10 +9,11 @@ export function initWorkSpace() {
   return Workspace.init(async ({ root }) => {
     const owner = await root.createAccount('linear_owner');
     const alice = await root.createAccount('alice');
+    const bob = await root.createAccount('bob');
 
     const contract = await deployLinear(root, owner.accountId);
 
-    return { contract, alice };
+    return { contract, alice, bob };
   });
 }
 

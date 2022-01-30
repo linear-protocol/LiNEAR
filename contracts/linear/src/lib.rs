@@ -20,6 +20,7 @@ mod fungible_token_metadata;
 mod fungible_token_storage;
 
 use crate::types::*;
+use crate::utils::*;
 use crate::errors::*;
 use crate::account::*;
 use crate::staking_pool::*;
@@ -142,7 +143,7 @@ impl LiquidStakingContract {
         );
         let mut this = Self {
             owner_id,
-            last_epoch_height: env::epoch_height(),
+            last_epoch_height: get_epoch_height(),
             last_total_balance: account_balance,
             total_share_amount: account_balance,
             total_staked_near_amount: account_balance,
@@ -347,7 +348,7 @@ impl LiquidStakingContract {
             staked_balance: self
                 .staked_amount_from_num_shares_rounded_down(account.stake_shares)
                 .into(),
-            can_withdraw: account.unstaked_available_epoch_height <= env::epoch_height(),
+            can_withdraw: account.unstaked_available_epoch_height <= get_epoch_height(),
         }
     }
 

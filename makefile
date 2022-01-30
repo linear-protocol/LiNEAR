@@ -8,6 +8,12 @@ linear: contracts/linear
 	mkdir -p res
 	cp target/wasm32-unknown-unknown/release/linear.wasm ./res/linear.wasm
 
+linear_test: contracts/linear
+	rustup target add wasm32-unknown-unknown
+	RUSTFLAGS=$(RFLAGS) cargo build -p linear --target wasm32-unknown-unknown --features "test"
+	mkdir -p res
+	cp target/wasm32-unknown-unknown/debug/linear.wasm ./res/linear_test.wasm
+
 mock-staking-pool: contracts/mock-staking-pool
 	rustup target add wasm32-unknown-unknown
 	RUSTFLAGS=$(RFLAGS) cargo build -p mock-staking-pool --target wasm32-unknown-unknown --release
@@ -19,9 +25,9 @@ clean:
 
 test: test-linear test-mock-staking-pool
 
-test-linear: linear
+test-linear: linear_test
 	mkdir -p ./tests/compiled-contracts/
-	cp ./res/linear.wasm ./tests/compiled-contracts/linear.wasm
+	cp ./res/linear_test.wasm ./tests/compiled-contracts/linear.wasm
 	cd tests && npx near-workspaces-ava __tests__/linear/**.ts --verbose
 
 test-mock-staking-pool: mock-staking-pool

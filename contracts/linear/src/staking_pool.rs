@@ -1,10 +1,13 @@
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
-    ext_contract, AccountId, Balance, EpochHeight, env, Promise,
+    ext_contract, AccountId, Balance, EpochHeight, Promise,
+    require,
     json_types::{U128},
     collections::{LookupMap},
 };
 use crate::types::*;
+use crate::errors::*;
+use crate::utils::*;
 
 #[ext_contract(ext_staking_pool)]
 pub trait ExtStakingPool {
@@ -86,6 +89,9 @@ pub struct Validator {
 
     /// the epoch num when latest unstake action happened on this validator
     pub unstake_fired_epoch: EpochHeight,
+    /// this is to save the last value of unstake_fired_epoch,
+    /// so that when unstake revert we can restore it
+    pub last_unstake_fired_epoch: EpochHeight,
 }
 
 impl Validator {
@@ -97,11 +103,12 @@ impl Validator {
             staked_amount: 0,
             unstaked_amount: 0,
             unstake_fired_epoch: 0,
+            last_unstake_fired_epoch: 0,
         }
     }
 
     pub fn pending_release(& self) -> bool {
-        let current_epoch = env::epoch_height();
+        let current_epoch = get_epoch_height();
         current_epoch >= self.unstake_fired_epoch &&
             current_epoch < self.unstake_fired_epoch + NUM_EPOCHS_TO_UNLOCK
     }
@@ -118,10 +125,52 @@ impl Validator {
         )
     }
 
+    pub fn unstake(
+        &mut self,
+        amount: Balance
+    ) -> Promise {
+        require!(
+            amount <= self.staked_amount,
+            format!(
+                "{}. staked: {}, requested: {}", 
+                ERR_VALIDATOR_UNSTAKE_AMOUNT,
+                self.staked_amount,
+                amount
+            )
+        );
+
+        // avoid unstake from a validator which is pending release
+        require!(
+            !self.pending_release(),
+            ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED
+        );
+
+        self.staked_amount -= amount;
+        self.unstaked_amount += amount;
+        self.last_unstake_fired_epoch = self.unstake_fired_epoch;
+        self.unstake_fired_epoch = get_epoch_height();
+
+        ext_staking_pool::unstake(
+            amount.into(),
+            self.account_id.clone(),
+            NO_DEPOSIT,
+            GAS_EXT_UNSTAKE
+        )
+    }
+
     pub fn on_stake_failed(
         &mut self,
         amount: Balance
     ) {
         self.staked_amount -= amount;
+    }
+
+    pub fn on_unstake_failed(
+        &mut self,
+        amount: Balance
+    ) {
+        self.staked_amount += amount;
+        self.unstaked_amount -= amount;
+        self.unstake_fired_epoch = self.last_unstake_fired_epoch;
     }
 }

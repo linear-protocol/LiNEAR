@@ -46,7 +46,7 @@ impl LiquidStakingContract {
             "Not enough unstaked balance to withdraw"
         );
         assert!(
-            account.unstaked_available_epoch_height <= env::epoch_height(),
+            account.unstaked_available_epoch_height <= get_epoch_height(),
             "The unstaked balance is not yet available due to unstaking delay"
         );
         account.unstaked -= amount;
@@ -132,7 +132,7 @@ impl LiquidStakingContract {
 
         account.stake_shares -= num_shares;
         account.unstaked += receive_amount;
-        account.unstaked_available_epoch_height = env::epoch_height() + NUM_EPOCHS_TO_UNLOCK;
+        account.unstaked_available_epoch_height = get_epoch_height() + NUM_EPOCHS_TO_UNLOCK;
         self.internal_save_account(&account_id, &account);
 
         // The amount tokens that will be unstaked from the total to guarantee the "stake" share

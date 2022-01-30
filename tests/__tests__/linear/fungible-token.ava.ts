@@ -52,7 +52,9 @@ workspace.test('read ft metadata', async (test, {contract, alice}) => {
   );
 });
 
-workspace.test('cannot transfer with no balance', async (test, {contract, alice, bob}) => {
+workspace.test('cannot transfer with no balance', async (test, {root, contract, alice}) => {
+  const bob = await root.createAccount('bob');
+
   await registerUser(contract, alice);
 
   try {
@@ -62,7 +64,9 @@ workspace.test('cannot transfer with no balance', async (test, {contract, alice,
   }
 });
 
-workspace.test('stake NEAR and transfer LiNEAR', async (test, {contract, alice, bob}) => {
+workspace.test('stake NEAR and transfer LiNEAR', async (test, {root, contract, alice}) => {
+  const bob = await root.createAccount('bob');
+
   await registerUser(contract, alice);
   await registerUser(contract, bob);
 

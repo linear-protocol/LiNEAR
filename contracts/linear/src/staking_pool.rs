@@ -87,6 +87,13 @@ impl ValidatorPool {
         let validator = self.validators.remove(validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST);
 
+        // make sure this validator is not used at all
+        require!(
+            validator.staked_amount == 0 &&
+            validator.unstaked_amount == 0,
+            ERR_VALIDATOR_IN_USE
+        );
+
         self.total_weight -= validator.weight;
 
         return validator;

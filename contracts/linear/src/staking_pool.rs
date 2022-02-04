@@ -1,10 +1,11 @@
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     ext_contract, AccountId, Balance, EpochHeight, Promise,
-    require,
+    require, near_bindgen,
     json_types::{U128},
-    collections::{LookupMap},
+    collections::{UnorderedMap},
 };
+use crate::*;
 use crate::types::*;
 use crate::errors::*;
 use crate::utils::*;
@@ -37,13 +38,15 @@ pub trait ExtStakingPool {
 /// store validator info and calculate the best candidate to stake/unstake.
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct ValidatorPool {
-    validators: LookupMap<AccountId, Validator>
+    validators: UnorderedMap<AccountId, Validator>,
+    total_weight: u16,
 }
 
 impl ValidatorPool {
     pub fn new() -> Self {
         Self {
-            validators: LookupMap::new(b"vs".to_vec())
+            validators: UnorderedMap::new(b"vs".to_vec()),
+            total_weight: 0,
         }
     }
 
@@ -52,6 +55,70 @@ impl ValidatorPool {
         validator_id: &AccountId
     ) -> Option<Validator> {
         self.validators.get(validator_id)
+    }
+
+    pub fn add_validator(
+        &mut self,
+        validator_id: &AccountId,
+        weight: u16
+    ) {
+        require!(
+            self.get_validator(validator_id).is_none(),
+            ERR_VALIDATOR_ALREADY_EXIST
+        );
+
+        let validator = Validator::new(
+            validator_id.clone(),
+            weight
+        );
+
+        self.validators.insert(
+            validator_id,
+            &validator
+        );
+
+        self.total_weight += weight;
+    }
+
+    pub fn remove_validator(
+        &mut self,
+        validator_id: &AccountId
+    ) -> Validator {
+        let validator = self.validators.remove(validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        self.total_weight -= validator.weight;
+
+        return validator;
+    }
+
+    pub fn update_weight(
+        &mut self,
+        validator_id: &AccountId,
+        weight: u16
+    ) {
+        let mut validator = self.validators.get(validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        // update total weight
+        self.total_weight = self.total_weight + weight - validator.weight;
+
+        validator.weight = weight;
+        self.validators.insert(
+            validator_id,
+            &validator
+        );
+    }
+
+    pub fn get_validators(
+        &self,
+        offset: u16,
+        limit: u16
+    ) -> Vec<Validator> {
+        self.validators.values()
+            .skip(offset as usize)
+            .take(limit as usize)
+            .collect()
     }
 
     pub fn get_candidate_to_stake(
@@ -79,10 +146,66 @@ impl ValidatorPool {
     }
 }
 
+#[near_bindgen]
+impl LiquidStakingContract {
+    pub fn add_validator(
+        &mut self,
+        validator_id: &AccountId,
+        weight: u16
+    ) {
+        self.assert_owner();
+        self.validator_pool.add_validator(
+            validator_id,
+            weight
+        );
+    }
+
+    pub fn remove_validator(
+        &mut self,
+        validator_id: &AccountId
+    ) -> Validator {
+        self.assert_owner();
+        self.validator_pool.remove_validator(validator_id)
+    }
+
+    pub fn update_weight(
+        &mut self,
+        validator_id: &AccountId,
+        weight: u16
+    ) {
+        self.assert_owner();
+        self.validator_pool.update_weight(
+            validator_id,
+            weight
+        );
+    }
+
+    #[cfg(feature = "test")]
+    pub fn get_total_weight(
+        &self
+    ) -> u16 {
+        self.validator_pool.total_weight
+    }
+
+    pub fn get_validators(
+        &self,
+        offset: u16,
+        limit: u16
+    ) -> Vec<Validator> {
+        self.assert_owner();
+        self.validator_pool.get_validators(
+            offset,
+            limit
+        )
+    }
+}
+
 /// struct for staking pool validator
-#[derive(BorshDeserialize, BorshSerialize)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
 pub struct Validator {
     pub account_id: AccountId,
+    pub weight: u16,
 
     pub staked_amount: Balance,
     pub unstaked_amount: Balance,
@@ -97,9 +220,11 @@ pub struct Validator {
 impl Validator {
     pub fn new(
         account_id: AccountId,
+        weight: u16,
     ) -> Self {
         Self {
             account_id,
+            weight,
             staked_amount: 0,
             unstaked_amount: 0,
             unstake_fired_epoch: 0,

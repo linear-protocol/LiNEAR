@@ -1,4 +1,4 @@
-import { Workspace, NearAccount } from "near-workspaces-ava";
+import { Workspace, NearAccount, } from "near-workspaces-ava";
 
 interface RewardFee {
   numerator: number,
@@ -13,7 +13,7 @@ export function initWorkSpace() {
 
     const contract = await deployLinear(root, owner.accountId);
 
-    return { contract, alice, bob };
+    return { contract, owner, alice, bob };
   });
 }
 
@@ -41,4 +41,31 @@ export async function deployLinear(
       }
     }
   )
+}
+
+export async function assertFailure(
+  test: any,
+  action: Promise<unknown>,
+  errorMessage?: string
+) {
+  let failed = false;
+
+  try {
+    await action;
+  } catch (e) {
+    if (errorMessage) {
+      let msg: string = e.kind.ExecutionError;
+      test.truthy(
+        msg.includes(errorMessage),
+        `Bad error message. expect: "${errorMessage}", actual: "${msg}"`
+      );
+    }
+    failed = true;
+  }
+
+  test.is(
+    failed,
+    true,
+    "Action didn't fail"
+  );
 }

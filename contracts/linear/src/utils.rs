@@ -17,10 +17,11 @@ pub fn get_epoch_height() -> EpochHeight {
     let test_epoch_height_key: &[u8] = "_test_epoch_".as_bytes();
     let raw_epoch_option = env::storage_read(test_epoch_height_key);
 
+    // default epoch is 10 for testing
     if let Some(raw_epoch) = raw_epoch_option {
-        EpochHeight::try_from_slice(&raw_epoch).unwrap_or(0)
+        EpochHeight::try_from_slice(&raw_epoch).unwrap_or(10)
     } else {
-        0
+        10
     }
 }
 

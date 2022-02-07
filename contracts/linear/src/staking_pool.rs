@@ -5,10 +5,13 @@ use near_sdk::{
     json_types::{U128},
     collections::{UnorderedMap},
 };
+use std::cmp::min;
 use crate::*;
 use crate::types::*;
 use crate::errors::*;
 use crate::utils::*;
+
+const STAKE_SMALL_CHANGE_AMOUNT: Balance = ONE_NEAR;
 
 #[ext_contract(ext_staking_pool)]
 pub trait ExtStakingPool {
@@ -61,7 +64,7 @@ impl ValidatorPool {
         &mut self,
         validator_id: &AccountId,
         weight: u16
-    ) {
+    ) -> Validator {
         require!(
             self.get_validator(validator_id).is_none(),
             ERR_VALIDATOR_ALREADY_EXIST
@@ -78,6 +81,8 @@ impl ValidatorPool {
         );
 
         self.total_weight += weight;
+
+        return validator;
     }
 
     pub fn remove_validator(
@@ -131,13 +136,36 @@ impl ValidatorPool {
     pub fn get_candidate_to_stake(
         & self,
         amount: Balance,
-    ) -> (Validator, Balance) {
-        // TODO
-        let validator = self.validators
-            .get(&AccountId::new_unchecked("foo.near".to_string()))
-            .unwrap();
+        total_staked_near_amount: Balance
+    ) -> (Option<Validator>, Balance) {
+        let mut candidate = None ;
+        let mut amount_to_stake: Balance = 0;
 
-        (validator, amount)
+        // TODO lock validator?
+
+        for (_, validator) in self.validators.iter() {
+            if validator.pending_release() {
+                continue;
+            }
+            let target_amount = self.validator_target_stake_amount(total_staked_near_amount, &validator);
+            if validator.staked_amount < target_amount {
+                let delta = min(
+                    target_amount - validator.staked_amount,
+                    amount
+                );
+                if delta > amount_to_stake {
+                    amount_to_stake = delta;
+                    candidate = Some(validator);
+                }
+            }
+        }
+
+        if amount_to_stake > 0 && amount - amount_to_stake < STAKE_SMALL_CHANGE_AMOUNT {
+            amount_to_stake = amount;
+        }
+
+        // Note that it's possible that no validator is available
+        return (candidate, amount_to_stake);
     }
 
     pub fn get_candidate_to_unstake(
@@ -151,6 +179,16 @@ impl ValidatorPool {
 
         (validator, amount)
     }
+
+    fn validator_target_stake_amount(
+        & self,
+        total_staked_near_amount: Balance,
+        validator: &Validator
+    ) -> Balance {
+        total_staked_near_amount 
+            * (validator.weight as u128)
+            / (self.total_weight as u128)
+    }
 }
 
 #[near_bindgen]
@@ -159,12 +197,12 @@ impl LiquidStakingContract {
         &mut self,
         validator_id: &AccountId,
         weight: u16
-    ) {
+    ) -> Validator {
         self.assert_owner();
         self.validator_pool.add_validator(
             validator_id,
             weight
-        );
+        )
     }
 
     pub fn remove_validator(
@@ -304,5 +342,74 @@ impl Validator {
         self.staked_amount += amount;
         self.unstaked_amount -= amount;
         self.unstake_fired_epoch = self.last_unstake_fired_epoch;
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_stake_candidate_select() {
+        let mut validator_pool = ValidatorPool::new();
+
+        let mut foo = validator_pool.add_validator(
+            &AccountId::new_unchecked("foo".to_string()), 
+            1
+        );
+        let mut bar = validator_pool.add_validator(
+            &AccountId::new_unchecked("bar".to_string()), 
+            1
+        );
+        let mut zoo = validator_pool.add_validator(
+            &AccountId::new_unchecked("zoo".to_string()), 
+            2
+        );
+
+        // manually set staked amounts
+        foo.staked_amount = 100; // target is 150
+        bar.staked_amount = 200; // target is 150
+        zoo.staked_amount = 200; // target is 300
+        validator_pool.validators.insert(&foo.account_id, &foo);
+        validator_pool.validators.insert(&bar.account_id, &bar);
+        validator_pool.validators.insert(&zoo.account_id, &zoo);
+
+        // we have currently 600 in total, 500 already staked, 100 to stake,
+        // each weight point should be 150, thus zoo is the most unbalanced one.
+
+        let (candidate, amount)= validator_pool.get_candidate_to_stake(100, 600);
+        assert!(candidate.is_some());
+        assert_eq!(candidate.unwrap().account_id, zoo.account_id);
+        assert_eq!(amount, 100);
+
+        // reset staked amount
+        foo.staked_amount = 0; // target is 150
+        bar.staked_amount = 200; // target is 150
+        zoo.staked_amount = 300; // target is 150
+        validator_pool.validators.insert(&foo.account_id, &foo);
+        validator_pool.validators.insert(&bar.account_id, &bar);
+        validator_pool.validators.insert(&zoo.account_id, &zoo);
+
+        // we have currently 600 in total, 500 already staked, 100 to stake,
+        // each weight point should be 150, thus zoo is the most unbalanced one.
+
+        let (candidate, amount)= validator_pool.get_candidate_to_stake(100, 600);
+        assert!(candidate.is_some());
+        assert_eq!(candidate.unwrap().account_id, foo.account_id);
+        assert_eq!(amount, 100);
+
+        // reset staked amount
+        foo.staked_amount = 200; // target is 150
+        bar.staked_amount = 200; // target is 150
+        zoo.staked_amount = 300; // target is 300
+        validator_pool.validators.insert(&foo.account_id, &foo);
+        validator_pool.validators.insert(&bar.account_id, &bar);
+        validator_pool.validators.insert(&zoo.account_id, &zoo);
+
+        // in case no one has space left to hold more staking (which should not happen)
+
+        let (candidate, _)= validator_pool.get_candidate_to_stake(100, 600);
+        assert!(candidate.is_none());
     }
 }

@@ -23,7 +23,10 @@ mock-staking-pool: contracts/mock-staking-pool
 clean:
 	rm res/*.wasm
 
-test: test-linear test-mock-staking-pool
+test: test-unit test-linear test-mock-staking-pool
+
+test-unit:
+	cargo test --features "test"
 
 test-linear: linear_test
 	mkdir -p ./tests/compiled-contracts/

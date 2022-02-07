@@ -148,7 +148,7 @@ workspace.test('unstake', async (test, { contract, alice }) => {
 
 workspace.test('unstake and withdraw', async (test, { contract, alice }) => {
   let epoch = 0;
-  const epochFastforward = async (numEpoches = NUM_EPOCHS_TO_UNLOCK) => {
+  const epochHeightFastforward = async (numEpoches = NUM_EPOCHS_TO_UNLOCK) => {
     // increase epoch height
     epoch += numEpoches;
     await alice.call(
@@ -212,7 +212,7 @@ workspace.test('unstake and withdraw', async (test, { contract, alice }) => {
   }
 
   // wait 4 epoches
-  await epochFastforward();
+  await epochHeightFastforward();
 
   // withdraw all after 4 epoches
   await alice.call(
@@ -247,7 +247,7 @@ workspace.test('unstake and withdraw', async (test, { contract, alice }) => {
   );
 
   // wait 4 epoches
-  await epochFastforward();
+  await epochHeightFastforward();
 
   // withdraw all after 4 epoches
   const withdrawAmount = NEAR.parse('1');

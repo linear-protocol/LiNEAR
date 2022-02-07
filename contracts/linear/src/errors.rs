@@ -14,7 +14,11 @@ pub const ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE: &str = "The total staked balanc
 
 pub const ERR_MIN_RESERVE: &str = "Contract min reserve error";
 pub const ERR_VALIDATOR_NOT_EXIST: &str = "Validator not exist";
+pub const ERR_VALIDATOR_ALREADY_EXIST: &str = "Validator already exists";
+pub const ERR_VALIDATOR_IN_USE: &str = "Validator is in use, cannot remove";
 pub const ERR_NO_ENOUGH_GAS: &str = "No enough gas";
 
 pub const ERR_VALIDATOR_UNSTAKE_AMOUNT: &str = "No enough amount to unstake from validator";
 pub const ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED: &str = "Cannot unstake from a pending release validator";
+
+pub const ERR_NOT_OWNER: &str = "Only owner can perform this action";

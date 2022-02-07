@@ -155,10 +155,9 @@ impl LiquidStakingContract {
 
     /// Asserts that the method was called by the owner.
     pub(crate) fn assert_owner(&self) {
-        assert_eq!(
-            env::predecessor_account_id(),
-            self.owner_id,
-            "Can only be called by the owner"
+        require!(
+            env::predecessor_account_id() == self.owner_id,
+            ERR_NOT_OWNER
         );
     }
 

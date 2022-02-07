@@ -1,4 +1,5 @@
 import { Workspace, NEAR, NearAccount } from 'near-workspaces-ava';
+import { initWorkSpace } from './helper';
 
 const ONE_YOCTO_NEAR = '1';
 const ERR_NO_ENOUGH_BALANCE = 'Smart contract panicked: The account doesn\'t have enough balance';
@@ -37,28 +38,7 @@ async function transfer(
   );
 }
 
-const workspace = Workspace.init(async ({root}) => {
-  const owner = await root.createAccount('linear_owner');
-  const alice = await root.createAccount('alice');
-  const bob = await root.createAccount('bob');
-
-  const contract = await root.createAndDeploy(
-    'linear',
-    'compiled-contracts/linear.wasm',
-    {
-      method: 'new',
-      args: {
-        owner_id: 'linear_owner',
-        reward_fee: {
-          numerator: 1,
-          denominator: 100 
-        }
-      },
-    },
-  );
-
-  return { contract, alice, bob };
-});
+const workspace = initWorkSpace();
 
 workspace.test('read ft metadata', async (test, {contract, alice}) => {
   const metadata = await contract.view('ft_metadata', {}) as any;
@@ -95,7 +75,7 @@ workspace.test('stake NEAR and transfer LiNEAR', async (test, {contract, alice, 
     { attachedDeposit: stakeAmount },
   );
 
-  // transfer 2 NEAR from alice to bob
+  // transfer 2 LiNEAR from alice to bob
   const transferAmount1 = NEAR.parse('2');
   await transfer(contract, alice, bob, transferAmount1);
   test.is(
@@ -107,7 +87,7 @@ workspace.test('stake NEAR and transfer LiNEAR', async (test, {contract, alice, 
     transferAmount1.toString()
   );
 
-  // transfer 1 NEAR from bob to alice
+  // transfer 1 LiNEAR from bob to alice
   const transferAmount2 = NEAR.parse('1');
   await transfer(contract, bob, alice, transferAmount2);
   test.is(
@@ -119,7 +99,7 @@ workspace.test('stake NEAR and transfer LiNEAR', async (test, {contract, alice, 
     transferAmount1.sub(transferAmount2).toString()
   );
 
-  // cannot transfer 2 NEAR from bob
+  // cannot transfer 2 LiNEAR from bob
   try {
     await transfer(contract, bob, alice, NEAR.parse('2'));
   } catch(e) {

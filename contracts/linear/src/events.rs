@@ -44,3 +44,45 @@ pub fn log_stake_failed(
         .to_string()
     );
 }
+
+pub fn log_unstake_attempt(
+    validator_id: &AccountId,
+    amount: Balance
+) {
+    log!(
+        json!({
+            "event": "unstake.attempt",
+            "validator_id": validator_id,
+            "amount": amount
+        })
+        .to_string()
+    );
+}
+
+pub fn log_unstake_success(
+    validator_id: &AccountId,
+    amount: Balance
+) {
+    log!(
+        json!({
+            "event": "unstake.success",
+            "validator_id": validator_id,
+            "amount": amount
+        })
+        .to_string()
+    );
+}
+
+pub fn log_unstake_failed(
+    validator_id: &AccountId,
+    amount: Balance
+) {
+    log!(
+        json!({
+            "event": "unstake.failed",
+            "validator_id": validator_id,
+            "amount": amount
+        })
+        .to_string()
+    );
+}

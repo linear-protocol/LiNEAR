@@ -105,6 +105,7 @@ workspace.test('deposit and stake', async (test, {contract, alice}) => {
   );
 });
 
+
 workspace.test('unstake', async (test, { contract, alice }) => {
   // deposit
   const deposit = NEAR.parse('10');

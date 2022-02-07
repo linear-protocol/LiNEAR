@@ -42,7 +42,8 @@ impl LiquidStakingContract {
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);
         require!(account.unstaked >= amount, ERR_NO_ENOUGH_UNSTAKED_BALANCE_TO_WITHDRAW);
-        require!(account.unstaked_available_epoch_height <= env::epoch_height(),
+        require!(
+            account.unstaked_available_epoch_height <= env::epoch_height(),
             ERR_UNSTAKED_BALANCE_NOT_AVAILABLE
         );
         account.unstaked -= amount;

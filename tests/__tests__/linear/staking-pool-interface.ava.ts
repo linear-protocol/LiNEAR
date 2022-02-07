@@ -187,6 +187,15 @@ workspace.test('withdraw', async (test, { contract, alice }) => {
     { amount: unstakeAmount.toString() }
   ); 
 
+  // increase epoch height by 4
+  await alice.call(
+    contract,
+    'set_epoch_height',
+    {
+      epoch: 4
+    }
+  );
+
   // withdraw all
   await alice.call(
     contract,

@@ -42,10 +42,7 @@ impl LiquidStakingContract {
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);
         require!(account.unstaked >= amount, ERR_NO_ENOUGH_UNSTAKED_BALANCE_TO_WITHDRAW);
-        require!(
-            account.unstaked_available_epoch_height <= env::epoch_height(),
-            ERR_UNSTAKED_BALANCE_NOT_AVAILABLE
-        );
+        require!(account.unstaked_available_epoch_height <= get_epoch_height(), ERR_UNSTAKED_BALANCE_NOT_AVAILABLE);
         account.unstaked -= amount;
         self.internal_save_account(&account_id, &account);
 
@@ -117,7 +114,7 @@ impl LiquidStakingContract {
 
         account.stake_shares -= num_shares;
         account.unstaked += receive_amount;
-        account.unstaked_available_epoch_height = env::epoch_height() + self.validator_pool.get_num_epoch_to_unstake(amount);
+        account.unstaked_available_epoch_height = get_epoch_height() + self.validator_pool.get_num_epoch_to_unstake(amount);
         self.internal_save_account(&account_id, &account);
 
         // The amount tokens that will be unstaked from the total to guarantee the "stake" share
@@ -155,7 +152,7 @@ impl LiquidStakingContract {
         // keep the internal method temporarily, since we may ping the validator pool here
         false
 
-        // let epoch_height = env::epoch_height();
+        // let epoch_height = get_epoch_height();
         // if self.last_epoch_height == epoch_height {
         //     return false;
         // }

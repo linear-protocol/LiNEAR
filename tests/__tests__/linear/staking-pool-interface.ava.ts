@@ -1,5 +1,8 @@
 import { Workspace, NEAR, NearAccount } from 'near-workspaces-ava';
 
+const NUM_EPOCHS_TO_UNLOCK = 4;
+const ERR_UNSTAKED_BALANCE_NOT_AVAILABLE = 'The unstaked balance is not yet available due to unstaking dela'
+
 const workspace = Workspace.init(async ({root}) => {
   const owner = await root.createAccount('linear_owner');
   const alice = await root.createAccount('alice');
@@ -38,6 +41,7 @@ workspace.test('check balances after initlization', async (test, {contract, alic
 });
 
 workspace.test('deposit first and stake later', async (test, {contract, alice}) => {
+  // deposit
   const deposit = NEAR.parse('10');
   await alice.call(
     contract,
@@ -109,7 +113,6 @@ workspace.test('deposit and stake', async (test, {contract, alice}) => {
 workspace.test('unstake', async (test, { contract, alice }) => {
   // deposit
   const deposit = NEAR.parse('10');
-
   await alice.call(
     contract,
     'deposit',
@@ -143,10 +146,20 @@ workspace.test('unstake', async (test, { contract, alice }) => {
   );
 });
 
-workspace.test('withdraw', async (test, { contract, alice }) => {
+workspace.test('unstake and withdraw', async (test, { contract, alice }) => {
+  let epoch = 0;
+  const epochFastforward = async (numEpoches = NUM_EPOCHS_TO_UNLOCK) => {
+    // increase epoch height
+    epoch += numEpoches;
+    await alice.call(
+      contract,
+      'set_epoch_height',
+      { epoch }
+    );
+  }
+
   // deposit
   const deposit = NEAR.parse('10');
-
   await alice.call(
     contract,
     'deposit',
@@ -187,16 +200,21 @@ workspace.test('withdraw', async (test, { contract, alice }) => {
     { amount: unstakeAmount.toString() }
   ); 
 
-  // increase epoch height by 4
-  await alice.call(
-    contract,
-    'set_epoch_height',
-    {
-      epoch: 4
-    }
-  );
+  // withdraw all immediately, should fail
+  try {
+    await alice.call(
+      contract,
+      'withdraw_all',
+      {}
+    );
+  } catch(e) {
+    test.true(e.kind.ExecutionError.includes(ERR_UNSTAKED_BALANCE_NOT_AVAILABLE));
+  }
 
-  // withdraw all
+  // wait 4 epoches
+  await epochFastforward();
+
+  // withdraw all after 4 epoches
   await alice.call(
     contract,
     'withdraw_all',
@@ -211,4 +229,41 @@ workspace.test('withdraw', async (test, { contract, alice }) => {
     await contract.view('get_account_unstaked_balance', { account_id: alice }),
     '0'
   );
+
+  // unstake all
+  await alice.call(
+    contract,
+    'unstake_all',
+    {}
+  );
+
+  test.is(
+    await contract.view('get_account_staked_balance', { account_id: alice }),
+    '0'
+  );
+  test.is(
+    await contract.view('get_account_unstaked_balance', { account_id: alice }),
+    stakeAmount.sub(unstakeAmount).toString()
+  );
+
+  // wait 4 epoches
+  await epochFastforward();
+
+  // withdraw all after 4 epoches
+  const withdrawAmount = NEAR.parse('1');
+  await alice.call(
+    contract,
+    'withdraw',
+    { amount: withdrawAmount.toString() }
+  );
+
+  test.is(
+    await contract.view('get_account_staked_balance', { account_id: alice }),
+    '0'
+  );
+  test.is(
+    await contract.view('get_account_unstaked_balance', { account_id: alice }),
+    stakeAmount.sub(unstakeAmount).sub(withdrawAmount).toString()
+  );
+
 });

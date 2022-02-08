@@ -475,7 +475,7 @@ mod tests {
         validator_pool.validators.insert(&zoo.account_id, &zoo);
 
         // we have currently 500 already staked, 100 to unstake, target total 400,
-        // each weight point should be 150, thus zoo is the most unbalanced one.
+        // each weight point should be 100, thus bar is the most unbalanced one.
 
         let (candidate, amount)= validator_pool.get_candidate_to_unstake(100 * ONE_NEAR, 400 * ONE_NEAR);
         assert!(candidate.is_some());

@@ -36,9 +36,15 @@ impl LiquidStakingContract {
             return;
         }
 
-        let (mut candidate, amount_to_stake) = self
+        let (candidate, amount_to_stake) = self
             .validator_pool
-            .get_candidate_to_stake(self.epoch_requested_stake_amount);
+            .get_candidate_to_stake(self.epoch_requested_stake_amount, self.total_staked_near_amount);
+
+        if candidate.is_none() {
+            // TODO no candidate found
+            return;
+        }
+        let mut candidate = candidate.unwrap();
 
         if amount_to_stake < MIN_AMOUNT_TO_PERFORM_STAKE {
             log!("stake amount too low: {}", amount_to_stake);
@@ -81,9 +87,14 @@ impl LiquidStakingContract {
             return;
         }
 
-        let (mut candidate, amount_to_unstake) = self
+        let (candidate, amount_to_unstake) = self
             .validator_pool
-            .get_candidate_to_unstake(self.epoch_requested_unstake_amount);
+            .get_candidate_to_unstake(self.epoch_requested_unstake_amount, self.total_staked_near_amount);
+        if candidate.is_none() {
+            // TODO
+            return;
+        }
+        let mut candidate = candidate.unwrap();
 
         if amount_to_unstake < MIN_AMOUNT_TO_PERFORM_UNSTAKE {
             log!("unstake amount too low: {}", amount_to_unstake);

@@ -422,6 +422,24 @@ impl Validator {
     ) {
         self.unstaked_amount += amount;
     }
+
+    pub fn refresh_total_balance(
+        & self,
+    ) -> Promise {
+        ext_staking_pool::get_account_total_balance(
+            env::current_account_id(),
+            self.account_id.clone(),
+            NO_DEPOSIT,
+            GAS_EXT_GET_BALANCE
+        )
+    }
+
+    pub fn on_new_total_balance(
+        &mut self,
+        new_total_balance: Balance
+    ) {
+        self.staked_amount = new_total_balance - self.unstaked_amount;
+    }
 }
 
 #[cfg(not(target_arch = "wasm32"))]

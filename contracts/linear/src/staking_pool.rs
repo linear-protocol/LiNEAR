@@ -297,6 +297,10 @@ impl Validator {
         }
     }
 
+    pub fn total_balance(& self) -> Balance {
+        self.staked_amount + self.unstaked_amount
+    }
+
     pub fn pending_release(& self) -> bool {
         let current_epoch = get_epoch_height();
         current_epoch >= self.unstake_fired_epoch &&
@@ -313,6 +317,13 @@ impl Validator {
             amount,
             GAS_EXT_DEPOSIT_AND_STAKE
         )
+    }
+
+    pub fn on_stake_failed(
+        &mut self,
+        amount: Balance
+    ) {
+        self.staked_amount -= amount;
     }
 
     pub fn unstake(
@@ -348,13 +359,6 @@ impl Validator {
         )
     }
 
-    pub fn on_stake_failed(
-        &mut self,
-        amount: Balance
-    ) {
-        self.staked_amount -= amount;
-    }
-
     pub fn on_unstake_failed(
         &mut self,
         amount: Balance
@@ -362,6 +366,24 @@ impl Validator {
         self.staked_amount += amount;
         self.unstaked_amount -= amount;
         self.unstake_fired_epoch = self.last_unstake_fired_epoch;
+    }
+
+    pub fn refresh_total_balance(
+        & self,
+    ) -> Promise {
+        ext_staking_pool::get_account_total_balance(
+            env::current_account_id(),
+            self.account_id.clone(),
+            NO_DEPOSIT,
+            GAS_EXT_GET_BALANCE
+        )
+    }
+
+    pub fn on_new_total_balance(
+        &mut self,
+        new_total_balance: Balance
+    ) {
+        self.staked_amount = new_total_balance - self.unstaked_amount;
     }
 }
 

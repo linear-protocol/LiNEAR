@@ -21,9 +21,11 @@ pub const GAS_EPOCH_UNSTAKE: Gas = Gas(75 * TGAS);
 
 pub const GAS_EXT_DEPOSIT_AND_STAKE: Gas = Gas(75 * TGAS);
 pub const GAS_EXT_UNSTAKE: Gas = Gas(75 * TGAS);
+pub const GAS_EXT_GET_BALANCE: Gas = Gas(25 * TGAS);
 
 pub const GAS_CB_VALIDATOR_STAKED: Gas = Gas(25 * TGAS);
 pub const GAS_CB_VALIDATOR_UNSTAKED: Gas = Gas(25 * TGAS);
+pub const GAS_CB_VALIDATOR_GET_BALANCE: Gas = Gas(25 * TGAS);
 
 // -- COMMON TYPES
 

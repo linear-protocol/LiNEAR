@@ -122,6 +122,12 @@ impl LiquidStakingContract {
         &mut self,
         validator_id: AccountId,
     ) {
+        let min_gas = GAS_EPOCH_UPDATE_REWARDS + GAS_EXT_GET_BALANCE + GAS_CB_VALIDATOR_GET_BALANCE;
+        require!(
+            env::prepaid_gas() >= min_gas,
+            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+        );
+
         let validator = self.validator_pool
             .get_validator(&validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST);

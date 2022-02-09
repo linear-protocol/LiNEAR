@@ -18,6 +18,7 @@ pub const TGAS: u64 = 1_000_000_000_000;
 
 pub const GAS_EPOCH_STAKE: Gas = Gas(75 * TGAS);
 pub const GAS_EPOCH_UNSTAKE: Gas = Gas(75 * TGAS);
+pub const GAS_EPOCH_UPDATE_REWARDS: Gas = Gas(75 * TGAS);
 
 pub const GAS_EXT_DEPOSIT_AND_STAKE: Gas = Gas(75 * TGAS);
 pub const GAS_EXT_UNSTAKE: Gas = Gas(75 * TGAS);

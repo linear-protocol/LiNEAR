@@ -146,8 +146,34 @@ impl LiquidStakingContract {
             ));
     }
 
-    pub fn epoch_withdraw(&mut self) {
+    pub fn epoch_withdraw(&mut self, validator_id: AccountId) {
+        // make sure enough gas was given
+        let min_gas = GAS_EPOCH_WITHDRAW + GAS_EXT_WITHDRAW + GAS_CB_VALIDATOR_WITHDRAW;
+        require!(
+            env::prepaid_gas() >= min_gas,
+            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+        );
 
+        let mut validator = self.validator_pool
+            .get_validator(&validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        let amount = validator.unstaked_amount;
+
+        log_withdraw_attempt(
+            &validator_id,
+            amount
+        );
+
+        validator
+            .withdraw(amount)
+            .then(ext_self_action_cb::validator_withdraw_callback(
+                validator.account_id.clone(),
+                amount,
+                validator.account_id,
+                NO_DEPOSIT,
+                GAS_CB_VALIDATOR_WITHDRAW
+            ));
     }
 
     /// Cleaning up stake requirements and unstake requirements,
@@ -177,6 +203,12 @@ trait EpochActionCallbacks {
     fn validator_get_balance_callback(
         &mut self,
         validator_id: AccountId
+    );
+
+    fn validator_withdraw_callback(
+        &mut self,
+        validator_id: AccountId,
+        amount: Balance
     );
 }
 
@@ -266,5 +298,31 @@ impl LiquidStakingContract {
 
         self.total_staked_near_amount += rewards;
         self.internal_distribute_rewards(rewards);
+    }
+
+    #[allow(dead_code)]
+    fn validator_withdraw_callback(
+        &mut self,
+        validator_id: AccountId,
+        amount: Balance
+    ) {
+        assert_is_callback();
+
+        if is_promise_success() {
+            log_withdraw_success(&validator_id, amount);
+            return;
+        }
+
+        // withdraw failed, revert
+        let mut validator = self.validator_pool
+            .get_validator(&validator_id)
+            .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
+
+        validator.on_withdraw_failed(amount);
+
+        log_withdraw_failed(
+            &validator_id,
+            amount
+        );
     }
 }

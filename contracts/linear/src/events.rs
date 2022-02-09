@@ -1,3 +1,4 @@
+use crate::types::*;
 use near_sdk::{
     AccountId, Balance, log,
     serde_json::{json},
@@ -81,6 +82,38 @@ pub fn log_unstake_failed(
         json!({
             "event": "unstake.failed",
             "validator_id": validator_id,
+            "amount": amount
+        })
+        .to_string()
+    );
+}
+
+pub fn log_new_balance(
+    validator_id: &AccountId,
+    old_balance: Balance,
+    new_balance: Balance,
+    rewards: Balance
+) {
+    log!(
+        json!({
+            "event": "balance.update",
+            "validator_id": validator_id,
+            "old_balance": old_balance,
+            "new_balance": new_balance,
+            "rewards": rewards
+        })
+        .to_string()
+    );
+}
+
+pub fn log_linear_minted(
+    account_id: &AccountId,
+    amount: ShareBalance,
+) {
+    log!(
+        json!({
+            "event": "linear.mint",
+            "account_id": account_id,
             "amount": amount
         })
         .to_string()

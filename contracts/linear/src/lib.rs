@@ -43,12 +43,12 @@ pub trait SelfContract {
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
 #[serde(crate = "near_sdk::serde")]
-pub struct RewardFeeFraction {
+pub struct Fraction {
     pub numerator: u32,
     pub denominator: u32,
 }
 
-impl RewardFeeFraction {
+impl Fraction {
     pub fn new(numerator: u32, denominator: u32) -> Self {
         require!(
             denominator != 0,
@@ -65,7 +65,7 @@ impl RewardFeeFraction {
         }
     }
 
-    pub fn multiply(&self, value: Balance) -> Balance {
+    pub fn multiply(&self, value: u128) -> u128 {
         (U256::from(self.numerator) * U256::from(value) / U256::from(self.denominator)).as_u128()
     }
 }
@@ -91,7 +91,7 @@ pub struct LiquidStakingContract {
     pub total_staked_near_amount: Balance,
     /// The fraction of the reward that goes to the owner of the staking pool for running the
     /// validator node.
-    pub reward_fee_fraction: RewardFeeFraction,
+    pub reward_fee_fraction: Fraction,
     /// Persistent map from an account ID to the corresponding account.
     pub accounts: UnorderedMap<AccountId, Account>,
     /// Whether the staking is paused.
@@ -123,7 +123,7 @@ impl LiquidStakingContract {
     #[init]
     pub fn new(
         owner_id: AccountId,
-        reward_fee: RewardFeeFraction,
+        reward_fee: Fraction,
     ) -> Self {
         require!(!env::state_exists(), ERR_ALREADY_INITIALZED);
         require!(
@@ -131,7 +131,7 @@ impl LiquidStakingContract {
             ERR_ACCOUNT_STAKING_WHILE_INIT
         );
         
-        let reward_fee_fraction = RewardFeeFraction::new(
+        let reward_fee_fraction = Fraction::new(
             reward_fee.numerator, 
             reward_fee.denominator
         );
@@ -325,7 +325,7 @@ impl LiquidStakingContract {
     }
 
     /// Returns the current reward fee as a fraction.
-    pub fn get_reward_fee_fraction(&self) -> RewardFeeFraction {
+    pub fn get_reward_fee_fraction(&self) -> Fraction {
         self.reward_fee_fraction.clone()
     }
 

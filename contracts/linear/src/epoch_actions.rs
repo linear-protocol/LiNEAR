@@ -118,8 +118,26 @@ impl LiquidStakingContract {
             ));
     }
 
-    pub fn epoch_update_rewards(&mut self) {
+    pub fn epoch_update_rewards(
+        &mut self,
+        validator_id: AccountId,
+    ) {
+        let validator = self.validator_pool
+            .get_validator(&validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST);
 
+        if validator.staked_amount == 0 && validator.unstaked_amount == 0 {
+            return;
+        }
+
+        validator
+            .refresh_total_balance()
+            .then(ext_self_action_cb::validator_get_balance_callback(
+                validator.account_id,
+                env::current_account_id(),
+                NO_DEPOSIT,
+                GAS_CB_VALIDATOR_GET_BALANCE
+            ));
     }
 
     pub fn epoch_withdraw(&mut self) {
@@ -148,6 +166,11 @@ trait EpochActionCallbacks {
         &mut self,
         validator_id: AccountId,
         amount: Balance
+    );
+
+    fn validator_get_balance_callback(
+        &mut self,
+        validator_id: AccountId
     );
 }
 
@@ -205,5 +228,37 @@ impl LiquidStakingContract {
         validator.on_unstake_failed(amount);
 
         log_unstake_failed(&validator_id, amount);
+    }
+
+    #[allow(dead_code)]
+    fn validator_get_balance_callback(
+        &mut self,
+        validator_id: AccountId,
+        #[callback] total_balance: U128 
+    ) {
+        assert_is_callback();
+
+        let mut validator = self.validator_pool
+            .get_validator(&validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        let new_balance = total_balance.0;
+        validator.on_new_total_balance(new_balance);
+
+        let rewards = new_balance - validator.total_balance();
+        log_new_balance(
+            &validator_id,
+            validator.total_balance(),
+            new_balance,
+            rewards
+        );
+
+        // TODO could reward < 0?
+        if rewards <= 0 {
+            return;
+        }
+
+        self.total_staked_near_amount += rewards;
+        self.internal_distribute_rewards(rewards);
     }
 }

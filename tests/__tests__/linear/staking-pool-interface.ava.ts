@@ -1,4 +1,5 @@
 import { Workspace, NEAR, NearAccount } from 'near-workspaces-ava';
+import { assertFailure } from './helper';
 
 const NUM_EPOCHS_TO_UNLOCK = 4;
 const ERR_UNSTAKED_BALANCE_NOT_AVAILABLE = 'The unstaked balance is not yet available due to unstaking dela'
@@ -201,15 +202,15 @@ workspace.test('unstake and withdraw', async (test, { contract, alice }) => {
   ); 
 
   // withdraw all immediately, should fail
-  try {
-    await alice.call(
+  await assertFailure(
+    test,
+    alice.call(
       contract,
       'withdraw_all',
       {}
-    );
-  } catch(e) {
-    test.true(e.kind.ExecutionError.includes(ERR_UNSTAKED_BALANCE_NOT_AVAILABLE));
-  }
+    ),
+    ERR_UNSTAKED_BALANCE_NOT_AVAILABLE
+  );
 
   // wait 4 epoches
   await epochHeightFastforward();

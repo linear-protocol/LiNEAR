@@ -209,6 +209,11 @@ impl ValidatorPool {
             * (validator.weight as u128)
             / (self.total_weight as u128)
     }
+
+    pub fn get_num_epoch_to_unstake(&self, amount: u128) -> EpochHeight {
+        // TODO: the num of epoches can be doubled or trippled if not enough stake is available
+        NUM_EPOCHS_TO_UNLOCK
+    }
 }
 
 #[near_bindgen]

@@ -213,4 +213,38 @@ workspace.test('withdraw', async (test, { contract, alice }) => {
     await contract.view('get_account_unstaked_balance', { account_id: alice }),
     '0'
   );
+
+   // unstake all
+  await alice.call(
+    contract,
+    'unstake_all',
+    {}
+  );
+
+  test.is(
+    await contract.view('get_account_staked_balance', { account_id: alice }),
+    '0'
+  );
+  test.is(
+    await contract.view('get_account_unstaked_balance', { account_id: alice }),
+    stakeAmount.add(reward).sub(unstakeAmount).toString()
+  );
+
+  // withdraw all
+  const withdrawAmount = NEAR.parse('1');
+  await alice.call(
+    contract,
+    'withdraw',
+    { amount: withdrawAmount.toString() }
+  );
+
+  test.is(
+    await contract.view('get_account_staked_balance', { account_id: alice }),
+    '0'
+  );
+  test.is(
+    await contract.view('get_account_unstaked_balance', { account_id: alice }),
+    stakeAmount.add(reward).sub(unstakeAmount).sub(withdrawAmount).toString()
+  );
+
 });

@@ -2,6 +2,7 @@ use crate::types::*;
 use near_sdk::{
     AccountId, Balance, log,
     serde_json::{json},
+    json_types::U128,
 };
 
 pub fn log_stake_attempt(
@@ -12,7 +13,7 @@ pub fn log_stake_attempt(
         json!({
             "event": "stake.attempt",
             "validator_id": validator_id,
-            "amount": amount
+            "amount": U128::from(amount) 
         })
         .to_string()
     );
@@ -26,7 +27,7 @@ pub fn log_stake_success(
         json!({
             "event": "stake.success",
             "validator_id": validator_id,
-            "amount": amount
+            "amount": U128::from(amount)
         })
         .to_string()
     );
@@ -40,7 +41,7 @@ pub fn log_stake_failed(
         json!({
             "event": "stake.failed",
             "validator_id": validator_id,
-            "amount": amount
+            "amount": U128::from(amount)
         })
         .to_string()
     );
@@ -54,7 +55,7 @@ pub fn log_unstake_attempt(
         json!({
             "event": "unstake.attempt",
             "validator_id": validator_id,
-            "amount": amount
+            "amount": U128::from(amount)
         })
         .to_string()
     );
@@ -68,7 +69,7 @@ pub fn log_unstake_success(
         json!({
             "event": "unstake.success",
             "validator_id": validator_id,
-            "amount": amount
+            "amount": U128::from(amount)
         })
         .to_string()
     );
@@ -82,7 +83,7 @@ pub fn log_unstake_failed(
         json!({
             "event": "unstake.failed",
             "validator_id": validator_id,
-            "amount": amount
+            "amount": U128::from(amount)
         })
         .to_string()
     );
@@ -96,7 +97,7 @@ pub fn log_withdraw_attempt(
         json!({
             "event": "withdraw.attempt",
             "validator_id": validator_id,
-            "amount": amount
+            "amount": U128::from(amount)
         })
         .to_string()
     );
@@ -110,7 +111,7 @@ pub fn log_withdraw_success(
         json!({
             "event": "withdraw.success",
             "validator_id": validator_id,
-            "amount": amount
+            "amount": U128::from(amount)
         })
         .to_string()
     );
@@ -124,7 +125,7 @@ pub fn log_withdraw_failed(
         json!({
             "event": "withdraw.failed",
             "validator_id": validator_id,
-            "amount": amount
+            "amount": U128::from(amount)
         })
         .to_string()
     );
@@ -140,9 +141,9 @@ pub fn log_new_balance(
         json!({
             "event": "balance.update",
             "validator_id": validator_id,
-            "old_balance": old_balance,
-            "new_balance": new_balance,
-            "rewards": rewards
+            "old_balance": U128::from(old_balance),
+            "new_balance": U128::from(new_balance),
+            "rewards": U128::from(rewards)
         })
         .to_string()
     );
@@ -156,7 +157,7 @@ pub fn log_linear_minted(
         json!({
             "event": "linear.mint",
             "account_id": account_id,
-            "amount": amount
+            "amount": U128::from(amount)
         })
         .to_string()
     );

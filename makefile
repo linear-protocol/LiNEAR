@@ -28,10 +28,12 @@ test: test-unit test-linear test-mock-staking-pool
 test-unit:
 	cargo test --features "test"
 
+TEST_FILE ?= **
+LOGS ?=
 test-linear: linear_test
-	mkdir -p ./tests/compiled-contracts/
-	cp ./res/linear_test.wasm ./tests/compiled-contracts/linear.wasm
-	cd tests && npx near-workspaces-ava __tests__/linear/**.ts --verbose
+	@mkdir -p ./tests/compiled-contracts/
+	@cp ./res/linear_test.wasm ./tests/compiled-contracts/linear.wasm
+	cd tests && NEAR_PRINT_LOGS=$(LOGS) npx near-workspaces-ava __tests__/linear/$(TEST_FILE).ava.ts --verbose
 
 test-mock-staking-pool: mock-staking-pool
 	mkdir -p ./tests/compiled-contracts/

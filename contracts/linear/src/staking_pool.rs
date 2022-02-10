@@ -1,7 +1,7 @@
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     ext_contract, AccountId, Balance, EpochHeight, Promise,
-    require, near_bindgen,
+    require, near_bindgen, log,
     json_types::{U128},
     collections::{UnorderedMap},
 };
@@ -58,6 +58,13 @@ impl ValidatorPool {
         validator_id: &AccountId
     ) -> Option<Validator> {
         self.validators.get(validator_id)
+    }
+
+    pub fn save_validator(
+        &mut self,
+        validator: &Validator
+    ) {
+        self.validators.insert(&validator.account_id, validator);
     }
 
     pub fn add_validator(
@@ -150,6 +157,12 @@ impl ValidatorPool {
                 continue;
             }
             let target_amount = self.validator_target_stake_amount(total_staked_near_amount, &validator);
+            // DEBUG
+            log!(
+                "target amount: {}. {}",
+                target_amount,
+                validator.account_id
+            );
             if validator.staked_amount < target_amount {
                 let delta = min(
                     target_amount - validator.staked_amount,
@@ -316,9 +329,11 @@ impl Validator {
 
     pub fn deposit_and_stake(
         &mut self,
+        pool: &mut ValidatorPool,
         amount: Balance
     ) -> Promise {
         self.staked_amount += amount;
+        pool.save_validator(self);
         ext_staking_pool::deposit_and_stake(
             self.account_id.clone(),
             amount,
@@ -328,13 +343,16 @@ impl Validator {
 
     pub fn on_stake_failed(
         &mut self,
+        pool: &mut ValidatorPool,
         amount: Balance
     ) {
         self.staked_amount -= amount;
+        pool.save_validator(self);
     }
 
     pub fn unstake(
         &mut self,
+        pool: &mut ValidatorPool,
         amount: Balance
     ) -> Promise {
         require!(
@@ -358,6 +376,8 @@ impl Validator {
         self.last_unstake_fired_epoch = self.unstake_fired_epoch;
         self.unstake_fired_epoch = get_epoch_height();
 
+        pool.save_validator(self);
+
         ext_staking_pool::unstake(
             amount.into(),
             self.account_id.clone(),
@@ -368,11 +388,13 @@ impl Validator {
 
     pub fn on_unstake_failed(
         &mut self,
+        pool: &mut ValidatorPool,
         amount: Balance
     ) {
         self.staked_amount += amount;
         self.unstaked_amount -= amount;
         self.unstake_fired_epoch = self.last_unstake_fired_epoch;
+        pool.save_validator(self);
     }
 
     pub fn refresh_total_balance(
@@ -388,13 +410,16 @@ impl Validator {
 
     pub fn on_new_total_balance(
         &mut self,
+        pool: &mut ValidatorPool,
         new_total_balance: Balance
     ) {
         self.staked_amount = new_total_balance - self.unstaked_amount;
+        pool.save_validator(self);
     }
 
     pub fn withdraw(
         &mut self,
+        pool: &mut ValidatorPool,
         amount: Balance
     ) -> Promise {
         require!(
@@ -407,6 +432,7 @@ impl Validator {
         );
 
         self.unstaked_amount -= amount;
+        pool.save_validator(self);
 
         return ext_staking_pool::withdraw(
             amount.into(),
@@ -418,9 +444,11 @@ impl Validator {
 
     pub fn on_withdraw_failed(
         &mut self,
+        pool: &mut ValidatorPool,
         amount: Balance
     ) {
         self.unstaked_amount += amount;
+        pool.save_validator(self);
     }
 }
 

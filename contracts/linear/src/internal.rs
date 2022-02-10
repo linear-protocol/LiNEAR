@@ -37,18 +37,12 @@ impl LiquidStakingContract {
     }
 
     pub(crate) fn internal_withdraw(&mut self, amount: Balance) {
-        assert!(amount > 0, "Withdrawal amount should be positive");
+        require!(amount > 0, ERR_NON_POSITIVE_WITHDRAWAL_AMOUNT);
 
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);
-        assert!(
-            account.unstaked >= amount,
-            "Not enough unstaked balance to withdraw"
-        );
-        assert!(
-            account.unstaked_available_epoch_height <= get_epoch_height(),
-            "The unstaked balance is not yet available due to unstaking delay"
-        );
+        require!(account.unstaked >= amount, ERR_NO_ENOUGH_UNSTAKED_BALANCE_TO_WITHDRAW);
+        require!(account.unstaked_available_epoch_height <= get_epoch_height(), ERR_UNSTAKED_BALANCE_NOT_AVAILABLE);
         account.unstaked -= amount;
         self.internal_save_account(&account_id, &account);
 
@@ -72,7 +66,7 @@ impl LiquidStakingContract {
         // Rounded down to avoid overcharging the account to guarantee that the account can always
         // unstake at least the same amount as staked.
         let charge_amount = self.staked_amount_from_num_shares_rounded_down(num_shares);
-        require!(charge_amount > 0, ERR_NON_POSITIVE_CALCULATED_STAKING_AMOUNT);
+        require!(charge_amount > 0, ERR_NON_POSITIVE_CALCULATED_STAKED_AMOUNT);
 
         require!(account.unstaked >= charge_amount, ERR_NO_ENOUGH_UNSTAKED_BALANCE);
         account.unstaked -= charge_amount;
@@ -87,7 +81,7 @@ impl LiquidStakingContract {
         self.total_staked_near_amount += stake_amount;
         self.total_share_amount += num_shares;
 
-        // increase requested stake amount within the current epoch
+        // Increase requested stake amount within the current epoch
         self.epoch_requested_stake_amount += stake_amount;
 
         log!(
@@ -101,38 +95,26 @@ impl LiquidStakingContract {
     }
 
     pub(crate) fn inner_unstake(&mut self, amount: u128) {
-        assert!(amount > 0, "Unstaking amount should be positive");
+        require!(amount > 0, ERR_NON_POSITIVE_UNSTAKING_AMOUNT);
 
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);
 
-        assert!(
-            self.total_staked_near_amount > 0,
-            "The contract doesn't have staked balance"
-        );
+        require!(self.total_staked_near_amount > 0, ERR_CONTRACT_NO_STAKED_BALANCE);
         // Calculate the number of shares required to unstake the given amount.
         // NOTE: The number of shares the account will pay is rounded up.
         let num_shares = self.num_shares_from_staked_amount_rounded_up(amount);
-        assert!(
-            num_shares > 0,
-            "Invariant violation. The calculated number of \"stake\" shares for unstaking should be positive"
-        );
-        assert!(
-            account.stake_shares >= num_shares,
-            "Not enough staked balance to unstake"
-        );
+        require!(num_shares > 0, ERR_NON_POSITIVE_CALCULATED_UNSTAKING_SHARE);
+        require!(account.stake_shares >= num_shares, ERR_NO_ENOUGH_STAKED_BALANCE);
 
         // Calculating the amount of tokens the account will receive by unstaking the corresponding
         // number of "stake" shares, rounding up.
         let receive_amount = self.staked_amount_from_num_shares_rounded_up(num_shares);
-        assert!(
-            receive_amount > 0,
-            "Invariant violation. Calculated staked amount must be positive, because \"stake\" share price should be at least 1"
-        );
+        require!(receive_amount > 0, ERR_NON_POSITIVE_CALCULATED_STAKED_AMOUNT);
 
         account.stake_shares -= num_shares;
         account.unstaked += receive_amount;
-        account.unstaked_available_epoch_height = get_epoch_height() + NUM_EPOCHS_TO_UNLOCK;
+        account.unstaked_available_epoch_height = get_epoch_height() + self.validator_pool.get_num_epoch_to_unstake(amount);
         self.internal_save_account(&account_id, &account);
 
         // The amount tokens that will be unstaked from the total to guarantee the "stake" share
@@ -142,6 +124,9 @@ impl LiquidStakingContract {
 
         self.total_staked_near_amount -= unstake_amount;
         self.total_share_amount -= num_shares;
+
+        // Increase requested unstake amount within the current epoch
+        self.epoch_requested_unstake_amount += unstake_amount;
 
         log!(
             "@{} unstaking {}. Spent {} staking shares. Total {} unstaked balance and {} staking shares",
@@ -167,7 +152,7 @@ impl LiquidStakingContract {
         // keep the internal method temporarily, since we may ping the validator pool here
         false
 
-        // let epoch_height = env::epoch_height();
+        // let epoch_height = get_epoch_height();
         // if self.last_epoch_height == epoch_height {
         //     return false;
         // }

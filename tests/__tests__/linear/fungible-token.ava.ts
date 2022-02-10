@@ -1,8 +1,8 @@
 import { Workspace, NEAR, NearAccount } from 'near-workspaces-ava';
-import { initWorkSpace } from './helper';
+import { initWorkSpace, assertFailure } from './helper';
 
 const ONE_YOCTO_NEAR = '1';
-const ERR_NO_ENOUGH_BALANCE = 'Smart contract panicked: The account doesn\'t have enough balance';
+const ERR_NO_ENOUGH_BALANCE = 'The account doesn\'t have enough balance';
 
 async function registerUser(ft: NearAccount, user: NearAccount) {
   const storage_balance = await ft.view(
@@ -55,11 +55,11 @@ workspace.test('read ft metadata', async (test, {contract, alice}) => {
 workspace.test('cannot transfer with no balance', async (test, {contract, alice, bob}) => {
   await registerUser(contract, alice);
 
-  try {
-    await transfer(contract, alice, bob, NEAR.parse('1'));
-  } catch(e) {
-    test.is(e.kind.ExecutionError, ERR_NO_ENOUGH_BALANCE);
-  }
+  await assertFailure(
+    test,
+    transfer(contract, alice, bob, NEAR.parse('1')),
+    ERR_NO_ENOUGH_BALANCE
+  );
 });
 
 workspace.test('stake NEAR and transfer LiNEAR', async (test, {contract, alice, bob}) => {
@@ -100,9 +100,9 @@ workspace.test('stake NEAR and transfer LiNEAR', async (test, {contract, alice, 
   );
 
   // cannot transfer 2 LiNEAR from bob
-  try {
-    await transfer(contract, bob, alice, NEAR.parse('2'));
-  } catch(e) {
-    test.is(e.kind.ExecutionError, ERR_NO_ENOUGH_BALANCE);
-  }
+  await assertFailure(
+    test,
+    transfer(contract, bob, alice, NEAR.parse('2')),
+    ERR_NO_ENOUGH_BALANCE
+  );
 });

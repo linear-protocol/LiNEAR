@@ -88,6 +88,48 @@ pub fn log_unstake_failed(
     );
 }
 
+pub fn log_withdraw_attempt(
+    validator_id: &AccountId,
+    amount: Balance
+) {
+    log!(
+        json!({
+            "event": "withdraw.attempt",
+            "validator_id": validator_id,
+            "amount": amount
+        })
+        .to_string()
+    );
+}
+
+pub fn log_withdraw_success(
+    validator_id: &AccountId,
+    amount: Balance
+) {
+    log!(
+        json!({
+            "event": "withdraw.success",
+            "validator_id": validator_id,
+            "amount": amount
+        })
+        .to_string()
+    );
+}
+
+pub fn log_withdraw_failed(
+    validator_id: &AccountId,
+    amount: Balance
+) {
+    log!(
+        json!({
+            "event": "withdraw.failed",
+            "validator_id": validator_id,
+            "amount": amount
+        })
+        .to_string()
+    );
+}
+
 pub fn log_new_balance(
     validator_id: &AccountId,
     old_balance: Balance,

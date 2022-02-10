@@ -392,6 +392,36 @@ impl Validator {
     ) {
         self.staked_amount = new_total_balance - self.unstaked_amount;
     }
+
+    pub fn withdraw(
+        &mut self,
+        amount: Balance
+    ) -> Promise {
+        require!(
+            self.unstaked_amount >= amount,
+            ERR_NO_ENOUGH_WITHDRAW_BALANCE
+        );
+        require!(
+            !self.pending_release(),
+            ERR_VALIDATOR_WITHDRAW_WHEN_LOCKED
+        );
+
+        self.unstaked_amount -= amount;
+
+        return ext_staking_pool::withdraw(
+            amount.into(),
+            self.account_id.clone(),
+            NO_DEPOSIT,
+            GAS_EXT_WITHDRAW
+        )
+    }
+
+    pub fn on_withdraw_failed(
+        &mut self,
+        amount: Balance
+    ) {
+        self.unstaked_amount += amount;
+    }
 }
 
 #[cfg(not(target_arch = "wasm32"))]

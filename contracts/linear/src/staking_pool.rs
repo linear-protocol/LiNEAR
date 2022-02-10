@@ -127,6 +127,8 @@ impl ValidatorPool {
         offset: u16,
         limit: u16
     ) -> Vec<Validator> {
+        // TODO UnorderedMap.skip might run out of gas, maybe use this approach: 
+        // https://github.com/ref-finance/ref-contracts/blob/main/ref-farming/src/view.rs#L137
         self.validators.values()
             .skip(offset as usize)
             .take(limit as usize)

@@ -69,3 +69,5 @@ export async function assertFailure(
     "Action didn't fail"
   );
 }
+
+export function skip(...args: any[]) {};

@@ -84,7 +84,7 @@ impl LiquidStakingContract {
         return true;
     }
 
-    pub fn epoch_unstake(&mut self) {
+    pub fn epoch_unstake(&mut self) -> bool {
         // make sure enough gas was given
         let min_gas = GAS_EPOCH_UNSTAKE + GAS_EXT_UNSTAKE + GAS_CB_VALIDATOR_UNSTAKED;
         require!(
@@ -95,7 +95,7 @@ impl LiquidStakingContract {
         self.epoch_cleanup();
         // after cleanup, there might be no need to unstake
         if self.epoch_requested_unstake_amount == 0 {
-            return;
+            return false;
         }
 
         let (candidate, amount_to_unstake) = self
@@ -103,13 +103,13 @@ impl LiquidStakingContract {
             .get_candidate_to_unstake(self.epoch_requested_unstake_amount, self.total_staked_near_amount);
         if candidate.is_none() {
             // TODO
-            return;
+            return false;
         }
         let mut candidate = candidate.unwrap();
 
         if amount_to_unstake < MIN_AMOUNT_TO_PERFORM_UNSTAKE {
             log!("unstake amount too low: {}", amount_to_unstake);
-            return;
+            return false;
         }
 
         // update internal state
@@ -127,6 +127,8 @@ impl LiquidStakingContract {
                 NO_DEPOSIT,
                 GAS_CB_VALIDATOR_UNSTAKED
             ));
+
+        return true;
     }
 
     pub fn epoch_update_rewards(

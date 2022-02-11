@@ -148,7 +148,7 @@ workspace.test('unstake', async (test, { contract, alice }) => {
 });
 
 workspace.test('unstake and withdraw', async (test, { contract, alice }) => {
-  let epoch = 0;
+  let epoch = 10;
   const epochHeightFastforward = async (numEpoches = NUM_EPOCHS_TO_UNLOCK) => {
     // increase epoch height
     epoch += numEpoches;

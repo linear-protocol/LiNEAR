@@ -11,6 +11,7 @@ pub const ERR_NON_POSITIVE_STAKING_AMOUNT: &str = "Staking amount should be posi
 pub const ERR_NON_POSITIVE_CALCULATED_STAKING_SHARE: &str = "The calculated number of \"stake\" shares received for staking should be positive";
 pub const ERR_NON_POSITIVE_CALCULATED_STAKED_AMOUNT: &str = "Invariant violation. Calculated staked amount must be positive, because \"stake\" share price should be at least 1";
 pub const ERR_NO_ENOUGH_UNSTAKED_BALANCE: &str = "Not enough unstaked balance to stake";
+pub const ERR_NO_ENOUGH_WITHDRAW_BALANCE: &str = "No enough unstaked balance to withdraw";
 
 // unstake
 pub const ERR_NON_POSITIVE_UNSTAKING_AMOUNT: &str = "Unstaking amount should be positive";
@@ -33,5 +34,6 @@ pub const ERR_NO_ENOUGH_GAS: &str = "No enough gas";
 
 pub const ERR_VALIDATOR_UNSTAKE_AMOUNT: &str = "No enough amount to unstake from validator";
 pub const ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED: &str = "Cannot unstake from a pending release validator";
+pub const ERR_VALIDATOR_WITHDRAW_WHEN_LOCKED: &str = "Cannot withdraw from a pending release validator";
 
 pub const ERR_NOT_OWNER: &str = "Only owner can perform this action";

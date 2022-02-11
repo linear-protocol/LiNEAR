@@ -118,12 +118,62 @@ impl LiquidStakingContract {
             ));
     }
 
-    pub fn epoch_update_rewards(&mut self) {
+    pub fn epoch_update_rewards(
+        &mut self,
+        validator_id: AccountId,
+    ) {
+        let min_gas = GAS_EPOCH_UPDATE_REWARDS + GAS_EXT_GET_BALANCE + GAS_CB_VALIDATOR_GET_BALANCE;
+        require!(
+            env::prepaid_gas() >= min_gas,
+            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+        );
 
+        let validator = self.validator_pool
+            .get_validator(&validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        if validator.staked_amount == 0 && validator.unstaked_amount == 0 {
+            return;
+        }
+
+        validator
+            .refresh_total_balance()
+            .then(ext_self_action_cb::validator_get_balance_callback(
+                validator.account_id,
+                env::current_account_id(),
+                NO_DEPOSIT,
+                GAS_CB_VALIDATOR_GET_BALANCE
+            ));
     }
 
-    pub fn epoch_withdraw(&mut self) {
+    pub fn epoch_withdraw(&mut self, validator_id: AccountId) {
+        // make sure enough gas was given
+        let min_gas = GAS_EPOCH_WITHDRAW + GAS_EXT_WITHDRAW + GAS_CB_VALIDATOR_WITHDRAW;
+        require!(
+            env::prepaid_gas() >= min_gas,
+            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+        );
 
+        let mut validator = self.validator_pool
+            .get_validator(&validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        let amount = validator.unstaked_amount;
+
+        log_withdraw_attempt(
+            &validator_id,
+            amount
+        );
+
+        validator
+            .withdraw(amount)
+            .then(ext_self_action_cb::validator_withdraw_callback(
+                validator.account_id.clone(),
+                amount,
+                validator.account_id,
+                NO_DEPOSIT,
+                GAS_CB_VALIDATOR_WITHDRAW
+            ));
     }
 
     /// Cleaning up stake requirements and unstake requirements,
@@ -145,6 +195,17 @@ trait EpochActionCallbacks {
     );
 
     fn validator_unstaked_callback(
+        &mut self,
+        validator_id: AccountId,
+        amount: Balance
+    );
+
+    fn validator_get_balance_callback(
+        &mut self,
+        validator_id: AccountId
+    );
+
+    fn validator_withdraw_callback(
         &mut self,
         validator_id: AccountId,
         amount: Balance
@@ -205,5 +266,63 @@ impl LiquidStakingContract {
         validator.on_unstake_failed(amount);
 
         log_unstake_failed(&validator_id, amount);
+    }
+
+    #[allow(dead_code)]
+    fn validator_get_balance_callback(
+        &mut self,
+        validator_id: AccountId,
+        #[callback] total_balance: U128 
+    ) {
+        assert_is_callback();
+
+        let mut validator = self.validator_pool
+            .get_validator(&validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        let new_balance = total_balance.0;
+        validator.on_new_total_balance(new_balance);
+
+        let rewards = new_balance - validator.total_balance();
+        log_new_balance(
+            &validator_id,
+            validator.total_balance(),
+            new_balance,
+            rewards
+        );
+
+        // TODO could reward < 0?
+        if rewards <= 0 {
+            return;
+        }
+
+        self.total_staked_near_amount += rewards;
+        self.internal_distribute_rewards(rewards);
+    }
+
+    #[allow(dead_code)]
+    fn validator_withdraw_callback(
+        &mut self,
+        validator_id: AccountId,
+        amount: Balance
+    ) {
+        assert_is_callback();
+
+        if is_promise_success() {
+            log_withdraw_success(&validator_id, amount);
+            return;
+        }
+
+        // withdraw failed, revert
+        let mut validator = self.validator_pool
+            .get_validator(&validator_id)
+            .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
+
+        validator.on_withdraw_failed(amount);
+
+        log_withdraw_failed(
+            &validator_id,
+            amount
+        );
     }
 }

@@ -9,6 +9,10 @@ NEAR Liquid Staking
 ## Test
 - Run all tests: `make test`
 - Run mock staking-pool tests: `make test-mock-staking-pool`
+- Run LiNEAR simulation tests:
+  - Run all: `make test-linear`
+  - Run specific test file: `TEST_FILE={filename} make test-linear`
+  - Print contract logs: `LOGS=1 make test-linear`
 
 ## Design
 

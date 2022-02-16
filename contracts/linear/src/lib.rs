@@ -137,22 +137,28 @@ impl LiquidStakingContract {
         );
 
         let account_balance = env::account_balance();
+        // 20 NEAR is required to init this contract,
+        // 10 will be used as init staking, 10 will be left for storage
         require!(
-            account_balance >= ONE_NEAR,
-            ERR_NO_ENOUGH_INIT_DEPOSIT
+            account_balance >= 20 * ONE_NEAR,
+            format!(
+                "{}. required: {}",
+                ERR_NO_ENOUGH_INIT_DEPOSIT,
+                20 * ONE_NEAR
+            )
         );
         let mut this = Self {
             owner_id,
             last_epoch_height: get_epoch_height(),
-            last_total_balance: account_balance,
-            total_share_amount: account_balance,
-            total_staked_near_amount: account_balance,
+            last_total_balance: 10 * ONE_NEAR,
+            total_share_amount: 10 * ONE_NEAR,
+            total_staked_near_amount: 10 * ONE_NEAR,
             reward_fee_fraction,
             accounts: UnorderedMap::new(b"a".to_vec()),
             paused: false,
             account_storage_usage: 0,
             validator_pool: ValidatorPool::new(),
-            epoch_requested_stake_amount: 0,
+            epoch_requested_stake_amount: 10 * ONE_NEAR,
             epoch_requested_unstake_amount: 0,
         };
         this.measure_account_storage_usage();

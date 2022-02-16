@@ -18,7 +18,7 @@ const CONTRACT_MIN_RESERVE_BALANCE: Balance = 30 * ONE_NEAR;
 /// during each epoch.
 #[near_bindgen]
 impl LiquidStakingContract {
-    pub fn epoch_stake(&mut self) {
+    pub fn epoch_stake(&mut self) -> bool {
         // make sure enough gas was given
         let min_gas = GAS_EPOCH_STAKE + GAS_EXT_DEPOSIT_AND_STAKE + GAS_CB_VALIDATOR_STAKED;
         require!(
@@ -33,7 +33,7 @@ impl LiquidStakingContract {
         self.epoch_cleanup();
         // after cleanup, there might be no need to stake
         if self.epoch_requested_stake_amount == 0 {
-            return;
+            return false;
         }
 
         let (candidate, amount_to_stake) = self
@@ -42,13 +42,22 @@ impl LiquidStakingContract {
 
         if candidate.is_none() {
             // TODO no candidate found
-            return;
+            return false;
         }
         let mut candidate = candidate.unwrap();
 
+        // DEBUG
+        log!(
+            "amount need stake: {}, candidate: {}, amount to stake: {}, candidate staked: {}",
+            self.epoch_requested_stake_amount,
+            candidate.account_id,
+            amount_to_stake,
+            candidate.staked_amount
+        );
+
         if amount_to_stake < MIN_AMOUNT_TO_PERFORM_STAKE {
             log!("stake amount too low: {}", amount_to_stake);
-            return;
+            return false;
         }
 
         require!(
@@ -63,17 +72,19 @@ impl LiquidStakingContract {
 
         // do staking on selected validator
         candidate
-            .deposit_and_stake(amount_to_stake)
+            .deposit_and_stake(&mut self.validator_pool, amount_to_stake)
             .then(ext_self_action_cb::validator_staked_callback(
-                candidate.account_id,
+                candidate.account_id.clone(),
                 amount_to_stake,
                 env::current_account_id(),
                 NO_DEPOSIT,
                 GAS_CB_VALIDATOR_STAKED
             ));
+
+        return true;
     }
 
-    pub fn epoch_unstake(&mut self) {
+    pub fn epoch_unstake(&mut self) -> bool {
         // make sure enough gas was given
         let min_gas = GAS_EPOCH_UNSTAKE + GAS_EXT_UNSTAKE + GAS_CB_VALIDATOR_UNSTAKED;
         require!(
@@ -84,7 +95,7 @@ impl LiquidStakingContract {
         self.epoch_cleanup();
         // after cleanup, there might be no need to unstake
         if self.epoch_requested_unstake_amount == 0 {
-            return;
+            return false;
         }
 
         let (candidate, amount_to_unstake) = self
@@ -92,13 +103,13 @@ impl LiquidStakingContract {
             .get_candidate_to_unstake(self.epoch_requested_unstake_amount, self.total_staked_near_amount);
         if candidate.is_none() {
             // TODO
-            return;
+            return false;
         }
         let mut candidate = candidate.unwrap();
 
         if amount_to_unstake < MIN_AMOUNT_TO_PERFORM_UNSTAKE {
             log!("unstake amount too low: {}", amount_to_unstake);
-            return;
+            return false;
         }
 
         // update internal state
@@ -108,7 +119,7 @@ impl LiquidStakingContract {
 
         // do unstaking on selected validator
         candidate
-            .unstake(amount_to_unstake)
+            .unstake(&mut self.validator_pool, amount_to_unstake)
             .then(ext_self_action_cb::validator_unstaked_callback(
                 candidate.account_id,
                 amount_to_unstake,
@@ -116,6 +127,8 @@ impl LiquidStakingContract {
                 NO_DEPOSIT,
                 GAS_CB_VALIDATOR_UNSTAKED
             ));
+
+        return true;
     }
 
     pub fn epoch_update_rewards(
@@ -166,7 +179,7 @@ impl LiquidStakingContract {
         );
 
         validator
-            .withdraw(amount)
+            .withdraw(&mut self.validator_pool, amount)
             .then(ext_self_action_cb::validator_withdraw_callback(
                 validator.account_id.clone(),
                 amount,
@@ -180,7 +193,13 @@ impl LiquidStakingContract {
     /// since some stake requirements could be eliminated if 
     /// there are more unstake requirements, and vice versa.
     fn epoch_cleanup(&mut self) {
-
+        if self.epoch_requested_stake_amount > self.epoch_requested_unstake_amount {
+            self.epoch_requested_stake_amount -= self.epoch_requested_unstake_amount;
+            self.epoch_requested_unstake_amount = 0;
+        } else {
+            self.epoch_requested_unstake_amount -= self.epoch_requested_stake_amount;
+            self.epoch_requested_stake_amount = 0;
+        }
     }
 }
 
@@ -237,7 +256,7 @@ impl LiquidStakingContract {
             .get_validator(&validator_id)
             .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
-        validator.on_stake_failed(amount); 
+        validator.on_stake_failed(&mut self.validator_pool, amount); 
 
         log_stake_failed(&validator_id, amount);
     }
@@ -263,7 +282,7 @@ impl LiquidStakingContract {
             .get_validator(&validator_id)
             .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
-        validator.on_unstake_failed(amount);
+        validator.on_unstake_failed(&mut self.validator_pool, amount);
 
         log_unstake_failed(&validator_id, amount);
     }
@@ -281,7 +300,7 @@ impl LiquidStakingContract {
             .expect(ERR_VALIDATOR_NOT_EXIST);
 
         let new_balance = total_balance.0;
-        validator.on_new_total_balance(new_balance);
+        validator.on_new_total_balance(&mut self.validator_pool, new_balance);
 
         let rewards = new_balance - validator.total_balance();
         log_new_balance(
@@ -318,7 +337,7 @@ impl LiquidStakingContract {
             .get_validator(&validator_id)
             .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
-        validator.on_withdraw_failed(amount);
+        validator.on_withdraw_failed(&mut self.validator_pool, amount);
 
         log_withdraw_failed(
             &validator_id,

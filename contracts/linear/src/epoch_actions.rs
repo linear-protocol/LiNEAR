@@ -193,7 +193,13 @@ impl LiquidStakingContract {
     /// since some stake requirements could be eliminated if 
     /// there are more unstake requirements, and vice versa.
     fn epoch_cleanup(&mut self) {
-
+        if self.epoch_requested_stake_amount > self.epoch_requested_unstake_amount {
+            self.epoch_requested_stake_amount -= self.epoch_requested_unstake_amount;
+            self.epoch_requested_unstake_amount = 0;
+        } else {
+            self.epoch_requested_unstake_amount -= self.epoch_requested_stake_amount;
+            self.epoch_requested_stake_amount = 0;
+        }
     }
 }
 

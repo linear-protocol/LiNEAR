@@ -2,6 +2,8 @@ pub const ERR_ALREADY_INITIALZED: &str = "Already initialized";
 pub const ERR_ACCOUNT_STAKING_WHILE_INIT: &str = "The current account has staking balance while initialization";
 pub const ERR_NO_ENOUGH_INIT_DEPOSIT: &str = "The account doesn't have enough balance for initialization";
 
+pub const ERR_NOT_OWNER: &str = "Only owner can perform this action";
+
 // fraction
 pub const ERR_FRACTION_BAD_DENOMINATOR: &str = "Denominator cannot be zero";
 pub const ERR_FRACTION_BAD_NUMERATOR: &str = "Numerator must <= denominator";
@@ -31,9 +33,14 @@ pub const ERR_VALIDATOR_NOT_EXIST: &str = "Validator not exist";
 pub const ERR_VALIDATOR_ALREADY_EXIST: &str = "Validator already exists";
 pub const ERR_VALIDATOR_IN_USE: &str = "Validator is in use, cannot remove";
 pub const ERR_NO_ENOUGH_GAS: &str = "No enough gas";
-
 pub const ERR_VALIDATOR_UNSTAKE_AMOUNT: &str = "No enough amount to unstake from validator";
 pub const ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED: &str = "Cannot unstake from a pending release validator";
 pub const ERR_VALIDATOR_WITHDRAW_WHEN_LOCKED: &str = "Cannot withdraw from a pending release validator";
 
-pub const ERR_NOT_OWNER: &str = "Only owner can perform this action";
+// liquidity pool
+pub const ERR_NON_POSITIVE_MIN_RECEIVED_AMOUNT: &str = "The expected received NEAR amount should be positive";
+pub const ERR_NON_POSITIVE_MIN_FEE: &str = "The min fee should be positive";
+pub const ERR_FEE_MAX_LESS_THAN_MIN: &str = "The max fee should be no less than the min fee";
+pub const ERR_FEE_EXCEEDS_UP_LIMIT: &str = "The fee should be less than 10000";
+pub const ERR_MIN_AMOUNT_OUT_NOT_SATISFIED: &str = "The received NEAR {} will be less than the expected amount {}";
+pub const ERR_NO_ENOUGH_LIQUIDITY: &str = "Not enough liquidity in the pool";

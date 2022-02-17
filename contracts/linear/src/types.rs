@@ -11,6 +11,8 @@ pub const NO_DEPOSIT: Balance = 0;
 pub const ONE_NEAR: Balance = 1_000_000_000_000_000_000_000_000;
 
 pub const NUM_EPOCHS_TO_UNLOCK: EpochHeight = 4;
+/// One hundred percentage
+pub const FULL_PERCENTAGE: u32 = 10_000;
 
 /// -- GAS
 

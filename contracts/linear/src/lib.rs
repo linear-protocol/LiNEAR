@@ -18,6 +18,7 @@ mod epoch_actions;
 mod fungible_token_core;
 mod fungible_token_metadata;
 mod fungible_token_storage;
+mod liquidity_pool;
 
 use crate::types::*;
 use crate::utils::*;
@@ -28,6 +29,7 @@ use crate::staking_pool::*;
 pub use crate::fungible_token_core::*;
 pub use crate::fungible_token_metadata::*;
 pub use crate::fungible_token_storage::*;
+pub use crate::liquidity_pool::*;
 
 
 /// Interface for the contract itself.
@@ -104,12 +106,15 @@ pub struct LiquidStakingContract {
     /// The storage size in bytes for one account.
     pub account_storage_usage: StorageUsage,
 
+    /// The validator pool that manage the actions against validators
     validator_pool: ValidatorPool,
-
     /// Amount of NEAR that is requested to stake by all users during the last epoch
     epoch_requested_stake_amount: Balance,
     /// Amount of NEAR that is requested to unstake by all users during the last epoch
     epoch_requested_unstake_amount: Balance,
+
+    /// The single-direction liquidity pool that enables instant unstake
+    liquidity_pool: LiquidityPool,
 }
 
 #[near_bindgen]
@@ -148,12 +153,13 @@ impl LiquidStakingContract {
             total_share_amount: account_balance,
             total_staked_near_amount: account_balance,
             reward_fee_fraction,
-            accounts: UnorderedMap::new(b"a".to_vec()),
+            accounts: UnorderedMap::new(StorageKey::Accounts),
             paused: false,
             account_storage_usage: 0,
             validator_pool: ValidatorPool::new(),
             epoch_requested_stake_amount: 0,
             epoch_requested_unstake_amount: 0,
+            liquidity_pool: LiquidityPool::new(0, 1, 0, 7000),
         };
         this.measure_account_storage_usage();
         // Staking with the current pool to make sure the staking key is valid.

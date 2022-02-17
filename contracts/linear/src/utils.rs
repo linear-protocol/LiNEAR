@@ -1,5 +1,5 @@
 use near_sdk::{
-    env, EpochHeight, near_bindgen,
+    env, EpochHeight, near_bindgen, BorshStorageKey
 };
 use crate::*;
 
@@ -38,4 +38,11 @@ impl LiquidStakingContract {
     pub fn read_epoch_height(&self) -> EpochHeight {
         get_epoch_height()
     }
+}
+
+#[derive(BorshStorageKey, BorshSerialize)]
+pub(crate) enum StorageKey {
+    Accounts,
+    Shares,
+    Validators,
 }

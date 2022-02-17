@@ -9,6 +9,7 @@ use near_sdk::{
 
 mod types;
 mod utils;
+mod view;
 mod events;
 mod errors;
 mod account;

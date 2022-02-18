@@ -1,5 +1,5 @@
 import { Gas, NEAR, NearAccount, } from "near-workspaces-ava";
-import { initWorkSpace, skip } from "./helper";
+import { initWorkSpace, parseNEAR, skip } from "./helper";
 
 const workspace = initWorkSpace();
 
@@ -62,7 +62,7 @@ async function unstakeAll (owner: NearAccount, contract: NearAccount) {
   }
 }
 
-workspace.test('epoch stake', async (test, {root, contract, alice, owner, bob}) => {
+skip('epoch stake', async (test, {root, contract, alice, owner, bob}) => {
   const assertValidator = assertValidatorAmountHelper(test, contract);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -143,7 +143,7 @@ workspace.test('epoch stake', async (test, {root, contract, alice, owner, bob}) 
   await assertValidator(v3, `${30 + 45}`, '0');
 });
 
-workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => {
+skip('epoch unstake', async (test, {root, contract, alice, owner}) => {
   const assertValidator = assertValidatorAmountHelper(test, contract);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -245,4 +245,114 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
   await assertValidator(v1, '2', '8');
   await assertValidator(v2, '4', '16');
   await assertValidator(v3, '6', '24');
+});
+
+workspace.test('epoch collect rewards', async (test, {root, contract, alice, owner}) => {
+  test.timeout(60 * 1000);
+
+  const v1 = await createStakingPool(root, 'v1');
+  const v2 = await createStakingPool(root, 'v2');
+  const v3 = await createStakingPool(root, 'v3');
+
+  // add validators to contract
+  // weights:
+  // - v1: 10
+  // - v2: 20
+  // - v3: 30
+  await owner.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: v1.accountId,
+      weight: 10
+    }
+  );
+  await owner.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: v2.accountId,
+      weight: 20
+    }
+  );
+  await owner.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: v3.accountId,
+      weight: 30
+    }
+  );
+
+  // user stake
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    {
+      attachedDeposit: NEAR.parse('50')
+    }
+  );
+
+  // epoch stake
+  await stakeAll(owner, contract);
+
+  let total_share_amount_0 = parseNEAR(await contract.view('get_total_share_amount'));
+  let total_near_amount_0 = parseNEAR(await contract.view('get_total_staked_near_amount'));
+  test.truthy(total_share_amount_0.eq(NEAR.parse('60')));
+  test.truthy(total_near_amount_0.eq(NEAR.parse('60')));
+
+  // generate rewards
+  await contract.call(
+    v1,
+    'add_reward',
+    { amount: NEAR.parse('1').toString() }
+  );
+  await contract.call(
+    v2,
+    'add_reward',
+    { amount: NEAR.parse('2').toString() }
+  );
+  await contract.call(
+    v3,
+    'add_reward',
+    { amount: NEAR.parse('3').toString() }
+  );
+
+  // update rewards
+  await owner.call(
+    contract,
+    'epoch_update_rewards',
+    {
+      validator_id: v1.accountId
+    },
+    {
+      gas: Gas.parse('200 Tgas')
+    }
+  );
+  await owner.call(
+    contract,
+    'epoch_update_rewards',
+    {
+      validator_id: v2.accountId
+    },
+    {
+      gas: Gas.parse('200 Tgas')
+    }
+  );
+  await owner.call(
+    contract,
+    'epoch_update_rewards',
+    {
+      validator_id: v3.accountId
+    },
+    {
+      gas: Gas.parse('200 Tgas')
+    }
+  );
+
+  let total_share_amount_1 = parseNEAR(await contract.view('get_total_share_amount'));
+  let total_near_amount_1 = parseNEAR(await contract.view('get_total_staked_near_amount'));
+  test.truthy(total_share_amount_1.eq(NEAR.parse('60')));
+  test.truthy(total_near_amount_1.eq(NEAR.parse('66')));
 });

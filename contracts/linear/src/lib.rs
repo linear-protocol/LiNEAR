@@ -7,9 +7,10 @@ use near_sdk::{
     AccountId, Balance, PanicOnDefault, EpochHeight, PublicKey, StorageUsage
 };
 
+mod view;
 mod types;
 mod utils;
-mod view;
+mod owner;
 mod events;
 mod errors;
 mod account;
@@ -90,9 +91,6 @@ pub struct LiquidStakingContract {
     /// plus 2) amount of NEAR that has already been staked on validators.    
     /// Note that the amount of NEAR that is pending release or is already released by hasn't been withdrawn is not considered.
     pub total_staked_near_amount: Balance,
-    /// The fraction of the reward that goes to the owner of the staking pool for running the
-    /// validator node.
-    pub reward_fee_fraction: Fraction,
     /// Persistent map from an account ID to the corresponding account.
     pub accounts: UnorderedMap<AccountId, Account>,
     /// Whether the staking is paused.
@@ -111,6 +109,9 @@ pub struct LiquidStakingContract {
     epoch_requested_stake_amount: Balance,
     /// Amount of NEAR that is requested to unstake by all users during the last epoch
     epoch_requested_unstake_amount: Balance,
+
+    /// Beneficiaries for staking rewards.
+    beneficiaries: UnorderedMap<AccountId, Fraction>,
 }
 
 #[near_bindgen]
@@ -124,17 +125,11 @@ impl LiquidStakingContract {
     #[init]
     pub fn new(
         owner_id: AccountId,
-        reward_fee: Fraction,
     ) -> Self {
         require!(!env::state_exists(), ERR_ALREADY_INITIALZED);
         require!(
             env::account_locked_balance() == 0,
             ERR_ACCOUNT_STAKING_WHILE_INIT
-        );
-        
-        let reward_fee_fraction = Fraction::new(
-            reward_fee.numerator, 
-            reward_fee.denominator
         );
 
         let account_balance = env::account_balance();
@@ -154,13 +149,13 @@ impl LiquidStakingContract {
             last_total_balance: 10 * ONE_NEAR,
             total_share_amount: 10 * ONE_NEAR,
             total_staked_near_amount: 10 * ONE_NEAR,
-            reward_fee_fraction,
             accounts: UnorderedMap::new(b"a".to_vec()),
             paused: false,
             account_storage_usage: 0,
             validator_pool: ValidatorPool::new(),
             epoch_requested_stake_amount: 10 * ONE_NEAR,
             epoch_requested_unstake_amount: 0,
+            beneficiaries: UnorderedMap::new(b"b".to_vec()),
         };
         this.measure_account_storage_usage();
         // Staking with the current pool to make sure the staking key is valid.
@@ -329,11 +324,6 @@ impl LiquidStakingContract {
     /// Returns account ID of the staking pool owner.
     pub fn get_owner_id(&self) -> AccountId {
         self.owner_id.clone()
-    }
-
-    /// Returns the current reward fee as a fraction.
-    pub fn get_reward_fee_fraction(&self) -> Fraction {
-        self.reward_fee_fraction.clone()
     }
 
     /// Returns the staking public key

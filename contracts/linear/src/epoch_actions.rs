@@ -287,8 +287,7 @@ impl LiquidStakingContract {
         log_unstake_failed(&validator_id, amount);
     }
 
-    #[allow(dead_code)]
-    fn validator_get_balance_callback(
+    pub fn validator_get_balance_callback(
         &mut self,
         validator_id: AccountId,
         #[callback] total_balance: U128 
@@ -300,8 +299,6 @@ impl LiquidStakingContract {
             .expect(ERR_VALIDATOR_NOT_EXIST);
 
         let new_balance = total_balance.0;
-        validator.on_new_total_balance(&mut self.validator_pool, new_balance);
-
         let rewards = new_balance - validator.total_balance();
         log_new_balance(
             &validator_id,
@@ -309,6 +306,8 @@ impl LiquidStakingContract {
             new_balance,
             rewards
         );
+
+        validator.on_new_total_balance(&mut self.validator_pool, new_balance);
 
         // TODO could reward < 0?
         if rewards <= 0 {
@@ -319,8 +318,7 @@ impl LiquidStakingContract {
         self.internal_distribute_rewards(rewards);
     }
 
-    #[allow(dead_code)]
-    fn validator_withdraw_callback(
+    pub fn validator_withdraw_callback(
         &mut self,
         validator_id: AccountId,
         amount: Balance

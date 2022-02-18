@@ -48,7 +48,7 @@ pub struct ValidatorPool {
 impl ValidatorPool {
     pub fn new() -> Self {
         Self {
-            validators: UnorderedMap::new(b"vs".to_vec()),
+            validators: UnorderedMap::new(StorageKey::Validators),
             total_weight: 0,
         }
     }

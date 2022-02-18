@@ -5,8 +5,8 @@ use near_sdk::{
 };
 
 // NEAR and LINEAR token used in Liquidity Pool
-const NEAR_TOKEN_ACCOUNT: &str = "*near*";
-const LINEAR_TOKEN_ACCOUNT: &str = "*linear*";
+const NEAR_TOKEN_ACCOUNT: &str = "n.linear";
+const LINEAR_TOKEN_ACCOUNT: &str = "l.linear";
 
 
 #[derive(BorshSerialize, BorshDeserialize)]
@@ -277,7 +277,7 @@ impl LiquidStakingContract {
         // Calculate the number of "stake" shares that the account will receive for staking the
         // given amount.
         let num_shares = self.num_shares_from_staked_amount_rounded_down(amount);
-        require!(num_shares > 0, ERR_NON_POSITIVE_CALCULATED_STAKING_SHARE);
+        require!(num_shares > 0, ERR_NON_POSITIVE_LIQUIDITY_POOL_SHARE);
 
         account.unstaked -= amount;
         self.internal_save_account(&account_id, &account);

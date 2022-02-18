@@ -44,7 +44,6 @@ pub const ERR_NON_POSITIVE_MIN_RECEIVED_AMOUNT: &str = "The expected received NE
 pub const ERR_NON_POSITIVE_MIN_FEE: &str = "The min fee should be positive";
 pub const ERR_FEE_MAX_LESS_THAN_MIN: &str = "The max fee should be no less than the min fee";
 pub const ERR_FEE_EXCEEDS_UP_LIMIT: &str = "The fee should be less than 10000";
-pub const ERR_MIN_AMOUNT_OUT_NOT_SATISFIED: &str = "The received NEAR {} will be less than the expected amount {}";
 pub const ERR_NO_ENOUGH_LIQUIDITY: &str = "Not enough liquidity in the pool";
 pub const ERR_ACCOUNT_NO_SHARE: &str = "Account has no shares in liquidity pool";
 pub const ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE: &str = "Not enough liquidity shares to remove from the pool";

@@ -70,9 +70,15 @@ impl LiquidityPool {
         amount: Balance,
         shares: Balance
     ) {
-        self.update_shares(&account_id, shares);
-        // Increase NEAR amount
+        require!(shares > 0, ERR_NON_POSITIVE_LIQUIDITY_POOL_SHARE);
+        self.mint_shares(&account_id, shares);
+        // Add NEAR amount
         self.amounts[0] += amount;
+        log!(
+            "Liquidity added {} NEAR, minted {} shares",
+            amount,
+            shares
+        );
     }
 
     /// Removes given number of shares from the pool and returns amounts to the parent.
@@ -123,7 +129,7 @@ impl LiquidityPool {
         min_amount_out: Balance,
         context: Context
     ) -> u128 {
-        // Calculating the swap fee percentage from the receive_amount
+        // Calculating the swap fee percentage from requested amount
         let swap_fee_percentage = self.get_current_swap_fee_percentage(requested_amount);
         require!(swap_fee_percentage < ONE_HUNDRED_PERCENT, ERR_FEE_EXCEEDS_UP_LIMIT);
         let swap_fee = (U256::from(requested_amount) * U256::from(swap_fee_percentage) 
@@ -207,8 +213,8 @@ impl LiquidityPool {
         self.shares.get(&account_id).expect(ERR_ACCOUNT_NO_SHARE)
     }
 
-    /// Update new shares for given user.
-    fn update_shares(&mut self, account_id: &AccountId, shares: Balance) {
+    /// Mint new shares for given user.
+    fn mint_shares(&mut self, account_id: &AccountId, shares: Balance) {
         if shares == 0 {
             return;
         }
@@ -270,20 +276,23 @@ impl LiquidStakingContract {
         self.internal_deposit();
 
         let account_id = env::predecessor_account_id();
-        let mut account = self.internal_get_account(&account_id);
-
         let amount = env::attached_deposit();
 
-        // Calculate the number of "stake" shares that the account will receive for staking the
-        // given amount.
-        let num_shares = self.num_shares_from_staked_amount_rounded_down(amount);
-        require!(num_shares > 0, ERR_NON_POSITIVE_LIQUIDITY_POOL_SHARE);
+        // Add shares in liquidity pool
+        let added_shares = self.liquidity_pool.get_shares_from_value(
+            amount,
+            self.get_context()
+        );
+        self.liquidity_pool.add_liquidity(
+            &account_id,
+            amount,
+            added_shares
+        );
 
+        // Update unstaked amount
+        let mut account = self.internal_get_account(&account_id);
         account.unstaked -= amount;
         self.internal_save_account(&account_id, &account);
-
-        // Update shares in liquidity pool
-        self.liquidity_pool.add_liquidity(&account_id, amount, num_shares);
     }
 
     /// Remove shares from the liquidity pool and return NEAR and LiNEAR
@@ -302,6 +311,7 @@ impl LiquidStakingContract {
         //     ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE
         // );
 
+        // Remove shares from liqudity pool
         let removed_shares = self.liquidity_pool.get_shares_from_value(
             amount,
             self.get_context()
@@ -320,9 +330,13 @@ impl LiquidStakingContract {
     }
 
     /// Instant Unstake: swap LiNEAR to NEAR via the Liquidity Pool
-    pub fn instant_unstake(&mut self, amount_in: U128, min_amount_out: U128) {
-        let amount_in: ShareBalance = amount_in.into();
-        require!(amount_in > 0, ERR_NON_POSITIVE_UNSTAKING_AMOUNT);
+    pub fn instant_unstake(
+        &mut self,
+        staked_shares_in: U128,     // LiNEAR
+        min_amount_out: U128
+    ) -> Balance {
+        let staked_shares_in: ShareBalance = staked_shares_in.into();
+        require!(staked_shares_in > 0, ERR_NON_POSITIVE_UNSTAKING_AMOUNT);
         let min_amount_out: Balance = min_amount_out.into();
         require!(min_amount_out > 0, ERR_NON_POSITIVE_MIN_RECEIVED_AMOUNT);
 
@@ -330,17 +344,17 @@ impl LiquidStakingContract {
 
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);
-        require!(account.stake_shares >= amount_in, ERR_NO_ENOUGH_STAKED_BALANCE);
+        require!(account.stake_shares >= staked_shares_in, ERR_NO_ENOUGH_STAKED_BALANCE);
 
         // Calculating the amount of tokens the account will receive by unstaking the corresponding
         // number of "stake" shares, rounding up.
-        let num_shares = amount_in;
-        let receive_amount = self.staked_amount_from_num_shares_rounded_up(num_shares);
-        require!(receive_amount > 0, ERR_NON_POSITIVE_CALCULATED_STAKED_AMOUNT);
+        let num_shares = staked_shares_in;
+        let received_amount = self.staked_amount_from_num_shares_rounded_up(num_shares);
+        require!(received_amount > 0, ERR_NON_POSITIVE_CALCULATED_STAKED_AMOUNT);
 
         // Swap NEAR out from liquidity pool
         let treasury_fee = self.liquidity_pool.swap(
-            receive_amount,
+            received_amount,
             num_shares,
             min_amount_out,
             self.get_context()
@@ -354,16 +368,18 @@ impl LiquidStakingContract {
 
         // Update account balance and shares
         account.stake_shares -= num_shares;
-        account.unstaked += receive_amount;
+        account.unstaked += received_amount;
         self.internal_save_account(&account_id, &account);
-        Promise::new(env::predecessor_account_id()).transfer(receive_amount);
+        Promise::new(env::predecessor_account_id()).transfer(received_amount);
 
         log!(
             "@{} instantly unstaked {} LiNEAR, received {} NEAR",
             &account_id,
-            amount_in,
-            receive_amount
+            staked_shares_in,
+            received_amount
         );
+
+        received_amount
     }
 
     /// Provide context that are useful in modules

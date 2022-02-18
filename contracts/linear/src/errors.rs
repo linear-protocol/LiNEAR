@@ -39,7 +39,7 @@ pub const ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED: &str = "Cannot unstake from a pendi
 pub const ERR_VALIDATOR_WITHDRAW_WHEN_LOCKED: &str = "Cannot withdraw from a pending release validator";
 
 // liquidity pool
-pub const ERR_NON_POSITIVE_LIQUIDITY_POOL_SHARE: &str = "The calculated number of \"stake\" shares received for adding liquidity should be positive";
+pub const ERR_NON_POSITIVE_LIQUIDITY_POOL_SHARE: &str = "The calculated number of shares received for adding liquidity should be positive";
 pub const ERR_NON_POSITIVE_MIN_RECEIVED_AMOUNT: &str = "The expected received NEAR amount should be positive";
 pub const ERR_NON_POSITIVE_MIN_FEE: &str = "The min fee should be positive";
 pub const ERR_FEE_MAX_LESS_THAN_MIN: &str = "The max fee should be no less than the min fee";

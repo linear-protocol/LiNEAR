@@ -1,30 +1,10 @@
-import { Workspace, NEAR, NearAccount } from 'near-workspaces-ava';
-import { assertFailure } from './helper';
+import { NEAR } from 'near-workspaces-ava';
+import { initWorkSpace, assertFailure } from './helper';
 
 const NUM_EPOCHS_TO_UNLOCK = 4;
-const ERR_UNSTAKED_BALANCE_NOT_AVAILABLE = 'The unstaked balance is not yet available due to unstaking dela'
+const ERR_UNSTAKED_BALANCE_NOT_AVAILABLE = 'The unstaked balance is not yet available due to unstaking delay';
 
-const workspace = Workspace.init(async ({root}) => {
-  const owner = await root.createAccount('linear_owner');
-  const alice = await root.createAccount('alice');
-
-  const contract = await root.createAndDeploy(
-    'linear',
-    'compiled-contracts/linear.wasm',
-    {
-      method: 'new',
-      args: {
-        owner_id: 'linear_owner',
-        reward_fee: {
-          numerator: 1,
-          denominator: 100 
-        }
-      },
-    },
-  );
-
-  return { contract, alice };
-});
+const workspace = initWorkSpace();
 
 workspace.test('check balances after initlization', async (test, {contract, alice}) => {
   test.is(

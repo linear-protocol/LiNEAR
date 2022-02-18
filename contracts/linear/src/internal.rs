@@ -292,10 +292,7 @@ impl LiquidStakingContract {
         &self,
         num_shares: ShareBalance,
     ) -> Balance {
-        assert!(
-            self.total_share_amount > 0,
-            "The total number of stake shares can't be 0"
-        );
+        require!(self.total_share_amount > 0, ERR_NON_POSITIVE_TOTAL_STAKE_SHARES);
         (U256::from(self.total_staked_near_amount) * U256::from(num_shares)
             / U256::from(self.total_share_amount))
         .as_u128()
@@ -308,10 +305,7 @@ impl LiquidStakingContract {
         &self,
         num_shares: ShareBalance,
     ) -> Balance {
-        assert!(
-            self.total_share_amount > 0,
-            "The total number of stake shares can't be 0"
-        );
+        require!(self.total_share_amount > 0, ERR_NON_POSITIVE_TOTAL_STAKE_SHARES);
         ((U256::from(self.total_staked_near_amount) * U256::from(num_shares)
             + U256::from(self.total_share_amount - 1))
             / U256::from(self.total_share_amount))

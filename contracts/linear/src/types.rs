@@ -9,10 +9,15 @@ use uint::construct_uint;
 pub const NO_DEPOSIT: Balance = 0;
 /// one NEAR
 pub const ONE_NEAR: Balance = 1_000_000_000_000_000_000_000_000;
-
+/// The number of epochs required for the locked balance to become unlocked.
+/// NOTE: The actual number of epochs when the funds are unlocked is 3. But there is a corner case
+/// when the unstaking promise can arrive at the next epoch, while the inner state is already
+/// updated in the previous epoch. It will not unlock the funds for 4 epochs.
 pub const NUM_EPOCHS_TO_UNLOCK: EpochHeight = 4;
-/// One hundred percentage
-pub const FULL_PERCENTAGE: u32 = 10_000;
+/// One hundred percent in 10,000
+pub const ONE_HUNDRED_PERCENT: u32 = 10_000;
+/// DAO treasuary account should be configurable
+pub const TREASURY_ACCOUNT: &str = "treasury";
 
 /// -- GAS
 

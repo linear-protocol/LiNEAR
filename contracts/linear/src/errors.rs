@@ -20,6 +20,7 @@ pub const ERR_NON_POSITIVE_UNSTAKING_AMOUNT: &str = "Unstaking amount should be 
 pub const ERR_NON_POSITIVE_CALCULATED_UNSTAKING_SHARE: &str = "Invariant violation. The calculated number of \"stake\" shares for unstaking should be positive";
 pub const ERR_NO_ENOUGH_STAKED_BALANCE: &str = "Not enough staked balance to unstake";
 pub const ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE: &str = "The total staked balance can't be 0";
+pub const ERR_NON_POSITIVE_TOTAL_STAKE_SHARES: &str = "The total number of stake shares can't be 0";
 pub const ERR_CONTRACT_NO_STAKED_BALANCE: &str = "Invariant violation. The calculated number of \"stake\" shares for unstaking should be positive";
 
 // withdraw
@@ -38,9 +39,12 @@ pub const ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED: &str = "Cannot unstake from a pendi
 pub const ERR_VALIDATOR_WITHDRAW_WHEN_LOCKED: &str = "Cannot withdraw from a pending release validator";
 
 // liquidity pool
+pub const ERR_NON_POSITIVE_LIQUIDITY_POOL_SHARE: &str = "The calculated number of \"stake\" shares received for adding liquidity should be positive";
 pub const ERR_NON_POSITIVE_MIN_RECEIVED_AMOUNT: &str = "The expected received NEAR amount should be positive";
 pub const ERR_NON_POSITIVE_MIN_FEE: &str = "The min fee should be positive";
 pub const ERR_FEE_MAX_LESS_THAN_MIN: &str = "The max fee should be no less than the min fee";
 pub const ERR_FEE_EXCEEDS_UP_LIMIT: &str = "The fee should be less than 10000";
 pub const ERR_MIN_AMOUNT_OUT_NOT_SATISFIED: &str = "The received NEAR {} will be less than the expected amount {}";
 pub const ERR_NO_ENOUGH_LIQUIDITY: &str = "Not enough liquidity in the pool";
+pub const ERR_ACCOUNT_NO_SHARE: &str = "Account has no shares in liquidity pool";
+pub const ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE: &str = "Not enough liquidity shares to remove from the pool";

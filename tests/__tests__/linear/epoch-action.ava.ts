@@ -62,7 +62,7 @@ async function unstakeAll (owner: NearAccount, contract: NearAccount) {
   }
 }
 
-workspace.test('epoch stake', async (test, {root, contract, alice, owner, bob}) => {
+skip('epoch stake', async (test, {root, contract, alice, owner, bob}) => {
   const assertValidator = assertValidatorAmountHelper(test, contract);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -143,7 +143,7 @@ workspace.test('epoch stake', async (test, {root, contract, alice, owner, bob}) 
   await assertValidator(v3, `${30 + 45}`, '0');
 });
 
-workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => {
+skip('epoch unstake', async (test, {root, contract, alice, owner}) => {
   const assertValidator = assertValidatorAmountHelper(test, contract);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -355,4 +355,46 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, own
   let total_near_amount_1 = parseNEAR(await contract.view('get_total_staked_near_amount'));
   test.truthy(total_share_amount_1.eq(NEAR.parse('60')));
   test.truthy(total_near_amount_1.eq(NEAR.parse('66')));
+
+  // set beneficiary
+  await owner.call(
+      contract,
+      'set_beneficiary',
+      {
+          account_id: owner.accountId,
+          fraction: {
+              numerator: 1,
+              denominator: 10
+          }
+      }
+  );
+
+  // generate more rewards
+  await contract.call(
+    v1,
+    'add_reward',
+    { amount: NEAR.parse('1').toString() }
+  );
+
+  await owner.call(
+    contract,
+    'epoch_update_rewards',
+    {
+      validator_id: v1.accountId
+    },
+    {
+      gas: Gas.parse('200 Tgas')
+    }
+  );
+
+  let total_share_amount_2 = parseNEAR(await contract.view('get_total_share_amount'));
+  let total_near_amount_2 = parseNEAR(await contract.view('get_total_staked_near_amount'));
+  test.is(
+    total_share_amount_2.toString(),
+    '60089552238805970000000000'
+  );
+  test.is(
+    total_near_amount_2.toString(),
+    '67000000000000000000000000'
+  );
 });

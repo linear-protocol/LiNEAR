@@ -62,7 +62,7 @@ async function unstakeAll (owner: NearAccount, contract: NearAccount) {
   }
 }
 
-skip('epoch stake', async (test, {root, contract, alice, owner, bob}) => {
+workspace.test('epoch stake', async (test, {root, contract, alice, owner, bob}) => {
   const assertValidator = assertValidatorAmountHelper(test, contract);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -143,7 +143,7 @@ skip('epoch stake', async (test, {root, contract, alice, owner, bob}) => {
   await assertValidator(v3, `${30 + 45}`, '0');
 });
 
-skip('epoch unstake', async (test, {root, contract, alice, owner}) => {
+workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => {
   const assertValidator = assertValidatorAmountHelper(test, contract);
 
   const v1 = await createStakingPool(root, 'v1');

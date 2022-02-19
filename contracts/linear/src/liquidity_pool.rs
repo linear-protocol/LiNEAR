@@ -87,7 +87,7 @@ impl LiquidityPool {
         account_id: &AccountId,
         shares: Balance
     ) -> Vec<Balance> {
-        let prev_shares_amount = self.get_account_shares(&account_id);
+        let prev_shares_amount = self.shares.get(&account_id).expect(ERR_ACCOUNT_NO_SHARE);
         require!(
             prev_shares_amount >= shares,
             ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE
@@ -129,7 +129,7 @@ impl LiquidityPool {
         min_amount_out: Balance,
         context: Context
     ) -> u128 {
-        // Calculating the swap fee percentage from requested amount
+        // Calculate the swap fee percentage from requested amount
         let swap_fee_percentage = self.get_current_swap_fee_percentage(requested_amount);
         require!(swap_fee_percentage < ONE_HUNDRED_PERCENT, ERR_FEE_EXCEEDS_UP_LIMIT);
         let swap_fee = (U256::from(requested_amount) * U256::from(swap_fee_percentage) 
@@ -144,16 +144,16 @@ impl LiquidityPool {
             )
         );
 
-        // Swap out NEAR from pool
-        self.amounts[0] -= received_amount;
-
-        // Calculate LiNEAR amount for the swap_fee
+        // Calculate LiNEAR amount for the swap fee
         let fee_num_shares = self.num_shares_from_staked_amount_rounded_down(
             swap_fee,
             context
         );
         let treasury_fee = (U256::from(fee_num_shares) * U256::from(self.fee_treasury_percentage) 
             / U256::from(ONE_HUNDRED_PERCENT)).as_u128();
+
+        // Swap out NEAR from pool
+        self.amounts[0] -= received_amount;
 
         // Swap in LiNEAR into pool, excluding the fees for treasury
         let received_num_shares = stake_shares_in - treasury_fee;
@@ -179,9 +179,12 @@ impl LiquidityPool {
         context: Context
     ) -> Balance {
         let pool_value_in_near = self.get_pool_value(context);
-        (U256::from(shares) * U256::from(pool_value_in_near)
-            / U256::from(self.shares_total_supply))
-        .as_u128()
+        if self.shares_total_supply == 0 || shares == 0 {
+            0
+        } else {
+            (U256::from(shares) * U256::from(pool_value_in_near)
+                / U256::from(self.shares_total_supply)).as_u128()
+        }
     }
 
     /// Calculate shares from give value in NEAR
@@ -191,9 +194,19 @@ impl LiquidityPool {
         context: Context
     ) -> Balance {
         let pool_value_in_near = self.get_pool_value(context);
-        (U256::from(amount) * U256::from(self.shares_total_supply)
-            / U256::from(pool_value_in_near))
-        .as_u128()
+        log!(
+            "get_shares_from_value: pool_value_in_near = {}, self.shares_total_supply = {}",
+            pool_value_in_near,
+            self.shares_total_supply
+        );
+        if self.shares_total_supply == 0 {
+            amount
+        } else if amount == 0 || pool_value_in_near == 0 {
+            0
+        } else {
+            (U256::from(amount) * U256::from(self.shares_total_supply)
+                / U256::from(pool_value_in_near)).as_u128()
+        }
     }
 
     /// Calculate the Liquidity Pool value in NEAR
@@ -203,14 +216,14 @@ impl LiquidityPool {
     ) -> Balance {
         self.amounts[0] +
             self.staked_amount_from_num_shares_rounded_down(
-                self.shares_total_supply,
+                self.amounts[1],
                 context
             )
     }
 
     /// Return shares for the account
-    fn get_account_shares(&self, account_id: &AccountId) -> ShareBalance {
-        self.shares.get(&account_id).expect(ERR_ACCOUNT_NO_SHARE)
+    pub fn get_account_shares(&self, account_id: &AccountId) -> ShareBalance {
+        self.shares.get(&account_id).unwrap_or(0)
     }
 
     /// Mint new shares for given user.
@@ -281,7 +294,7 @@ impl LiquidStakingContract {
         // Add shares in liquidity pool
         let added_shares = self.liquidity_pool.get_shares_from_value(
             amount,
-            self.get_context()
+            self.internal_get_context()
         );
         self.liquidity_pool.add_liquidity(
             &account_id,
@@ -304,7 +317,7 @@ impl LiquidStakingContract {
         // Calculate the NEAR value owned by the account
         // let account_value = self.liquidity_pool.get_account_value(
         //     &account_id,
-        //     self.get_context()
+        //     self.internal_get_context()
         // );
         // require!(
         //     account_value >= amount,
@@ -314,7 +327,7 @@ impl LiquidStakingContract {
         // Remove shares from liqudity pool
         let removed_shares = self.liquidity_pool.get_shares_from_value(
             amount,
-            self.get_context()
+            self.internal_get_context()
         );
         let results = self.liquidity_pool.remove_liquidity(
             &account_id,
@@ -357,7 +370,7 @@ impl LiquidStakingContract {
             received_amount,
             num_shares,
             min_amount_out,
-            self.get_context()
+            self.internal_get_context()
         );
 
         // Calculate and distribute fees for DAO treasury
@@ -383,7 +396,7 @@ impl LiquidStakingContract {
     }
 
     /// Provide context that are useful in modules
-    fn get_context(&self) -> Context {
+    pub(crate) fn internal_get_context(&self) -> Context {
         Context {
             total_staked_near_amount: self.total_staked_near_amount,
             total_share_amount: self.total_share_amount

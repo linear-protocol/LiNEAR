@@ -349,12 +349,13 @@ impl LiquidStakingContract {
     pub fn get_account(&self, account_id: AccountId) -> HumanReadableAccount {
         let account = self.internal_get_account(&account_id);
         HumanReadableAccount {
-            account_id,
+            account_id: account_id.clone(),
             unstaked_balance: account.unstaked.into(),
             staked_balance: self
                 .staked_amount_from_num_shares_rounded_down(account.stake_shares)
                 .into(),
             can_withdraw: account.unstaked_available_epoch_height <= get_epoch_height(),
+            liquidity_pool_share: self.liquidity_pool.get_account_shares(&account_id).into(),
         }
     }
 

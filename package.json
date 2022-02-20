@@ -1,0 +1,23 @@
+{
+  "name": "linear",
+  "version": "1.0.0",
+  "description": "NEAR Liquid Staking",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com-dongcool:linear-protocol/LiNEAR.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "near-api-js": "^0.44.2",
+    "yargs": "^17.3.1"
+  }
+}

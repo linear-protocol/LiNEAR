@@ -17,7 +17,12 @@ impl LiquidStakingContract {
         fraction: Fraction
     ) {
         self.assert_owner();
-        self.beneficiaries.insert(&account_id, &fraction);
+        // this is to make sure fraction is valid
+        let f = Fraction::new(
+            fraction.numerator,
+            fraction.denominator
+        );
+        self.beneficiaries.insert(&account_id, &f);
     }
 
     pub fn remove_beneficiary(

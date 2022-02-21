@@ -18,6 +18,7 @@ mod epoch_actions;
 mod fungible_token_core;
 mod fungible_token_metadata;
 mod fungible_token_storage;
+mod fungible_token_custom;
 mod liquidity_pool;
 
 use crate::types::*;
@@ -29,6 +30,7 @@ use crate::staking_pool::*;
 pub use crate::fungible_token_core::*;
 pub use crate::fungible_token_metadata::*;
 pub use crate::fungible_token_storage::*;
+pub use crate::fungible_token_custom::*;
 pub use crate::liquidity_pool::*;
 
 

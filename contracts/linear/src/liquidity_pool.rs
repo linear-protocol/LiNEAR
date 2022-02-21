@@ -305,8 +305,9 @@ impl LiquidStakingContract {
         self.internal_save_account(&account_id, &account);
     }
 
-    /// Remove shares from the liquidity pool and return NEAR and LiNEAR
-    pub fn remove_liquidity(&mut self, amount: U128) -> Vec<Balance> {
+    /// Remove shares from the liquidity pool and return NEAR and LiNEAR.
+    /// The parameter `amount` means the value of NEAR to be removed
+    pub fn remove_liquidity(&mut self, amount: U128) -> Vec<U128> {
         let account_id = env::predecessor_account_id();
         let amount: Balance = amount.into();
 
@@ -331,12 +332,15 @@ impl LiquidStakingContract {
             removed_shares
         );
 
+        // Receive NEAR and LiNEAR
         let mut account = self.internal_get_account(&account_id);
         account.stake_shares += results[1];
         self.internal_save_account(&account_id, &account);
         Promise::new(env::predecessor_account_id()).transfer(results[0]);
 
-        results
+        results.iter()
+            .map(|amount| amount.clone().into())
+            .collect()
     }
 
     /// Instant Unstake: swap LiNEAR to NEAR via the Liquidity Pool
@@ -349,8 +353,6 @@ impl LiquidStakingContract {
         require!(staked_shares_in > 0, ERR_NON_POSITIVE_UNSTAKING_AMOUNT);
         let min_amount_out: Balance = min_amount_out.into();
         require!(min_amount_out > 0, ERR_NON_POSITIVE_MIN_RECEIVED_AMOUNT);
-
-        require!(self.total_staked_near_amount > 0, ERR_CONTRACT_NO_STAKED_BALANCE);
 
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);

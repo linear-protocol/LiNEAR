@@ -26,8 +26,8 @@ workspace.test('add initial liquidity', async (test, { contract, alice, bob }) =
     {},
     { attachedDeposit: stakeAmount },
   );
-  
-  // Bob adds liquidity
+
+  // Bob adds initial liquidity
   const addedLiqudityAmount = NEAR.parse('50');
   await bob.call(
     contract,
@@ -64,8 +64,8 @@ workspace.test('instant unstake', async (test, { contract, alice, bob }) => {
     {},
     { attachedDeposit: stakeAmount },
   );
-  
-  // Bob adds liquidity
+
+  // Bob adds initial liquidity
   const addedLiqudityAmount = NEAR.parse('50');
   await bob.call(
     contract,
@@ -115,7 +115,68 @@ workspace.test('instant unstake', async (test, { contract, alice, bob }) => {
 
 });
 
-// workspace.test('remove liquidity', async (test, { contract, alice }) => {
+workspace.test('remove liquidity', async (test, { contract, alice, bob }) => {
+  const getBobBalance = async () => {
+    return (await bob.balance()).total
+  }
 
+  // Alice deposits and stakes to avoid empty stake shares
+  const stakeAmount = NEAR.parse('10');
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    { attachedDeposit: stakeAmount },
+  );
 
-// });
+  // Bob adds initial liquidity
+  const addedLiqudityAmount = NEAR.parse('50');
+  await bob.call(
+    contract,
+    'add_liquidity',
+    {},
+    { attachedDeposit: addedLiqudityAmount },
+  );
+  test.is(
+    (await contract.view('get_account', { account_id: bob }) as any).liquidity_pool_share,
+    addedLiqudityAmount.toString()
+  );
+
+  // Bob removes liquidity from pool
+  const removedLiqudityAmount = NEAR.parse('10');
+  let bobBalance, results, receivedAmount;
+  bobBalance = await getBobBalance();
+  results = await bob.call(
+    contract,
+    'remove_liquidity',
+    { amount: removedLiqudityAmount }
+  );
+  receivedAmount = NEAR.from(results[0]);
+  test.is(
+    removedLiqudityAmount.toString(),
+    receivedAmount.toString()
+  );
+  test.is(
+    bobBalance.add(receivedAmount).toString(),
+    (await getBobBalance()).toString()
+  );
+
+  // Bob removes liquidity from pool
+  const removedLiqudityAmount2 = NEAR.parse('10');
+  bobBalance = await getBobBalance();
+  results = await bob.call(
+    contract,
+    'remove_liquidity',
+    { amount: removedLiqudityAmount2 }
+  );
+  receivedAmount = NEAR.from(results[0]);
+  test.is(
+    removedLiqudityAmount.toString(),
+    receivedAmount.toString()
+  );
+  test.is(
+    bobBalance.add(receivedAmount).toString(),
+    (await getBobBalance()).toString()
+  );
+
+});

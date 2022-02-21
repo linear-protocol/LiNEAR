@@ -14,6 +14,17 @@ NEAR Liquid Staking
   - Run specific test file: `TEST_FILE={filename} make test-linear`
   - Print contract logs: `LOGS=1 make test-linear`
 
+## Deploy
+A cli tool is made to help deploy and manage the contract.     
+In order to use it, run `npm i` first.     
+
+- deploy contract:
+  - `./bin/cli.js deploy linear.testnet`
+
+- init contract:
+  - `./bin/cli.js init linear.testnet --signer owner.testnet --owner_id owner.testnet`
+
+
 ## Design
 
 ### Terminologies

@@ -1,3 +1,5 @@
+const { init } = require("../near");
+
 exports.command = 'init <address>';
 exports.desc = 'Init LiNEAR contract';
 exports.builder = yargs => {
@@ -20,6 +22,21 @@ exports.builder = yargs => {
     })
 };
 
-exports.handler = async function (yargs) {
-  console.log(yargs);
+exports.handler = async function (argv) {
+  const address = argv.address;
+  const ownerId = argv.owner_id;
+  console.log(`Init contract at ${address}, with ownerId ${ownerId}`);
+
+  const near = await init(argv.network);
+  const signer = await near.account(argv.signer);
+  
+  await signer.functionCall({
+    contractId: address,
+    methodName: 'new',
+    args: {
+      owner_id: ownerId
+    }
+  });
+
+  console.log('init done.');
 }

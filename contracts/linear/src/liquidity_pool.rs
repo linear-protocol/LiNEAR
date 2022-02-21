@@ -4,9 +4,9 @@ use near_sdk::{
     collections::LookupMap
 };
 
-// NEAR and LINEAR token used in Liquidity Pool
-const NEAR_TOKEN_ACCOUNT: &str = "n.linear";
-const LINEAR_TOKEN_ACCOUNT: &str = "l.linear";
+// Mocked NEAR and LINEAR token used in Liquidity Pool
+const NEAR_TOKEN_ACCOUNT: &str = "near";
+const LINEAR_TOKEN_ACCOUNT: &str = "linear";
 
 
 #[derive(BorshSerialize, BorshDeserialize)]
@@ -322,11 +322,12 @@ impl LiquidStakingContract {
         //     ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE
         // );
 
-        // Remove shares from liqudity pool
+        // Calculate liquidity pool shares from NEAR amount
         let removed_shares = self.liquidity_pool.get_shares_from_value(
             amount,
             self.internal_get_context()
         );
+        // Remove shares from liquidity pool
         let results = self.liquidity_pool.remove_liquidity(
             &account_id,
             removed_shares

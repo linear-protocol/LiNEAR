@@ -34,7 +34,7 @@ pub struct HumanReadableAccount {
     pub staked_balance: U128,
     /// Whether the unstaked balance is available for withdrawal now.
     pub can_withdraw: bool,
-    /// The liquidity pool share by the account
+    /// The liquidity pool share of the account
     pub liquidity_pool_share: U128,
 }
 

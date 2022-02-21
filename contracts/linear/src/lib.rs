@@ -159,7 +159,7 @@ impl LiquidStakingContract {
             validator_pool: ValidatorPool::new(),
             epoch_requested_stake_amount: 0,
             epoch_requested_unstake_amount: 0,
-            liquidity_pool: LiquidityPool::new(10000, 300, 30, 7000),
+            liquidity_pool: LiquidityPool::new(10000 * ONE_NEAR, 300, 30, 7000),
         };
         this.measure_account_storage_usage();
         // Staking with the current pool to make sure the staking key is valid.

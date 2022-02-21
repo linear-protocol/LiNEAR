@@ -20,8 +20,8 @@ pub struct LiquidityPool {
     /// Total number of shares
     pub shares_total_supply: Balance,
 
-    /// The amount of near amount required to keep fee lower
-    pub required_near_amount: Balance,
+    /// The amount of expected near amount to keep fee lower
+    pub expected_near_amount: Balance,
     /// Max fee percentage
     pub max_fee: u32,
     /// Min fee percentage
@@ -37,7 +37,7 @@ pub struct Context {
 
 impl LiquidityPool {
     pub fn new(
-        required_near_amount: Balance,
+        expected_near_amount: Balance,
         max_fee: u32,
         min_fee: u32,
         fee_treasury_percentage: u32,
@@ -54,7 +54,7 @@ impl LiquidityPool {
         Self {
             token_account_ids: token_account_ids.clone(),
             amounts: vec![0u128; token_account_ids.len()],
-            required_near_amount,
+            expected_near_amount,
             max_fee,
             min_fee,
             shares: LookupMap::new(StorageKey::Shares),
@@ -128,11 +128,12 @@ impl LiquidityPool {
         stake_shares_in: ShareBalance,  // LiNEAR
         min_amount_out: Balance,
         context: Context
-    ) -> u128 {
+    ) -> (Balance, ShareBalance) {
         // Calculate the swap fee percentage from requested amount
         let swap_fee_percentage = self.get_current_swap_fee_percentage(requested_amount);
         require!(swap_fee_percentage < ONE_HUNDRED_PERCENT, ERR_FEE_EXCEEDS_UP_LIMIT);
-        let swap_fee = (U256::from(requested_amount) * U256::from(swap_fee_percentage) 
+        let swap_fee = (U256::from(requested_amount)
+            * U256::from(swap_fee_percentage)
             / U256::from(ONE_HUNDRED_PERCENT)).as_u128();
         let received_amount = requested_amount - swap_fee;
         require!(self.amounts[0] > received_amount, ERR_NO_ENOUGH_LIQUIDITY);
@@ -149,17 +150,18 @@ impl LiquidityPool {
             swap_fee,
             context
         );
-        let treasury_fee = (U256::from(fee_num_shares) * U256::from(self.fee_treasury_percentage) 
+        let treasury_fee_shares = (U256::from(fee_num_shares)
+            * U256::from(self.fee_treasury_percentage)
             / U256::from(ONE_HUNDRED_PERCENT)).as_u128();
 
         // Swap out NEAR from pool
         self.amounts[0] -= received_amount;
 
         // Swap in LiNEAR into pool, excluding the fees for treasury
-        let received_num_shares = stake_shares_in - treasury_fee;
+        let received_num_shares = stake_shares_in - treasury_fee_shares;
         self.amounts[1] += received_num_shares;
 
-        treasury_fee
+        (received_amount, treasury_fee_shares)
     }
 
     /// Calculate account value in NEAR by shares
@@ -194,11 +196,6 @@ impl LiquidityPool {
         context: Context
     ) -> Balance {
         let pool_value_in_near = self.get_pool_value(context);
-        log!(
-            "get_shares_from_value: pool_value_in_near = {}, self.shares_total_supply = {}",
-            pool_value_in_near,
-            self.shares_total_supply
-        );
         if self.shares_total_supply == 0 {
             amount
         } else if amount == 0 || pool_value_in_near == 0 {
@@ -265,14 +262,14 @@ impl LiquidityPool {
         }
 
         let remaining_amount = self.amounts[0] - amount_out;
-        if remaining_amount >= self.required_near_amount {
+        if remaining_amount >= self.expected_near_amount {
             return self.min_fee;
         }
 
         let diff = self.max_fee - self.min_fee;
         self.max_fee -
             (U256::from(diff) * U256::from(remaining_amount) 
-                / U256::from(self.required_near_amount))
+                / U256::from(self.expected_near_amount))
                 .as_u32()
     }
 
@@ -345,9 +342,9 @@ impl LiquidStakingContract {
     /// Instant Unstake: swap LiNEAR to NEAR via the Liquidity Pool
     pub fn instant_unstake(
         &mut self,
-        staked_shares_in: U128,     // LiNEAR
-        min_amount_out: U128
-    ) -> Balance {
+        staked_shares_in: U128,     // LiNEAR amount sent by the account
+        min_amount_out: U128        // Minimal NEAR amount should be returned
+    ) -> U128 {
         let staked_shares_in: ShareBalance = staked_shares_in.into();
         require!(staked_shares_in > 0, ERR_NON_POSITIVE_UNSTAKING_AMOUNT);
         let min_amount_out: Balance = min_amount_out.into();
@@ -361,14 +358,13 @@ impl LiquidStakingContract {
 
         // Calculating the amount of tokens the account will receive by unstaking the corresponding
         // number of "stake" shares, rounding up.
-        let num_shares = staked_shares_in;
-        let received_amount = self.staked_amount_from_num_shares_rounded_up(num_shares);
-        require!(received_amount > 0, ERR_NON_POSITIVE_CALCULATED_STAKED_AMOUNT);
+        let requested_amount = self.staked_amount_from_num_shares_rounded_up(staked_shares_in);
+        require!(requested_amount > 0, ERR_NON_POSITIVE_CALCULATED_STAKED_AMOUNT);
 
         // Swap NEAR out from liquidity pool
-        let treasury_fee = self.liquidity_pool.swap(
-            received_amount,
-            num_shares,
+        let (received_amount, treasury_fee_shares) = self.liquidity_pool.swap(
+            requested_amount,
+            staked_shares_in,
             min_amount_out,
             self.internal_get_context()
         );
@@ -376,11 +372,11 @@ impl LiquidStakingContract {
         // Calculate and distribute fees for DAO treasury
         let treasury_account_id = TREASURY_ACCOUNT.parse::<AccountId>().unwrap();
         let mut treasury_account = self.internal_get_account(&treasury_account_id);
-        treasury_account.stake_shares += treasury_fee;
+        treasury_account.stake_shares += treasury_fee_shares;
         self.internal_save_account(&treasury_account_id, &treasury_account);
 
         // Update account balance and shares
-        account.stake_shares -= num_shares;
+        account.stake_shares -= staked_shares_in;
         account.unstaked += received_amount;
         self.internal_save_account(&account_id, &account);
         Promise::new(env::predecessor_account_id()).transfer(received_amount);
@@ -392,7 +388,7 @@ impl LiquidStakingContract {
             received_amount
         );
 
-        received_amount
+        received_amount.into()
     }
 
     /// Provide context that are useful in modules

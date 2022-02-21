@@ -136,8 +136,8 @@ impl LiquidityPool {
             * U256::from(swap_fee_percentage)
             / U256::from(ONE_HUNDRED_PERCENT)).as_u128();
         let received_amount = requested_amount - swap_fee;
-        require!(self.amounts[0] > received_amount, ERR_NO_ENOUGH_LIQUIDITY);
-        require!(received_amount > min_amount_out,
+        require!(self.amounts[0] >= received_amount, ERR_NO_ENOUGH_LIQUIDITY);
+        require!(received_amount >= min_amount_out,
             format!(
                 "The received NEAR {} will be less than the expected amount {}",
                 received_amount,

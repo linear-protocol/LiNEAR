@@ -2,13 +2,14 @@ use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize,},
     serde::{Deserialize, Serialize,},
     json_types::{U128},
-    collections::{UnorderedMap},
+    collections::{UnorderedMap, Vector, UnorderedSet},
     env, near_bindgen, ext_contract, require,
     AccountId, Balance, PanicOnDefault, EpochHeight, PublicKey, StorageUsage
 };
 
 mod types;
 mod utils;
+mod owner;
 mod view;
 mod events;
 mod errors;
@@ -19,12 +20,15 @@ mod epoch_actions;
 mod fungible_token_core;
 mod fungible_token_metadata;
 mod fungible_token_storage;
+mod farm;
+mod token_receiver;
 
 use crate::types::*;
 use crate::utils::*;
 use crate::errors::*;
 use crate::account::*;
 use crate::staking_pool::*;
+use crate::farm::{Farm};
 // use crate::internal::*;
 pub use crate::fungible_token_core::*;
 pub use crate::fungible_token_metadata::*;
@@ -40,6 +44,23 @@ pub trait SelfContract {
     /// follow withdraw calls might fail. To mitigate this, the contract will issue a new unstaking
     /// action in case of the failure of the first staking action.
     fn on_stake_action(&mut self);
+
+    /// Check if reward withdrawal succeeded and if it failed, refund reward back to the user.
+    fn callback_post_withdraw_reward(
+        &mut self,
+        token_id: AccountId,
+        sender_id: AccountId,
+        amount: U128,
+    );
+
+    /// Callback after getting the owner of the given account.
+    fn callback_post_get_owner(
+        &mut self,
+        token_id: AccountId,
+        delegator_id: AccountId,
+        account_id: AccountId,
+    ) -> Promise;
+
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
@@ -90,9 +111,6 @@ pub struct LiquidStakingContract {
     /// plus 2) amount of NEAR that has already been staked on validators.    
     /// Note that the amount of NEAR that is pending release or is already released by hasn't been withdrawn is not considered.
     pub total_staked_near_amount: Balance,
-    /// The fraction of the reward that goes to the owner of the staking pool for running the
-    /// validator node.
-    pub reward_fee_fraction: Fraction,
     /// Persistent map from an account ID to the corresponding account.
     pub accounts: UnorderedMap<AccountId, Account>,
     /// Whether the staking is paused.
@@ -105,12 +123,28 @@ pub struct LiquidStakingContract {
     /// The storage size in bytes for one account.
     pub account_storage_usage: StorageUsage,
 
+    // --- Validator Pool ---
+
     validator_pool: ValidatorPool,
 
     /// Amount of NEAR that is requested to stake by all users during the last epoch
     epoch_requested_stake_amount: Balance,
     /// Amount of NEAR that is requested to unstake by all users during the last epoch
     epoch_requested_unstake_amount: Balance,
+
+    // --- Staking Farm ---
+
+    /// Farm tokens.
+    pub farms: Vector<Farm>,
+    /// Active farms: indicies into `farms`.
+    pub active_farms: Vec<u64>,
+    /// Authorized users, allowed to add farms.
+    /// This is done to prevent farm spam with random tokens.
+    /// Should not be a large number.
+    // pub authorized_users: UnorderedSet<AccountId>,
+    /// Authorized tokens for farms.
+    /// Required because any contract can call method with ft_transfer_call, so must verify that contract will accept it.
+    pub authorized_farm_tokens: UnorderedSet<AccountId>,
 }
 
 #[near_bindgen]
@@ -124,17 +158,11 @@ impl LiquidStakingContract {
     #[init]
     pub fn new(
         owner_id: AccountId,
-        reward_fee: Fraction,
     ) -> Self {
         require!(!env::state_exists(), ERR_ALREADY_INITIALZED);
         require!(
             env::account_locked_balance() == 0,
             ERR_ACCOUNT_STAKING_WHILE_INIT
-        );
-        
-        let reward_fee_fraction = Fraction::new(
-            reward_fee.numerator, 
-            reward_fee.denominator
         );
 
         let account_balance = env::account_balance();
@@ -154,13 +182,16 @@ impl LiquidStakingContract {
             last_total_balance: 10 * ONE_NEAR,
             total_share_amount: 10 * ONE_NEAR,
             total_staked_near_amount: 10 * ONE_NEAR,
-            reward_fee_fraction,
             accounts: UnorderedMap::new(b"a".to_vec()),
             paused: false,
             account_storage_usage: 0,
             validator_pool: ValidatorPool::new(),
             epoch_requested_stake_amount: 10 * ONE_NEAR,
             epoch_requested_unstake_amount: 0,
+            farms: Vector::new(StorageKey::Farms),
+            active_farms: Vec::new(),
+            // authorized_users: UnorderedSet::new(StorageKey::AuthorizedUsers),
+            authorized_farm_tokens: UnorderedSet::new(StorageKey::AuthorizedFarmTokens),
         };
         this.measure_account_storage_usage();
         // Staking with the current pool to make sure the staking key is valid.
@@ -329,11 +360,6 @@ impl LiquidStakingContract {
     /// Returns account ID of the staking pool owner.
     pub fn get_owner_id(&self) -> AccountId {
         self.owner_id.clone()
-    }
-
-    /// Returns the current reward fee as a fraction.
-    pub fn get_reward_fee_fraction(&self) -> Fraction {
-        self.reward_fee_fraction.clone()
     }
 
     /// Returns the staking public key

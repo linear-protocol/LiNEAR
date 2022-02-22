@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     serde::{Deserialize, Serialize},
@@ -21,6 +22,10 @@ pub struct Account {
     /// The minimum epoch height when the withdrawn is allowed.
     /// This changes after unstaking action, because the amount is still locked for 3 epochs.
     pub unstaked_available_epoch_height: EpochHeight,
+    /// Farmed tokens withdrawn from the farm but not from the contract.
+    pub amounts: HashMap<AccountId, Balance>,
+    /// Last claimed reward for each active farm.
+    pub last_farm_reward_per_share: HashMap<u64, U256>,
 }
 
 /// Represents an account structure readable by humans.
@@ -42,6 +47,8 @@ impl Default for Account {
             unstaked: 0,
             stake_shares: 0,
             unstaked_available_epoch_height: 0,
+            amounts: HashMap::new(),
+            last_farm_reward_per_share: HashMap::new(),
         }
     }
 }

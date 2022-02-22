@@ -21,7 +21,7 @@ pub trait FungibleTokenReceiver {
     ) -> PromiseOrValue<U128>;
 }
 
-#[ext_contract(ext_self)]
+#[ext_contract(ext_ft_self)]
 trait FungibleTokenResolver {
     fn ft_resolve_transfer(
         &mut self,
@@ -62,7 +62,7 @@ impl FungibleTokenCore for LiquidStakingContract {
             NO_DEPOSIT,
             env::prepaid_gas() - GAS_FOR_FT_TRANSFER_CALL,
         )
-        .then(ext_self::ft_resolve_transfer(
+        .then(ext_ft_self::ft_resolve_transfer(
             sender_id,
             receiver_id,
             amount.into(),

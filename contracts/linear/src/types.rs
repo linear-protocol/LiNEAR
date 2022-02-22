@@ -1,5 +1,6 @@
 use near_sdk::{
     Balance, EpochHeight, Gas,
+    borsh::{self, BorshDeserialize, BorshSerialize},
 };
 use uint::construct_uint;
 
@@ -11,6 +12,14 @@ pub const NO_DEPOSIT: Balance = 0;
 pub const ONE_NEAR: Balance = 1_000_000_000_000_000_000_000_000;
 
 pub const NUM_EPOCHS_TO_UNLOCK: EpochHeight = 4;
+
+/// Maximum number of active farms at one time.
+pub const MAX_NUM_ACTIVE_FARMS: usize = 3;
+
+/// Zero address is implicit address that doesn't have a key for it.
+/// Used for burning tokens.
+// pub const ZERO_ADDRESS: &str = "0000000000000000000000000000000000000000000000000000000000000000";
+
 
 /// -- GAS
 
@@ -38,5 +47,6 @@ pub type ShareBalance = u128;
 
 construct_uint! {
     /// 256-bit unsigned integer.
+    #[derive(BorshSerialize, BorshDeserialize)]
     pub struct U256(4);
 }

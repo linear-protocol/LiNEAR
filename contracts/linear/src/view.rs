@@ -31,19 +31,6 @@ impl HumanReadableFarm {
     }
 }
 
-/// Represents an account structure readable by humans.
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(crate = "near_sdk::serde")]
-pub struct HumanReadableAccount {
-    pub account_id: AccountId,
-    /// The unstaked balance that can be withdrawn or staked.
-    pub unstaked_balance: U128,
-    /// The amount balance staked at the current "stake" share price.
-    pub staked_balance: U128,
-    /// Whether the unstaked balance is available for withdrawal now.
-    pub can_withdraw: bool,
-}
-
 /// Represents pool summary with all farms and rates applied.
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "near_sdk::serde")]

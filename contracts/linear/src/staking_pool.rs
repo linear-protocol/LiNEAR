@@ -235,32 +235,53 @@ impl ValidatorPool {
 impl LiquidStakingContract {
     pub fn add_validator(
         &mut self,
-        validator_id: &AccountId,
+        validator_id: AccountId,
         weight: u16
     ) -> Validator {
         self.assert_owner();
         self.validator_pool.add_validator(
-            validator_id,
+            &validator_id,
             weight
         )
     }
 
+    pub fn add_validators(
+        &mut self,
+        validator_ids: Vec<AccountId>,
+        weights: Vec<u16>
+    ) -> Vec<Validator> {
+        self.assert_owner();
+        require!(
+            validator_ids.len() == weights.len(),
+            ERR_BAD_VALIDATOR_LIST
+        );
+        let mut results: Vec<Validator> = vec![];
+        for i in 0..validator_ids.len() {
+            results.push(self.validator_pool.add_validator(
+                &validator_ids[i],
+                weights[i]
+            ));
+        }
+
+        return results;
+    }
+
     pub fn remove_validator(
         &mut self,
-        validator_id: &AccountId
+        validator_id: AccountId
     ) -> Validator {
         self.assert_owner();
-        self.validator_pool.remove_validator(validator_id)
+        self.validator_pool.remove_validator(&validator_id)
     }
 
     pub fn update_weight(
         &mut self,
-        validator_id: &AccountId,
+        validator_id: AccountId,
         weight: u16
     ) {
         self.assert_owner();
         self.validator_pool.update_weight(
-            validator_id,
+            &validator_id,
             weight
         );
     }

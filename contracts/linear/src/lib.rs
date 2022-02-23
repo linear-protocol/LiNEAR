@@ -52,19 +52,23 @@ pub struct Fraction {
 
 impl Fraction {
     pub fn new(numerator: u32, denominator: u32) -> Self {
+        let f = Self {
+            numerator,
+            denominator,
+        };
+        f.assert_valid();
+        return f;
+    }
+
+    pub fn assert_valid(&self) {
         require!(
-            denominator != 0,
+            self.denominator != 0,
             ERR_FRACTION_BAD_DENOMINATOR
         );
         require!(
-            numerator <= denominator,
+            self.numerator <= self.denominator,
             ERR_FRACTION_BAD_NUMERATOR
         );
-
-        Self {
-            numerator,
-            denominator,
-        }
     }
 
     pub fn multiply(&self, value: u128) -> u128 {

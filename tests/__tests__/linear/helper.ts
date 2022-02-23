@@ -71,3 +71,16 @@ export async function assertFailure(
 }
 
 export function skip(...args: any[]) {};
+
+export async function registerFungibleTokenUser(ft: NearAccount, user: NearAccount) {
+  const storage_balance = await ft.view(
+    'storage_balance_bounds',
+    {}
+  ) as any;
+  await user.call(
+    ft,
+    'storage_deposit',
+    { account_id: user },
+    { attachedDeposit: storage_balance.min.toString() },
+  );
+}

@@ -272,6 +272,15 @@ impl LiquidStakingContract {
         self.validator_pool.total_weight
     }
 
+    pub fn get_validator(
+        & self,
+        validator_id: AccountId
+    ) -> Validator {
+        self.assert_owner();
+        self.validator_pool.get_validator(&validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST)
+    }
+
     pub fn get_validators(
         &self,
         offset: u16,

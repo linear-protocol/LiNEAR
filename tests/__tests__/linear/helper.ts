@@ -1,4 +1,4 @@
-import { Workspace, NearAccount, } from "near-workspaces-ava";
+import { Workspace, NearAccount, NEAR, } from "near-workspaces-ava";
 
 interface RewardFee {
   numerator: number,
@@ -71,3 +71,8 @@ export async function assertFailure(
 }
 
 export function skip(...args: any[]) {};
+
+export function parseNEAR(a: number): NEAR {
+  const yoctoString = a.toLocaleString('fullwide', { useGrouping: false });
+  return NEAR.from(yoctoString);
+}

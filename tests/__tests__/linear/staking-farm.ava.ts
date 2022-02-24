@@ -71,6 +71,13 @@ async function addFarm(
   start_date: string,
   end_date: string,
 ) {
+  await owner.call(
+    contract,
+    'add_authorized_farm_token',
+    {
+      token_id: ft
+    }
+  );
   const msg = JSON.stringify({
     name,
     start_date,
@@ -81,13 +88,6 @@ async function addFarm(
 
 workspace.test('add farm', async (test, {root, contract, owner, alice}) => {
   const ft = await mintFungibleTokens(root, owner, "ft-1", NEAR.parse("100000000"));
-  await owner.call(
-    contract,
-    'add_authorized_farm_token',
-    {
-      token_id: ft
-    }
-  );
   const now = new Date();
   const amount = NEAR.parse("1000000");
   const farm = {

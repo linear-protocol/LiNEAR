@@ -70,7 +70,6 @@ export async function assertFailure(
   );
 }
 
-
 export async function callWithMetrics(
     account: NearAccount,
     contractId: NearAccount | string,
@@ -101,7 +100,7 @@ export async function numbersEqual(test: any, a: NEAR, b: NEAR, diff = 0.000001)
     true
   )
 }
- 
+
 export function skip(...args: any[]) {};
 
 export function parseNEAR(a: number): NEAR {

@@ -70,6 +70,7 @@ export async function assertFailure(
   );
 }
 
+
 export async function callWithMetrics(
     account: NearAccount,
     contractId: NearAccount | string,
@@ -99,4 +100,11 @@ export async function numbersEqual(test: any, a: NEAR, b: NEAR, diff = 0.000001)
     a.sub(b).abs().lt(NEAR.parse(diff.toString())),
     true
   )
+
+export function skip(...args: any[]) {};
+
+export function parseNEAR(a: number): NEAR {
+  const yoctoString = a.toLocaleString('fullwide', { useGrouping: false });
+  return NEAR.from(yoctoString);
+
 }

@@ -46,7 +46,7 @@ impl FungibleTokenMetadataProvider for Contract {
 #[cfg(test)]
 mod tests {
     use near_sdk::test_utils::{accounts, VMContextBuilder};
-    use near_sdk::{env, testing_env, MockedBlockchain};
+    use near_sdk::{env, testing_env};
 
     use super::*;
 

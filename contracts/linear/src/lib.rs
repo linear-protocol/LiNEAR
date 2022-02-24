@@ -196,10 +196,10 @@ impl LiquidStakingContract {
             last_total_balance: 10 * ONE_NEAR,
             total_share_amount: 10 * ONE_NEAR,
             total_staked_near_amount: 10 * ONE_NEAR,
-            accounts: UnorderedMap::new(b"a".to_vec()),
+            accounts: UnorderedMap::new(StorageKey::Accounts),
             paused: false,
             account_storage_usage: 0,
-            beneficiaries: UnorderedMap::new(b"b".to_vec()),
+            beneficiaries: UnorderedMap::new(StorageKey::Beneficiaries),
             liquidity_pool: LiquidityPool::new(10000 * ONE_NEAR, 300, 30, 7000),
             // Validator Pool
             validator_pool: ValidatorPool::new(),

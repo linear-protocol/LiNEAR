@@ -44,6 +44,7 @@ impl LiquidStakingContract {
 pub(crate) enum StorageKey {
     Accounts,
     Shares,
+    Beneficiaries,
     Validators,
     Farms,
     AuthorizedUsers,

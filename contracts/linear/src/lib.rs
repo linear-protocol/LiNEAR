@@ -7,10 +7,10 @@ use near_sdk::{
     AccountId, Balance, PanicOnDefault, EpochHeight, PublicKey, StorageUsage
 };
 
+mod view;
 mod types;
 mod utils;
 mod owner;
-mod view;
 mod events;
 mod errors;
 mod account;
@@ -22,6 +22,7 @@ mod fungible_token_metadata;
 mod fungible_token_storage;
 mod farm;
 mod token_receiver;
+mod liquidity_pool;
 
 use crate::types::*;
 use crate::utils::*;
@@ -33,6 +34,7 @@ use crate::farm::{Farm};
 pub use crate::fungible_token_core::*;
 pub use crate::fungible_token_metadata::*;
 pub use crate::fungible_token_storage::*;
+pub use crate::liquidity_pool::*;
 
 
 /// Interface for the contract itself.
@@ -72,19 +74,23 @@ pub struct Fraction {
 
 impl Fraction {
     pub fn new(numerator: u32, denominator: u32) -> Self {
+        let f = Self {
+            numerator,
+            denominator,
+        };
+        f.assert_valid();
+        return f;
+    }
+
+    pub fn assert_valid(&self) {
         require!(
-            denominator != 0,
+            self.denominator != 0,
             ERR_FRACTION_BAD_DENOMINATOR
         );
         require!(
-            numerator <= denominator,
+            self.numerator <= self.denominator,
             ERR_FRACTION_BAD_NUMERATOR
         );
-
-        Self {
-            numerator,
-            denominator,
-        }
     }
 
     pub fn multiply(&self, value: u128) -> u128 {
@@ -123,14 +129,20 @@ pub struct LiquidStakingContract {
     /// The storage size in bytes for one account.
     pub account_storage_usage: StorageUsage,
 
+    /// Beneficiaries for staking rewards.
+    pub beneficiaries: UnorderedMap<AccountId, Fraction>,
+  
+    /// The single-direction liquidity pool that enables instant unstake
+    pub liquidity_pool: LiquidityPool,
+  
     // --- Validator Pool ---
 
-    validator_pool: ValidatorPool,
-
+    /// The validator pool that manage the actions against validators
+    pub validator_pool: ValidatorPool,
     /// Amount of NEAR that is requested to stake by all users during the last epoch
-    epoch_requested_stake_amount: Balance,
+    pub epoch_requested_stake_amount: Balance,
     /// Amount of NEAR that is requested to unstake by all users during the last epoch
-    epoch_requested_unstake_amount: Balance,
+    pub epoch_requested_unstake_amount: Balance,
 
     // --- Staking Farm ---
 
@@ -185,9 +197,13 @@ impl LiquidStakingContract {
             accounts: UnorderedMap::new(b"a".to_vec()),
             paused: false,
             account_storage_usage: 0,
+            beneficiaries: UnorderedMap::new(b"b".to_vec()),
+            liquidity_pool: LiquidityPool::new(10000 * ONE_NEAR, 300, 30, 7000),
+            // Validator Pool
             validator_pool: ValidatorPool::new(),
             epoch_requested_stake_amount: 10 * ONE_NEAR,
             epoch_requested_unstake_amount: 0,
+            // Staking Farm
             farms: Vector::new(StorageKey::Farms),
             active_farms: Vec::new(),
             // authorized_users: UnorderedSet::new(StorageKey::AuthorizedUsers),
@@ -376,12 +392,13 @@ impl LiquidStakingContract {
     pub fn get_account(&self, account_id: AccountId) -> HumanReadableAccount {
         let account = self.internal_get_account(&account_id);
         HumanReadableAccount {
-            account_id,
+            account_id: account_id.clone(),
             unstaked_balance: account.unstaked.into(),
             staked_balance: self
                 .staked_amount_from_num_shares_rounded_down(account.stake_shares)
                 .into(),
             can_withdraw: account.unstaked_available_epoch_height <= get_epoch_height(),
+            liquidity_pool_share: self.liquidity_pool.get_account_shares(&account_id).into(),
         }
     }
 

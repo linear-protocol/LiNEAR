@@ -48,7 +48,7 @@ pub struct ValidatorPool {
 impl ValidatorPool {
     pub fn new() -> Self {
         Self {
-            validators: UnorderedMap::new(b"vs".to_vec()),
+            validators: UnorderedMap::new(StorageKey::Validators),
             total_weight: 0,
         }
     }
@@ -270,6 +270,15 @@ impl LiquidStakingContract {
         &self
     ) -> u16 {
         self.validator_pool.total_weight
+    }
+
+    pub fn get_validator(
+        & self,
+        validator_id: AccountId
+    ) -> Validator {
+        self.assert_owner();
+        self.validator_pool.get_validator(&validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST)
     }
 
     pub fn get_validators(

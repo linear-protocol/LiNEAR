@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "test": "near-workspaces-ava",
+    "test": "near-workspaces-ava --timeout=2m",
     "test:testnet": "near-workspaces-ava --config ./ava.testnet.config.cjs"
   },
   "devDependencies": {

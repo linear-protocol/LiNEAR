@@ -215,34 +215,30 @@ impl LiquidStakingContract {
         // true
     }
 
+    pub(crate) fn internal_get_beneficiaries(& self) -> HashMap<AccountId, Fraction> {
+        let mut result: HashMap<AccountId, Fraction> = HashMap::new();
+        for (account_id, fraction) in self.beneficiaries.iter() {
+            result.insert(account_id, fraction);
+        }
+
+        return result;
+    }
+
     /// When there are rewards, a part of them will be
     /// given to operator/treasury by minting new LiNEAR tokens.
     pub(crate) fn internal_distribute_rewards(
         &mut self,
         rewards: Balance
     ) {
-        // TODO make this configurable
-        let beneficiaries = HashMap::from([
-            ("operator".to_string(), Fraction::new(5, 1000)), // 0.5%
-            ("treasury".to_string(), Fraction::new(5, 1000)), // 0.5%
-        ]);
-
-        for (beneficiary_id, fraction) in beneficiaries.iter() {
-            // make sure account id is valid
-            if let Ok(account_id) = beneficiary_id.parse::<AccountId>() {
-                let reward_near_amount: Balance = fraction.multiply(rewards);
-                // mint extra LiNEAR for him
-                let reward_shares = self.internal_mint_shares(&account_id, reward_near_amount);
-                log_linear_minted(
-                    &account_id,
-                    reward_shares
-                );
-            } else {
-                log!(
-                    "Bad beneficiary id: {}",
-                    beneficiary_id
-                );
-            }
+        let hashmap: HashMap<AccountId, Fraction> = self.internal_get_beneficiaries();
+        for (account_id, fraction) in hashmap.iter() {
+            let reward_near_amount: Balance = fraction.multiply(rewards);
+            // mint extra LiNEAR for him
+            let reward_shares = self.internal_mint_shares(&account_id, reward_near_amount);
+            log_linear_minted(
+                &account_id,
+                reward_shares
+            );
         }
     }
 
@@ -255,6 +251,9 @@ impl LiquidStakingContract {
     ) -> ShareBalance {
         let shares = self.num_shares_from_staked_amount_rounded_down(near_amount);
         // mint to account
+        if self.accounts.get(account_id).is_none() {
+            self.internal_register_account(account_id);
+        }
         self.internal_ft_deposit(account_id, shares);
         return shares;
     }
@@ -298,10 +297,7 @@ impl LiquidStakingContract {
         &self,
         num_shares: ShareBalance,
     ) -> Balance {
-        assert!(
-            self.total_share_amount > 0,
-            "The total number of stake shares can't be 0"
-        );
+        require!(self.total_share_amount > 0, ERR_NON_POSITIVE_TOTAL_STAKE_SHARES);
         (U256::from(self.total_staked_near_amount) * U256::from(num_shares)
             / U256::from(self.total_share_amount))
         .as_u128()
@@ -314,10 +310,7 @@ impl LiquidStakingContract {
         &self,
         num_shares: ShareBalance,
     ) -> Balance {
-        assert!(
-            self.total_share_amount > 0,
-            "The total number of stake shares can't be 0"
-        );
+        require!(self.total_share_amount > 0, ERR_NON_POSITIVE_TOTAL_STAKE_SHARES);
         ((U256::from(self.total_staked_near_amount) * U256::from(num_shares)
             + U256::from(self.total_share_amount - 1))
             / U256::from(self.total_share_amount))

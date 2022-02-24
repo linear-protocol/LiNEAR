@@ -3,6 +3,7 @@ use near_sdk::{
     near_bindgen, AccountId,
     json_types::{U128, U64}
 };
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(crate = "near_sdk::serde")]
@@ -54,6 +55,11 @@ impl LiquidStakingContract {
         self.total_staked_near_amount
     }
 
+    pub fn get_beneficiaries(& self) -> HashMap<AccountId, Fraction> {
+        self.internal_get_beneficiaries()
+    }
+  
+    // Staking Farm
 
     /// Return all authorized users.
     // pub fn get_authorized_users(&self) -> Vec<AccountId> {
@@ -64,10 +70,6 @@ impl LiquidStakingContract {
     pub fn get_authorized_farm_tokens(&self) -> Vec<AccountId> {
         self.authorized_farm_tokens.to_vec()
     }
-
-    ///
-    /// FARMS
-    ///
 
     /// Returns summary of this pool.
     /// Can calculate rate of return of this pool with farming by:
@@ -110,5 +112,4 @@ impl LiquidStakingContract {
         let prev_reward = *account.amounts.get(&farm.token_id).unwrap_or(&0);
         U128(reward + prev_reward)
     }
-
 }

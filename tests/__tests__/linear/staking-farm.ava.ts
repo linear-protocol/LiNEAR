@@ -154,34 +154,45 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
     {},
     { attachedDeposit: stakeAmount },
   );
-  // Wait 5 seconds for rewards: 1 FT token distributed per second
-  await sleep(5000);
+  // Wait 2 seconds for rewards: 1 FT token distributed per second
+  await sleep(2000);
   // Notice that Alice received 0.5 FT (50% of total) per seconds
-  // because the default initial staked amount is 10Ⓝ
-  test.is(
-    await contract.view("get_unclaimed_reward", { 
-      account_id: alice,
-      farm_id: farm.farm_id
-    }),
-    NEAR.parse("2.5").toString()
+  // because the default initial staked amount is 10Ⓝ.
+  // However, it can be 2 or 3 seconds when comes to the next line.
+  let rewards = await contract.view("get_unclaimed_reward", {
+    account_id: alice,
+    farm_id: farm.farm_id
+  });
+  test.true(
+    rewards === NEAR.parse("1").toString()
+    || rewards === NEAR.parse("1.5").toString()
   );
 
-  // Claim rewards
+  // Register Alice for FT, otherwise claim will fail
+  await registerFungibleTokenUser(ft, alice);
+  // Alice claims FT rewards, and check FT balance
   await alice.call(
     contract,
     'claim',
-    { token_id: farm.token_id },
+    { token_id: ft },
     {
       gas: new BN("75000000000000"), 
       attachedDeposit: ONE_YOCTO_NEAR
     },
   );
-  test.is(
-    await contract.view("get_unclaimed_reward", { 
-      account_id: alice,
-      farm_id: farm.farm_id
-    }),
-    '0'
+  test.true(
+    NEAR.from(await ft.view('ft_balance_of', {
+      account_id: alice
+    })).gt(NEAR.parse('1'))
+  );
+  // Alice has fewer unclaimed rewards now
+  rewards = await contract.view("get_unclaimed_reward", {
+    account_id: alice,
+    farm_id: farm.farm_id
+  });
+  test.true(
+    rewards === NEAR.parse("0.5").toString()
+    || rewards === NEAR.parse("1").toString()
   );
 
   // Bob deposits and stakes
@@ -196,12 +207,14 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
   await sleep(2000);
   // Notice that Bob received 0.5 FT (50% of total) per seconds
   // because the default initial staked amount is 10Ⓝ + Alice staked 10Ⓝ
-  test.is(
-    await contract.view("get_unclaimed_reward", { 
-      account_id: bob,
-      farm_id: farm.farm_id
-    }),
-    NEAR.parse("1").toString()
+  // However, it can be 2 or 3 seconds when comes to the next line.
+  rewards = await contract.view("get_unclaimed_reward", {
+    account_id: bob,
+    farm_id: farm.farm_id
+  });
+  test.true(
+    rewards === NEAR.parse("1").toString()
+    || rewards === NEAR.parse("1.5").toString()
   );
 });
 
@@ -224,15 +237,17 @@ workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) =>
     { attachedDeposit: stakeAmount },
   );
   // Wait 5 seconds for rewards: 1 FT token distributed per second
-  await sleep(5000);
+  await sleep(2000);
   // Notice that Alice received 0.5 FT (50% of total) per seconds
   // because the default initial staked amount is 10Ⓝ
-  test.is(
-    await contract.view("get_unclaimed_reward", { 
-      account_id: alice,
-      farm_id: farm.farm_id
-    }),
-    NEAR.parse("2.5").toString()
+  // However, it can be 2 or 3 seconds when comes to the next line.
+  const rewards = await contract.view("get_unclaimed_reward", {
+    account_id: alice,
+    farm_id: farm.farm_id
+  });
+  test.true(
+    rewards === NEAR.parse("1").toString()
+    || rewards === NEAR.parse("1.5").toString()
   );
 
   // Stop farm
@@ -241,17 +256,17 @@ workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) =>
     'stop_farm',
     { farm_id: farm.farm_id }
   );
-  const rewards = await contract.view("get_unclaimed_reward", { 
+  const finalRewards = await contract.view("get_unclaimed_reward", {
     account_id: alice,
     farm_id: farm.farm_id
   });
   // Wait 5 seconds, rewards have no change
   await sleep(5000);
   test.is(
-    await contract.view("get_unclaimed_reward", { 
+    await contract.view("get_unclaimed_reward", {
       account_id: alice,
       farm_id: farm.farm_id
     }),
-    rewards
+    finalRewards
   );
 });

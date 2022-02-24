@@ -106,59 +106,59 @@ pub struct LiquidStakingContract {
     /// The account ID of the owner who's running the staking validator node.
     /// NOTE: This is different from the current account ID which is used as a validator account.
     /// The owner of the staking pool can change staking public key and adjust reward fees.
-    pub owner_id: AccountId,
+    owner_id: AccountId,
     /// The last epoch height when `ping` was called.
-    pub last_epoch_height: EpochHeight,
+    last_epoch_height: EpochHeight,
     /// The last total balance of the account (consists of staked and unstaked balances).
-    pub last_total_balance: Balance,
+    last_total_balance: Balance,
     /// Total amount of LiNEAR that was minted (minus burned).
-    pub total_share_amount: ShareBalance,
+    total_share_amount: ShareBalance,
     /// Total amount of NEAR that was staked by users to this contract.         
     /// 
     /// This is effectively 1) amount of NEAR that was deposited to this contract but hasn't yet been staked on any validators 
     /// plus 2) amount of NEAR that has already been staked on validators.    
     /// Note that the amount of NEAR that is pending release or is already released by hasn't been withdrawn is not considered.
-    pub total_staked_near_amount: Balance,
+    total_staked_near_amount: Balance,
     /// Persistent map from an account ID to the corresponding account.
-    pub accounts: UnorderedMap<AccountId, Account>,
+    accounts: UnorderedMap<AccountId, Account>,
     /// Whether the staking is paused.
     /// When paused, the account unstakes everything (stakes 0) and doesn't restake.
     /// It doesn't affect the staking shares or reward distribution.
     /// Pausing is useful for node maintenance. Only the owner can pause and resume staking.
     /// The contract is not paused by default.
-    pub paused: bool,
+    paused: bool,
 
     /// The storage size in bytes for one account.
-    pub account_storage_usage: StorageUsage,
+    account_storage_usage: StorageUsage,
 
     /// Beneficiaries for staking rewards.
-    pub beneficiaries: UnorderedMap<AccountId, Fraction>,
+    beneficiaries: UnorderedMap<AccountId, Fraction>,
   
     /// The single-direction liquidity pool that enables instant unstake
-    pub liquidity_pool: LiquidityPool,
+    liquidity_pool: LiquidityPool,
   
     // --- Validator Pool ---
 
     /// The validator pool that manage the actions against validators
-    pub validator_pool: ValidatorPool,
+    validator_pool: ValidatorPool,
     /// Amount of NEAR that is requested to stake by all users during the last epoch
-    pub epoch_requested_stake_amount: Balance,
+    epoch_requested_stake_amount: Balance,
     /// Amount of NEAR that is requested to unstake by all users during the last epoch
-    pub epoch_requested_unstake_amount: Balance,
+    epoch_requested_unstake_amount: Balance,
 
     // --- Staking Farm ---
 
     /// Farm tokens.
-    pub farms: Vector<Farm>,
+    farms: Vector<Farm>,
     /// Active farms: indicies into `farms`.
-    pub active_farms: Vec<u64>,
+    active_farms: Vec<u64>,
     /// Authorized users, allowed to add farms.
     /// This is done to prevent farm spam with random tokens.
     /// Should not be a large number.
-    // pub authorized_users: UnorderedSet<AccountId>,
+    // authorized_users: UnorderedSet<AccountId>,
     /// Authorized tokens for farms.
     /// Required because any contract can call method with ft_transfer_call, so must verify that contract will accept it.
-    pub authorized_farm_tokens: UnorderedSet<AccountId>,
+    authorized_farm_tokens: UnorderedSet<AccountId>,
 }
 
 #[near_bindgen]

@@ -86,7 +86,7 @@ async function addFarm(
   await transferCall(ft, owner, contract, amount, msg);
 }
 
-async function addFarmExample(
+async function addFirstFarm(
   root: NearAccount,
   contract: NearAccount,
   owner: NearAccount,
@@ -99,16 +99,16 @@ async function addFarmExample(
     start: 10,  // the start time must be later then the current time
     end: 10 + 1000000
   } : {
-    start: 1 * 24 * 3600,
-    end: 101 * 24 * 3600
+    start: 1 * 24 * 3600,   // 1 days later
+    end: 101 * 24 * 3600    // 101 days later
   };
   const farm = {
     farm_id: 0,
     name: 'Farming #1',
     token_id: ft.accountId,
     amount: amount.toString(),
-    start_date: secondsLater(now, range.start),   // 1 days later
-    end_date: secondsLater(now, range.end),  // 101 days later
+    start_date: secondsLater(now, range.start),
+    end_date: secondsLater(now, range.end),
     active: true
   }
   await addFarm(
@@ -129,7 +129,7 @@ function sleep(ms: number) {
 
 workspace.test('add farm', async (test, {root, contract, owner}) => {
   // Add farm which will start one day later
-  const { farm } = await addFarmExample(root, contract, owner);
+  const { farm } = await addFirstFarm(root, contract, owner);
   test.deepEqual(
     await contract.view("get_farm", { farm_id: farm.farm_id }),
     farm
@@ -138,7 +138,7 @@ workspace.test('add farm', async (test, {root, contract, owner}) => {
 
 workspace.test('stake and receive rewards', async (test, {root, contract, owner, alice, bob}) => {
   // Add farm which will start in 10s
-  const { farm, ft } = await addFarmExample(root, contract, owner, true);
+  const { farm, ft } = await addFirstFarm(root, contract, owner, true);
   test.deepEqual(
     await contract.view("get_farm", { farm_id: 0 }),
     farm
@@ -220,7 +220,7 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
 
 workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) => {
   // Add farm which will start in 10s
-  const { farm } = await addFarmExample(root, contract, owner, true);
+  const { farm } = await addFirstFarm(root, contract, owner, true);
   test.deepEqual(
     await contract.view("get_farm", { farm_id: 0 }),
     farm

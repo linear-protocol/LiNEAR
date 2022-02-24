@@ -26,6 +26,14 @@ pub struct Summary {
     /// Current instant unstake fee in Liquidity Pool.
     /// For example, fee percentage is `30`, which means `0.3%`
     pub lp_swap_fee_percentage: u32,
+
+    /// Active farms that affect stakers.
+    /// Can calculate rate of return of this pool with farming by:
+    /// `farm_reward_per_day = farms.iter().map(farms.amount / (farm.end_date - farm.start_date) / DAY_IN_NS * PRICES[farm.token_id]).sum()`
+    /// `near_reward_per_day = total_near_emission_per_day * this.total_staked_near_amount / total_near_staked`
+    /// `total_reward_per_day = farm_reward_per_day + near_reward_per_day * NEAR_PRICE`
+    /// `reward_rate = total_reward_per_day / (this.total_staked_near_amount * NEAR_PRICE)`
+    pub farms: Vec<HumanReadableFarm>,
 }
 
 
@@ -56,18 +64,6 @@ impl HumanReadableFarm {
     }
 }
 
-/// Represents pool summary with all farms and rates applied.
-#[derive(Serialize, Deserialize)]
-#[serde(crate = "near_sdk::serde")]
-pub struct PoolSummary {
-    /// Pool owner.
-    pub owner: AccountId,
-    /// The total staked balance.
-    pub total_staked_balance: Balance,
-    /// Active farms that affect stakers.
-    pub farms: Vec<HumanReadableFarm>,
-}
-
 
 /// public view functions
 #[near_bindgen]
@@ -92,7 +88,8 @@ impl LiquidStakingContract {
           lp_target_amount: self.liquidity_pool.expected_near_amount.into(),
           lp_near_amount: self.liquidity_pool.amounts[0].into(),
           lp_staked_share: self.liquidity_pool.amounts[1].into(),
-          lp_swap_fee_percentage: self.liquidity_pool.get_current_swap_fee_percentage(10 * ONE_NEAR)
+          lp_swap_fee_percentage: self.liquidity_pool.get_current_swap_fee_percentage(10 * ONE_NEAR),
+          farms: self.get_active_farms(),
       }
     }
   
@@ -106,20 +103,6 @@ impl LiquidStakingContract {
     /// Return all authorized tokens.
     pub fn get_authorized_farm_tokens(&self) -> Vec<AccountId> {
         self.authorized_farm_tokens.to_vec()
-    }
-
-    /// Returns summary of this pool.
-    /// Can calculate rate of return of this pool with farming by:
-    /// `farm_reward_per_day = farms.iter().map(farms.amount / (farm.end_date - farm.start_date) / DAY_IN_NS * PRICES[farm.token_id]).sum()`
-    /// `near_reward_per_day = total_near_emission_per_day * this.total_staked_balance / total_near_staked`
-    /// `total_reward_per_day = farm_reward_per_day + near_reward_per_day * NEAR_PRICE`
-    /// `reward_rate = total_reward_per_day / (this.total_staked_balance * NEAR_PRICE)`
-    pub fn get_pool_summary(&self) -> PoolSummary {
-        PoolSummary {
-            owner: self.get_owner_id(),
-            total_staked_balance: self.total_share_amount,
-            farms: self.get_active_farms(),
-        }
     }
 
     pub fn get_active_farms(&self) -> Vec<HumanReadableFarm> {

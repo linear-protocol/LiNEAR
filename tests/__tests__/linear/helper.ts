@@ -1,4 +1,4 @@
-import { Workspace, NearAccount, NEAR, } from "near-workspaces-ava";
+import { Workspace, NEAR, NearAccount, BN, KeyPair } from "near-workspaces-ava";
 
 interface RewardFee {
   numerator: number,
@@ -70,9 +70,41 @@ export async function assertFailure(
   );
 }
 
+export async function callWithMetrics(
+    account: NearAccount,
+    contractId: NearAccount | string,
+    methodName: string,
+    args: Record<string, unknown>,
+    options?: {
+      gas?: string | BN;
+      attachedDeposit?: string | BN;
+      signWithKey?: KeyPair;
+    }
+  ) {
+    const txResult = await account.call_raw(contractId, methodName, args, options);
+    const successValue = txResult.parseResult();
+    const outcome = txResult.result.transaction_outcome.outcome;
+    const tokensBurnt = NEAR.from(outcome.gas_burnt + '000000000');
+    return {
+      successValue,
+      metrics: {
+        tokensBurnt
+      }
+    }
+}
+
+// This is needed due to some unknown issues of balance accuracy in sandbox
+export async function numbersEqual(test: any, a: NEAR, b: NEAR, diff = 0.000001) {
+  test.is(
+    a.sub(b).abs().lt(NEAR.parse(diff.toString())),
+    true
+  )
+}
+
 export function skip(...args: any[]) {};
 
 export function parseNEAR(a: number): NEAR {
   const yoctoString = a.toLocaleString('fullwide', { useGrouping: false });
   return NEAR.from(yoctoString);
+
 }

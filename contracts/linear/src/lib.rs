@@ -20,6 +20,7 @@ mod epoch_actions;
 mod fungible_token_core;
 mod fungible_token_metadata;
 mod fungible_token_storage;
+mod liquidity_pool;
 
 use crate::types::*;
 use crate::utils::*;
@@ -30,6 +31,7 @@ use crate::staking_pool::*;
 pub use crate::fungible_token_core::*;
 pub use crate::fungible_token_metadata::*;
 pub use crate::fungible_token_storage::*;
+pub use crate::liquidity_pool::*;
 
 
 /// Interface for the contract itself.
@@ -107,13 +109,16 @@ pub struct LiquidStakingContract {
     /// The storage size in bytes for one account.
     pub account_storage_usage: StorageUsage,
 
+    /// The validator pool that manage the actions against validators
     validator_pool: ValidatorPool,
-
     /// Amount of NEAR that is requested to stake by all users during the last epoch
     epoch_requested_stake_amount: Balance,
     /// Amount of NEAR that is requested to unstake by all users during the last epoch
     epoch_requested_unstake_amount: Balance,
 
+    /// The single-direction liquidity pool that enables instant unstake
+    liquidity_pool: LiquidityPool,
+  
     /// Beneficiaries for staking rewards.
     beneficiaries: UnorderedMap<AccountId, Fraction>,
 }
@@ -159,6 +164,7 @@ impl LiquidStakingContract {
             validator_pool: ValidatorPool::new(),
             epoch_requested_stake_amount: 10 * ONE_NEAR,
             epoch_requested_unstake_amount: 0,
+            liquidity_pool: LiquidityPool::new(10000 * ONE_NEAR, 300, 30, 7000),
             beneficiaries: UnorderedMap::new(b"b".to_vec()),
         };
         this.measure_account_storage_usage();
@@ -344,12 +350,13 @@ impl LiquidStakingContract {
     pub fn get_account(&self, account_id: AccountId) -> HumanReadableAccount {
         let account = self.internal_get_account(&account_id);
         HumanReadableAccount {
-            account_id,
+            account_id: account_id.clone(),
             unstaked_balance: account.unstaked.into(),
             staked_balance: self
                 .staked_amount_from_num_shares_rounded_down(account.stake_shares)
                 .into(),
             can_withdraw: account.unstaked_available_epoch_height <= get_epoch_height(),
+            liquidity_pool_share: self.liquidity_pool.get_account_shares(&account_id).into(),
         }
     }
 

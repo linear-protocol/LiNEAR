@@ -282,9 +282,6 @@ impl LiquidStakingContract {
     /// Adds NEAR to liquidity pool and returns number of shares that this user receives.
     #[payable]
     pub fn add_liquidity(&mut self) {
-        // Deposit will update the toal balance
-        self.internal_deposit();
-
         let account_id = env::predecessor_account_id();
         let amount = env::attached_deposit();
 
@@ -299,10 +296,9 @@ impl LiquidStakingContract {
             added_shares
         );
 
-        // Update unstaked amount
-        let mut account = self.internal_get_account(&account_id);
-        account.unstaked -= amount;
-        self.internal_save_account(&account_id, &account);
+        // Update the toal balance
+        // TODO: fix the usage of last_total_balance
+        self.last_total_balance += amount;
     }
 
     /// Remove shares from the liquidity pool and return NEAR and LiNEAR.

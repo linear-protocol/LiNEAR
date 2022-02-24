@@ -100,3 +100,11 @@ export async function numbersEqual(test: any, a: NEAR, b: NEAR, diff = 0.000001)
     true
   )
 }
+
+export function skip(...args: any[]) {};
+
+export function parseNEAR(a: number): NEAR {
+  const yoctoString = a.toLocaleString('fullwide', { useGrouping: false });
+  return NEAR.from(yoctoString);
+
+}

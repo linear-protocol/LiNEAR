@@ -7,8 +7,10 @@ use near_sdk::{
     AccountId, Balance, PanicOnDefault, EpochHeight, PublicKey, StorageUsage
 };
 
+mod view;
 mod types;
 mod utils;
+mod owner;
 mod events;
 mod errors;
 mod account;
@@ -54,19 +56,23 @@ pub struct Fraction {
 
 impl Fraction {
     pub fn new(numerator: u32, denominator: u32) -> Self {
+        let f = Self {
+            numerator,
+            denominator,
+        };
+        f.assert_valid();
+        return f;
+    }
+
+    pub fn assert_valid(&self) {
         require!(
-            denominator != 0,
+            self.denominator != 0,
             ERR_FRACTION_BAD_DENOMINATOR
         );
         require!(
-            numerator <= denominator,
+            self.numerator <= self.denominator,
             ERR_FRACTION_BAD_NUMERATOR
         );
-
-        Self {
-            numerator,
-            denominator,
-        }
     }
 
     pub fn multiply(&self, value: u128) -> u128 {
@@ -93,9 +99,6 @@ pub struct LiquidStakingContract {
     /// plus 2) amount of NEAR that has already been staked on validators.    
     /// Note that the amount of NEAR that is pending release or is already released by hasn't been withdrawn is not considered.
     pub total_staked_near_amount: Balance,
-    /// The fraction of the reward that goes to the owner of the staking pool for running the
-    /// validator node.
-    pub reward_fee_fraction: Fraction,
     /// Persistent map from an account ID to the corresponding account.
     pub accounts: UnorderedMap<AccountId, Account>,
     /// Whether the staking is paused.
@@ -117,6 +120,9 @@ pub struct LiquidStakingContract {
 
     /// The single-direction liquidity pool that enables instant unstake
     liquidity_pool: LiquidityPool,
+  
+    /// Beneficiaries for staking rewards.
+    beneficiaries: UnorderedMap<AccountId, Fraction>,
 }
 
 #[near_bindgen]
@@ -130,38 +136,38 @@ impl LiquidStakingContract {
     #[init]
     pub fn new(
         owner_id: AccountId,
-        reward_fee: Fraction,
     ) -> Self {
         require!(!env::state_exists(), ERR_ALREADY_INITIALZED);
         require!(
             env::account_locked_balance() == 0,
             ERR_ACCOUNT_STAKING_WHILE_INIT
         );
-        
-        let reward_fee_fraction = Fraction::new(
-            reward_fee.numerator, 
-            reward_fee.denominator
-        );
 
         let account_balance = env::account_balance();
+        // 20 NEAR is required to init this contract,
+        // 10 will be used as init staking, 10 will be left for storage
         require!(
-            account_balance >= ONE_NEAR,
-            ERR_NO_ENOUGH_INIT_DEPOSIT
+            account_balance >= 20 * ONE_NEAR,
+            format!(
+                "{}. required: {}",
+                ERR_NO_ENOUGH_INIT_DEPOSIT,
+                20 * ONE_NEAR
+            )
         );
         let mut this = Self {
             owner_id,
             last_epoch_height: get_epoch_height(),
-            last_total_balance: account_balance,
-            total_share_amount: account_balance,
-            total_staked_near_amount: account_balance,
-            reward_fee_fraction,
-            accounts: UnorderedMap::new(StorageKey::Accounts),
+            last_total_balance: 10 * ONE_NEAR,
+            total_share_amount: 10 * ONE_NEAR,
+            total_staked_near_amount: 10 * ONE_NEAR,
+            accounts: UnorderedMap::new(b"a".to_vec()),
             paused: false,
             account_storage_usage: 0,
             validator_pool: ValidatorPool::new(),
-            epoch_requested_stake_amount: 0,
+            epoch_requested_stake_amount: 10 * ONE_NEAR,
             epoch_requested_unstake_amount: 0,
             liquidity_pool: LiquidityPool::new(10000 * ONE_NEAR, 300, 30, 7000),
+            beneficiaries: UnorderedMap::new(b"b".to_vec()),
         };
         this.measure_account_storage_usage();
         // Staking with the current pool to make sure the staking key is valid.
@@ -330,11 +336,6 @@ impl LiquidStakingContract {
     /// Returns account ID of the staking pool owner.
     pub fn get_owner_id(&self) -> AccountId {
         self.owner_id.clone()
-    }
-
-    /// Returns the current reward fee as a fraction.
-    pub fn get_reward_fee_fraction(&self) -> Fraction {
-        self.reward_fee_fraction.clone()
     }
 
     /// Returns the staking public key

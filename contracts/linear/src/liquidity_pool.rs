@@ -136,8 +136,8 @@ impl LiquidityPool {
             * U256::from(swap_fee_percentage)
             / U256::from(ONE_HUNDRED_PERCENT)).as_u128();
         let received_amount = requested_amount - swap_fee;
-        require!(self.amounts[0] > received_amount, ERR_NO_ENOUGH_LIQUIDITY);
-        require!(received_amount > min_amount_out,
+        require!(self.amounts[0] >= received_amount, ERR_NO_ENOUGH_LIQUIDITY);
+        require!(received_amount >= min_amount_out,
             format!(
                 "The received NEAR {} will be less than the expected amount {}",
                 received_amount,
@@ -282,9 +282,6 @@ impl LiquidStakingContract {
     /// Adds NEAR to liquidity pool and returns number of shares that this user receives.
     #[payable]
     pub fn add_liquidity(&mut self) {
-        // Deposit will update the toal balance
-        self.internal_deposit();
-
         let account_id = env::predecessor_account_id();
         let amount = env::attached_deposit();
 
@@ -299,10 +296,9 @@ impl LiquidStakingContract {
             added_shares
         );
 
-        // Update unstaked amount
-        let mut account = self.internal_get_account(&account_id);
-        account.unstaked -= amount;
-        self.internal_save_account(&account_id, &account);
+        // Update the toal balance
+        // TODO: fix the usage of last_total_balance
+        self.last_total_balance += amount;
     }
 
     /// Remove shares from the liquidity pool and return NEAR and LiNEAR.

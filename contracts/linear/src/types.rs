@@ -21,7 +21,7 @@ pub const ONE_HUNDRED_PERCENT: u32 = 10_000;
 pub const TREASURY_ACCOUNT: &str = "treasury";
 
 /// Maximum number of active farms at one time.
-pub const MAX_NUM_ACTIVE_FARMS: usize = 3;
+pub const MAX_NUM_ACTIVE_FARMS: usize = 5;
 
 /// Zero address is implicit address that doesn't have a key for it.
 /// Used for burning tokens.

@@ -47,6 +47,6 @@ pub(crate) enum StorageKey {
     Beneficiaries,
     Validators,
     Farms,
-    AuthorizedUsers,
+    // AuthorizedUsers,
     AuthorizedFarmTokens
 }

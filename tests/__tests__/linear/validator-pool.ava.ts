@@ -21,6 +21,19 @@ workspace.test('not owner', async (test, {contract, alice}) => {
         test,
         alice.call(
             contract,
+            'add_validators',
+            {
+                validator_ids: ['foo'],
+                weights: [10]
+            }
+        ),
+        errMsg
+    );
+
+    await assertFailure(
+        test,
+        alice.call(
+            contract,
             'remove_validator',
             {
                 validator_id: 'foo',
@@ -80,6 +93,42 @@ workspace.test('add validator', async (test, context) => {
             weight: 20
         }
     );
+    test.is(
+        await contract.view('get_total_weight'),
+        30
+    );
+
+    const validators: [any] = await owner.call(
+        contract,
+        'get_validators',
+        {
+            offset: 0,
+            limit: 10
+        }
+    );
+
+    test.is(
+        validators.filter(v => v.account_id === 'foo')[0].weight,
+        10
+    );
+    test.is(
+        validators.filter(v => v.account_id === 'bar')[0].weight,
+        20
+    );
+});
+
+workspace.test('bulk add validator', async (test, context) => {
+    const { owner, contract } = context;
+
+    await owner.call(
+        contract,
+        'add_validators',
+        {
+            validator_ids: ['foo', 'bar'],
+            weights: [10, 20]
+        }
+    );
+
     test.is(
         await contract.view('get_total_weight'),
         30

@@ -256,7 +256,7 @@ impl LiquidityPool {
     }
 
     /// Swap fee calculated based on swap amount
-    fn get_current_swap_fee_percentage(&self, amount_out: u128) -> u32 {
+    pub fn get_current_swap_fee_percentage(&self, amount_out: u128) -> u32 {
         if self.amounts[0] <= amount_out {
             return self.max_fee;
         }

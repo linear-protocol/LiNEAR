@@ -37,6 +37,14 @@ workspace.test('read ft metadata', async (test, {contract, alice}) => {
   );
 });
 
+workspace.test('ft price', async (test, {contract, alice}) => {
+  const price = await contract.view('ft_price', {}) as any;
+  test.is(
+    NEAR.from(price).toString(),
+    NEAR.parse('1').toString()
+  );
+});
+
 workspace.test('cannot transfer with no balance', async (test, {contract, alice, bob}) => {
   await registerFungibleTokenUser(contract, alice);
 

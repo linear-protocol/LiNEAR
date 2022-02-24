@@ -20,9 +20,10 @@ mod epoch_actions;
 mod fungible_token_core;
 mod fungible_token_metadata;
 mod fungible_token_storage;
+mod fungible_token_custom;
+mod liquidity_pool;
 mod farm;
 mod token_receiver;
-mod liquidity_pool;
 
 use crate::types::*;
 use crate::utils::*;
@@ -34,6 +35,7 @@ use crate::farm::{Farm};
 pub use crate::fungible_token_core::*;
 pub use crate::fungible_token_metadata::*;
 pub use crate::fungible_token_storage::*;
+pub use crate::fungible_token_custom::*;
 pub use crate::liquidity_pool::*;
 
 
@@ -399,6 +401,7 @@ impl LiquidStakingContract {
                 .into(),
             can_withdraw: account.unstaked_available_epoch_height <= get_epoch_height(),
             liquidity_pool_share: self.liquidity_pool.get_account_shares(&account_id).into(),
+            liquidity_pool_share_value: self.liquidity_pool.get_account_value(&account_id, self.internal_get_context()).into()
         }
     }
 

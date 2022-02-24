@@ -180,10 +180,10 @@ impl LiquidityPool {
         shares: Balance,
         context: Context
     ) -> Balance {
-        let pool_value_in_near = self.get_pool_value(context);
         if self.shares_total_supply == 0 || shares == 0 {
             0
         } else {
+            let pool_value_in_near = self.get_pool_value(context);
             (U256::from(shares) * U256::from(pool_value_in_near)
                 / U256::from(self.shares_total_supply)).as_u128()
         }

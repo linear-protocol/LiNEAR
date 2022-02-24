@@ -41,6 +41,8 @@ pub struct HumanReadableAccount {
     pub can_withdraw: bool,
     /// The liquidity pool share of the account
     pub liquidity_pool_share: U128,
+    /// The value of the liquidity pool share in $NEAR
+    pub liquidity_pool_share_value: U128,
 }
 
 impl Default for Account {

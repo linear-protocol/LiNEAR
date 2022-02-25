@@ -38,6 +38,8 @@ pub struct HumanReadableAccount {
     pub liquidity_pool_share: U128,
     /// The value of the liquidity pool share in $NEAR
     pub liquidity_pool_share_value: U128,
+    /// The liquidity pool share percentage of the share total supply
+    pub liquidity_pool_share_percentage: u32,
 }
 
 impl Default for Account {

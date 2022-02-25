@@ -355,6 +355,9 @@ impl LiquidStakingContract {
         let mut account = self.internal_get_account(&account_id);
         require!(account.stake_shares >= staked_shares_in, ERR_NO_ENOUGH_STAKED_BALANCE);
 
+        // Distribute rewards from all the farms for the given user.
+        self.internal_distribute_all_rewards(&mut account);
+
         // Calculating the amount of tokens the account will receive by unstaking the corresponding
         // number of "stake" shares, rounding up.
         let requested_amount = self.staked_amount_from_num_shares_rounded_up(staked_shares_in);

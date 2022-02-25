@@ -104,7 +104,7 @@ async function addFirstFarm(
   };
   const farm = {
     farm_id: 0,
-    name: 'Farming #1',
+    name: 'Farm #1',
     token_id: ft.accountId,
     amount: amount.toString(),
     start_date: secondsLater(now, range.start),
@@ -126,6 +126,12 @@ async function addFirstFarm(
 function sleep(ms: number) {
   return new Promise( resolve => setTimeout(resolve, ms) );
 }
+
+// Please notice the staking farm feature is time-sensitive.
+// In the test cases, we added few `sleep(ms)` to wait for rewards being distributed,
+// but this brings some uncertainty to the rewards amount because the execution
+// time of contract call may vary. So we validate the rewards amount as long as its
+// value is within the expected range.
 
 workspace.test('add farm', async (test, {root, contract, owner}) => {
   // Add farm which will start one day later
@@ -156,7 +162,7 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
   );
   // Wait 2 seconds for rewards: 1 FT token distributed per second
   await sleep(2000);
-  // Notice that Alice received 0.5 FT (50% of total) per seconds
+  // Notice that Alice received 0.5 FT (50% of total) per second
   // because the default initial staked amount is 10Ⓝ.
   // However, it can be 2 or 3 seconds when comes to the next line.
   let rewards = await contract.view("get_unclaimed_reward", {
@@ -205,7 +211,7 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
   );
   // Wait 2 seconds for rewards: 1 FT token distributed per second
   await sleep(2000);
-  // Notice that Bob received 0.5 FT (50% of total) per seconds
+  // Notice that Bob received 0.5 FT (50% of total) per second
   // because the default initial staked amount is 10Ⓝ + Alice staked 10Ⓝ
   // However, it can be 2 or 3 seconds when comes to the next line.
   rewards = await contract.view("get_unclaimed_reward", {
@@ -238,7 +244,7 @@ workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) =>
   );
   // Wait 5 seconds for rewards: 1 FT token distributed per second
   await sleep(2000);
-  // Notice that Alice received 0.5 FT (50% of total) per seconds
+  // Notice that Alice received 0.5 FT (50% of total) per second
   // because the default initial staked amount is 10Ⓝ
   // However, it can be 2 or 3 seconds when comes to the next line.
   const rewards = await contract.view("get_unclaimed_reward", {

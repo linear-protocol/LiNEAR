@@ -122,6 +122,7 @@ impl LiquidStakingContract {
         HumanReadableFarm::from(farm_id, self.internal_get_farm(farm_id))
     }
 
+    /// Get unclaimed rewards by account and farm
     pub fn get_unclaimed_reward(&self, account_id: AccountId, farm_id: u64) -> U128 {
         // if account_id == AccountId::new_unchecked(ZERO_ADDRESS.to_string()) {
         //     return U128(0);

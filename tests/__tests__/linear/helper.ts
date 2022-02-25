@@ -1,4 +1,4 @@
-import { Workspace, NEAR, NearAccount, BN, KeyPair } from "near-workspaces-ava";
+import { Workspace, NEAR, NearAccount, BN } from "near-workspaces-ava";
 
 interface RewardFee {
   numerator: number,
@@ -78,7 +78,6 @@ export async function callWithMetrics(
     options?: {
       gas?: string | BN;
       attachedDeposit?: string | BN;
-      signWithKey?: KeyPair;
     }
   ) {
     const txResult = await account.call_raw(contractId, methodName, args, options);

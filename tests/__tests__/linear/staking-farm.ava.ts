@@ -92,9 +92,9 @@ async function addFirstFarm(
   owner: NearAccount,
   quick?: boolean
 ) {
-  const ft = await mintFungibleTokens(root, owner, "ft-1", NEAR.parse("100000000"));
+  const ft = await mintFungibleTokens(root, owner, "ft-1", NEAR.parse("100000000")); // 100M
   const now = new Date();
-  const amount = NEAR.parse("1000000");
+  const amount = NEAR.parse("1000000"); // 1M
   const range = quick ? {
     start: 10,  // the start time must be later then the current time
     end: 10 + 1000000
@@ -105,6 +105,43 @@ async function addFirstFarm(
   const farm = {
     farm_id: 0,
     name: 'Farm #1',
+    token_id: ft.accountId,
+    amount: amount.toString(),
+    start_date: secondsLater(now, range.start),
+    end_date: secondsLater(now, range.end),
+    active: true
+  }
+  await addFarm(
+    contract,
+    owner,
+    ft, 
+    farm.name,
+    amount,
+    farm.start_date,
+    farm.end_date
+  );
+  return { farm, ft } ;
+}
+
+async function addSecondFarm(
+  root: NearAccount,
+  contract: NearAccount,
+  owner: NearAccount,
+  quick?: boolean
+) {
+  const ft = await mintFungibleTokens(root, owner, "ft-2", NEAR.parse("1000000000")); // 1B
+  const now = new Date();
+  const amount = NEAR.parse("5000000"); // 5M
+  const range = quick ? {
+    start: 10,  // the start time must be later then the current time
+    end: 10 + 1250000
+  } : {
+    start: 1 * 24 * 3600,   // 1 days later
+    end: 366 * 24 * 3600    // 366 days later
+  };
+  const farm = {
+    farm_id: 1,
+    name: 'Farm #2',
     token_id: ft.accountId,
     amount: amount.toString(),
     start_date: secondsLater(now, range.start),
@@ -146,7 +183,7 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
   // Add farm which will start in 10s
   const { farm, ft } = await addFirstFarm(root, contract, owner, true);
   test.deepEqual(
-    await contract.view("get_farm", { farm_id: 0 }),
+    await contract.view("get_farm", { farm_id: farm.farm_id }),
     farm
   );
   // Wait until farm starts
@@ -164,7 +201,7 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
   await sleep(2000);
   // Notice that Alice received 0.5 FT (50% of total) per second
   // because the default initial staked amount is 10Ⓝ.
-  // However, it can be 2 or 3 seconds when comes to the next line.
+  // However, it can be 2 or 3 seconds later when comes to the next line.
   let rewards = await contract.view("get_unclaimed_reward", {
     account_id: alice,
     farm_id: farm.farm_id
@@ -201,7 +238,7 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
     || rewards === NEAR.parse("1").toString()
   );
 
-  // Bob deposits and stakes
+  // Next, Bob deposits and stakes
   const stakeAmount2 = NEAR.parse('20');
   await bob.call(
     contract,
@@ -213,7 +250,7 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
   await sleep(2000);
   // Notice that Bob received 0.5 FT (50% of total) per second
   // because the default initial staked amount is 10Ⓝ + Alice staked 10Ⓝ
-  // However, it can be 2 or 3 seconds when comes to the next line.
+  // However, it can be 2 or 3 seconds later when comes to the next line.
   rewards = await contract.view("get_unclaimed_reward", {
     account_id: bob,
     farm_id: farm.farm_id
@@ -228,7 +265,7 @@ workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) =>
   // Add farm which will start in 10s
   const { farm } = await addFirstFarm(root, contract, owner, true);
   test.deepEqual(
-    await contract.view("get_farm", { farm_id: 0 }),
+    await contract.view("get_farm", { farm_id: farm.farm_id }),
     farm
   );
   // Wait until farm starts
@@ -246,7 +283,7 @@ workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) =>
   await sleep(2000);
   // Notice that Alice received 0.5 FT (50% of total) per second
   // because the default initial staked amount is 10Ⓝ
-  // However, it can be 2 or 3 seconds when comes to the next line.
+  // However, it can be 2 or 3 seconds later when comes to the next line.
   const rewards = await contract.view("get_unclaimed_reward", {
     account_id: alice,
     farm_id: farm.farm_id
@@ -274,5 +311,146 @@ workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) =>
       farm_id: farm.farm_id
     }),
     finalRewards
+  );
+});
+
+workspace.test('add two farms and receive rewards', async (test, {root, contract, owner, alice, bob}) => {
+  // Add farms which will start in 10s
+  const { farm: farm1, ft: ft1 } = await addFirstFarm(root, contract, owner, true);
+  test.deepEqual(
+    await contract.view("get_farm", { farm_id: farm1.farm_id }),
+    farm1
+  );
+  const { farm: farm2, ft: ft2 } = await addSecondFarm(root, contract, owner, true);
+  test.deepEqual(
+    await contract.view("get_farm", { farm_id: farm2.farm_id }),
+    farm2
+  );
+
+  // Wait until farm starts
+  await sleep(10000);
+
+  // Alice deposits and stakes
+  const stakeAmount = NEAR.parse('10');
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    { attachedDeposit: stakeAmount },
+  );
+  // Wait 2 seconds for rewards: 
+  // (1) One FT-1 token distributed per second
+  // (2) Four FT-2 tokens distributed per seconds
+  await sleep(2000);
+  // Alice will receive 0.5 FT-1 (50% of total) per second
+  // and Alice will receive 2 FT-2 (50% of total) per second,
+  // because the default initial staked amount is 10Ⓝ.
+  // However, it can be 2 or 3 seconds later when comes to the next line.
+  let [rewards1, rewards2] = await Promise.all([
+    contract.view("get_unclaimed_reward", {
+      account_id: alice,
+      farm_id: farm1.farm_id
+    }),
+    contract.view("get_unclaimed_reward", {
+      account_id: alice,
+      farm_id: farm2.farm_id
+    }),
+  ]);
+  test.true(
+    rewards1 === NEAR.parse("1").toString()
+    || rewards1 === NEAR.parse("1.5").toString()
+  );
+  test.true(
+    rewards2 === NEAR.parse("4").toString()
+    || rewards2 === NEAR.parse("6").toString()
+  );
+
+  // Register Alice for FT-1, otherwise claim will fail
+  await registerFungibleTokenUser(ft1, alice);
+  // Alice claims FT-1 rewards, and check FT-1 balance
+  await alice.call(
+    contract,
+    'claim',
+    { token_id: ft1 },
+    {
+      gas: new BN("75000000000000"), 
+      attachedDeposit: ONE_YOCTO_NEAR
+    },
+  );
+  test.true(
+    NEAR.from(await ft1.view('ft_balance_of', {
+      account_id: alice
+    })).gt(NEAR.parse('1'))
+  );
+  // Alice has fewer unclaimed rewards now
+  rewards1 = await contract.view("get_unclaimed_reward", {
+    account_id: alice,
+    farm_id: farm1.farm_id
+  });
+  test.true(
+    rewards1 === NEAR.parse("0.5").toString()
+    || rewards1 === NEAR.parse("1").toString()
+  );
+
+  // Register Alice for FT-2, otherwise claim will fail
+  await registerFungibleTokenUser(ft2, alice);
+  // Alice claims FT-2 rewards, and check FT-2 balance
+  await alice.call(
+    contract,
+    'claim',
+    { token_id: ft2 },
+    {
+      gas: new BN("75000000000000"), 
+      attachedDeposit: ONE_YOCTO_NEAR
+    },
+  );
+  test.true(
+    NEAR.from(await ft2.view('ft_balance_of', {
+      account_id: alice
+    })).gt(NEAR.parse('4'))
+  );
+  // Alice has fewer unclaimed rewards now
+  rewards2 = await contract.view("get_unclaimed_reward", {
+    account_id: alice,
+    farm_id: farm2.farm_id
+  });
+  test.true(
+    rewards2 === NEAR.parse("2").toString()
+    || rewards2 === NEAR.parse("4").toString()
+  );
+
+  // Next, Bob deposits and stakes
+  const stakeAmount2 = NEAR.parse('20');
+  await bob.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    { attachedDeposit: stakeAmount2 },
+  );
+  // Wait 2 seconds for rewards: 
+  // (1) One FT-1 token distributed per second
+  // (2) Four FT-2 tokens distributed per seconds
+  await sleep(2000);
+  // Bob will receive 0.5 FT-1 (50% of total) per second
+  // and Bob will receive 2 FT-2 (50% of total) per second,
+  // because the default initial staked amount is 10Ⓝ + Alice staked 10Ⓝ
+  // However, it can be 2 or 3 seconds later when comes to the next line.
+  [rewards1, rewards2] = await Promise.all([
+    contract.view("get_unclaimed_reward", {
+      account_id: bob,
+      farm_id: farm1.farm_id
+    }),
+    contract.view("get_unclaimed_reward", {
+      account_id: bob,
+      farm_id: farm2.farm_id
+    }),
+  ]);
+  test.true(
+    rewards1 === NEAR.parse("1").toString()
+    || rewards1 === NEAR.parse("1.5").toString()
+  );
+  test.true(
+    rewards2 === NEAR.parse("4").toString()
+    || rewards2 === NEAR.parse("6").toString()
   );
 });

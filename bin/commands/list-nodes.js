@@ -1,6 +1,6 @@
 const { init } = require('../near');
 
-exports.command = 'list-node <address>';
+exports.command = 'list-nodes <address>';
 exports.desc = 'List validators of the contract';
 exports.builder = yargs => {
   yargs

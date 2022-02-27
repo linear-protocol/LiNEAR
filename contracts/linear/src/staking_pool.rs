@@ -53,6 +53,10 @@ impl ValidatorPool {
         }
     }
 
+    pub fn count(&self) -> u64{
+        self.validators.len()
+    }
+
     pub fn get_validator(
         &self,
         validator_id: &AccountId
@@ -296,22 +300,28 @@ impl LiquidStakingContract {
     pub fn get_validator(
         & self,
         validator_id: AccountId
-    ) -> Validator {
+    ) -> ValidatorInfo {
         self.assert_owner();
-        self.validator_pool.get_validator(&validator_id)
+        self.validator_pool
+            .get_validator(&validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST)
+            .get_info()
     }
 
     pub fn get_validators(
         &self,
         offset: u16,
         limit: u16
-    ) -> Vec<Validator> {
+    ) -> Vec<ValidatorInfo> {
         self.assert_owner();
-        self.validator_pool.get_validators(
-            offset,
-            limit
-        )
+        self.validator_pool
+            .get_validators(
+                offset,
+                limit
+            )
+            .iter()
+            .map(|v| v.get_info())
+            .collect()
     }
 }
 
@@ -332,6 +342,16 @@ pub struct Validator {
     pub last_unstake_fired_epoch: EpochHeight,
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct ValidatorInfo {
+    pub account_id: AccountId,
+    pub weight: u16,
+    pub staked_amount: Balance,
+    pub unstaked_amount: Balance,
+    pub pending_release: bool,
+}
+
 impl Validator {
     pub fn new(
         account_id: AccountId,
@@ -344,6 +364,16 @@ impl Validator {
             unstaked_amount: 0,
             unstake_fired_epoch: 0,
             last_unstake_fired_epoch: 0,
+        }
+    }
+
+    pub fn get_info(& self) -> ValidatorInfo {
+        ValidatorInfo {
+            account_id: self.account_id.clone(),
+            weight: self.weight,
+            staked_amount: self.staked_amount,
+            unstaked_amount: self.unstaked_amount,
+            pending_release: self.pending_release()
         }
     }
 

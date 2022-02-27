@@ -12,7 +12,7 @@ const MIN_AMOUNT_TO_PERFORM_STAKE: Balance = ONE_NEAR;
 const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR;
 /// min NEAR balance this contract should hold in order to cover
 /// storage and contract call fees.
-const CONTRACT_MIN_RESERVE_BALANCE: Balance = 30 * ONE_NEAR;
+const CONTRACT_MIN_RESERVE_BALANCE: Balance = ONE_NEAR;
 
 /// Actions that should be called by off-chain actors
 /// during each epoch.
@@ -61,7 +61,7 @@ impl LiquidStakingContract {
         }
 
         require!(
-            env::account_balance() - CONTRACT_MIN_RESERVE_BALANCE >= amount_to_stake,
+            env::account_balance() >= amount_to_stake + CONTRACT_MIN_RESERVE_BALANCE,
             ERR_MIN_RESERVE
         );
 

@@ -27,6 +27,9 @@ pub struct Summary {
     /// For example, fee percentage is `30`, which means `0.3%`
     pub lp_swap_fee_percentage: u32,
 
+    /// Number of nodes in validator pool
+    pub validators_num: u64,
+  
     /// Active farms that affect stakers.
     /// Can calculate rate of return of this pool with farming by:
     /// `farm_reward_per_day = farms.iter().map(farms.amount / (farm.end_date - farm.start_date) / DAY_IN_NS * PRICES[farm.token_id]).sum()`
@@ -89,6 +92,7 @@ impl LiquidStakingContract {
           lp_near_amount: self.liquidity_pool.amounts[0].into(),
           lp_staked_share: self.liquidity_pool.amounts[1].into(),
           lp_swap_fee_percentage: self.liquidity_pool.get_current_swap_fee_percentage(10 * ONE_NEAR),
+          validators_num: self.validator_pool.count(),
           farms: self.get_active_farms(),
       }
     }

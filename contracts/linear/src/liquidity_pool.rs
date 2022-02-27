@@ -164,16 +164,6 @@ impl LiquidityPool {
         (received_amount, treasury_fee_shares)
     }
 
-    /// Calculate account value in NEAR by shares
-    pub fn get_account_value(
-        &self,
-        account_id: &AccountId,
-        context: Context
-    ) -> Balance {
-        let shares = self.get_account_shares(&account_id);
-        self.get_value_from_shares(shares, context)
-    }
-
     /// Calculate NEAR value from shares
     pub fn get_value_from_shares(
         &self,
@@ -221,6 +211,24 @@ impl LiquidityPool {
     /// Return shares for the account
     pub fn get_account_shares(&self, account_id: &AccountId) -> ShareBalance {
         self.shares.get(&account_id).unwrap_or(0)
+    }
+
+    /// Calculate account value in NEAR by shares
+    pub fn get_account_value(
+        &self,
+        account_id: &AccountId,
+        context: Context
+    ) -> Balance {
+        let shares = self.get_account_shares(&account_id);
+        self.get_value_from_shares(shares, context)
+    }
+
+    /// Calculate account liquidity pool shares percentage
+    pub fn get_account_shares_percentage(&self, account_id: &AccountId) -> u32 {
+        let shares = self.get_account_shares(&account_id);
+        (U256::from(ONE_HUNDRED_PERCENT)
+            * U256::from(shares)
+            / U256::from(self.shares_total_supply)).as_u32()
     }
 
     /// Mint new shares for given user.

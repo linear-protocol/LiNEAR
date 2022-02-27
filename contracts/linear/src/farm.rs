@@ -12,14 +12,14 @@ const SESSION_INTERVAL: u64 = 1_000_000_000;
 const DENOMINATOR: u128 = 1_000_000_000_000_000_000_000_000;
 
 /// Amount of gas for fungible token transfers.
-pub const GAS_FOR_FT_TRANSFER: Gas = Gas(10_000_000_000_000);
+const GAS_FOR_FT_TRANSFER: Gas = Gas(10_000_000_000_000);
 /// hotfix_insuffient_gas_for_mft_resolve_transfer, increase from 5T to 20T
-pub const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(20_000_000_000_000);
+const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(20_000_000_000_000);
 /// Gas for calling `get_owner` method.
-pub const GAS_FOR_GET_OWNER: Gas = Gas(10_000_000_000_000);
-pub const GAS_LEFTOVERS: Gas = Gas(20_000_000_000_000);
+const GAS_FOR_GET_OWNER: Gas = Gas(10_000_000_000_000);
+const GAS_LEFTOVERS: Gas = Gas(20_000_000_000_000);
 /// Get owner method on external contracts.
-pub const GET_OWNER_METHOD: &str = "get_owner_account_id";
+const GET_OWNER_METHOD: &str = "get_owner_account_id";
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug)]
 pub struct RewardDistribution {

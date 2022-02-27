@@ -242,10 +242,10 @@ impl LiquidStakingContract {
         account_id: AccountId,
     ) -> Promise {
         let owner_id: AccountId = near_sdk::serde_json::from_slice(
-            &promise_result_as_success().expect("get_owner must have result"),
+            &promise_result_as_success().expect(ERR_GET_OWNER_NO_RESULT),
         )
-        .expect("Failed to parse");
-        require!(owner_id == account_id, "Caller is not an owner");
+        .expect(ERR_PARSE_OWNER_ID);
+        require!(owner_id == account_id, ERR_CALLER_NOT_OWNER);
         self.internal_claim(&token_id, &delegator_id, &account_id)
     }
 

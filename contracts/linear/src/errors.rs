@@ -1,8 +1,13 @@
+// initialization
 pub const ERR_ALREADY_INITIALZED: &str = "Already initialized";
 pub const ERR_ACCOUNT_STAKING_WHILE_INIT: &str = "The current account has staking balance while initialization";
 pub const ERR_NO_ENOUGH_INIT_DEPOSIT: &str = "The account doesn't have enough balance for initialization";
 
+// owner
 pub const ERR_NOT_OWNER: &str = "Only owner can perform this action";
+
+// account
+pub const ERR_NO_ACCOUNT: &str = "Account not found";
 
 // fraction
 pub const ERR_FRACTION_BAD_DENOMINATOR: &str = "Denominator cannot be zero";
@@ -57,3 +62,11 @@ pub const ERR_NON_POSITIVE_FARM_AMOUNT: &str = "Farm amount should be positive";
 pub const ERR_FARM_AMOUNT_TOO_SMALL: &str = "Farm amount is too small";
 pub const ERR_NO_FARM: &str = "Farm not found";
 pub const ERR_NO_FARM_REWARDS: &str = "No rewards to claim";
+pub const ERR_FARM_MSG_WRONG_FORMAT: &str = "Farm message format is wrong";
+pub const ERR_NOT_AUTHORIZED_TOKEN: &str = "Token has not been authorized";
+pub const ERR_NOT_AUTHORIZED_USER: &str = "The sender has not been authorized";
+pub const ERR_TOO_MANY_ACTIVE_FARMS: &str = "Too many active farms";
+
+pub const ERR_GET_OWNER_NO_RESULT: &str = "get_owner must have result";
+pub const ERR_PARSE_OWNER_ID: &str = "Failed to parse owner ID";
+pub const ERR_CALLER_NOT_OWNER: &str = "Caller is not an owner";

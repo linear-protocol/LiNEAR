@@ -31,18 +31,18 @@ impl FungibleTokenReceiver for LiquidStakingContract {
         require!(
             self.authorized_farm_tokens
                 .contains(&env::predecessor_account_id()),
-            "ERR_NOT_AUTHORIZED_TOKEN"
+            ERR_NOT_AUTHORIZED_TOKEN
         );
         require!(
             sender_id == self.get_owner_id(),
                 // || self.authorized_users.contains(&sender_id),
-            "ERR_NOT_AUTHORIZED_USER"
+            ERR_NOT_AUTHORIZED_USER
         );
         require!(
             self.active_farms.len() <= MAX_NUM_ACTIVE_FARMS,
-            "ERR_TOO_MANY_ACTIVE_FARMS"
+            ERR_TOO_MANY_ACTIVE_FARMS
         );
-        let message = serde_json::from_str::<FarmingDetails>(&msg).expect("ERR_MSG_WRONG_FORMAT");
+        let message = serde_json::from_str::<FarmingDetails>(&msg).expect(ERR_FARM_MSG_WRONG_FORMAT);
         self.internal_deposit_farm_tokens(
             &env::predecessor_account_id(),
             message.name,

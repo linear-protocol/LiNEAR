@@ -131,8 +131,8 @@ impl LiquidStakingContract {
         // if account_id == AccountId::new_unchecked(ZERO_ADDRESS.to_string()) {
         //     return U128(0);
         // }
-        let account = self.accounts.get(&account_id).expect("ERR_NO_ACCOUNT");
-        let mut farm = self.farms.get(farm_id).expect("ERR_NO_FARM");
+        let account = self.accounts.get(&account_id).expect(ERR_NO_ACCOUNT);
+        let mut farm = self.farms.get(farm_id).expect(ERR_NO_FARM);
         let (_rps, reward) = self.internal_unclaimed_balance(&account, farm_id, &mut farm);
         let prev_reward = *account.amounts.get(&farm.token_id).unwrap_or(&0);
         U128(reward + prev_reward)

@@ -90,18 +90,21 @@ async function addFirstFarm(
   root: NearAccount,
   contract: NearAccount,
   owner: NearAccount,
-  quick?: boolean
+  type?: number
 ) {
   const ft = await mintFungibleTokens(root, owner, "ft-1", NEAR.parse("100000000")); // 100M
   const now = new Date();
   const amount = NEAR.parse("1000000"); // 1M
-  const range = quick ? {
+  const range = type === 1 ? {
     start: 10,  // the start time must be later then the current time
     end: 10 + 1000000
+  } : ( type === 2 ? {
+    start: 10,
+    end: 10 + 20  // end in 10s
   } : {
     start: 1 * 24 * 3600,   // 1 days later
     end: 101 * 24 * 3600    // 101 days later
-  };
+  });
   const farm = {
     farm_id: 0,
     name: 'Farm #1',
@@ -181,7 +184,7 @@ workspace.test('add farm', async (test, {root, contract, owner}) => {
 
 workspace.test('stake and receive rewards', async (test, {root, contract, owner, alice, bob}) => {
   // Add farm which will start in 10s
-  const { farm, ft } = await addFirstFarm(root, contract, owner, true);
+  const { farm, ft } = await addFirstFarm(root, contract, owner, 1);
   test.deepEqual(
     await contract.view("get_farm", { farm_id: farm.farm_id }),
     farm
@@ -263,7 +266,7 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
 
 workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) => {
   // Add farm which will start in 10s
-  const { farm } = await addFirstFarm(root, contract, owner, true);
+  const { farm } = await addFirstFarm(root, contract, owner, 1);
   test.deepEqual(
     await contract.view("get_farm", { farm_id: farm.farm_id }),
     farm
@@ -279,7 +282,7 @@ workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) =>
     {},
     { attachedDeposit: stakeAmount },
   );
-  // Wait 5 seconds for rewards: 1 FT token distributed per second
+  // Wait 2 seconds for rewards: 1 FT token distributed per second
   await sleep(2000);
   // Notice that Alice received 0.5 FT (50% of total) per second
   // because the default initial staked amount is 10Ⓝ
@@ -316,7 +319,7 @@ workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) =>
 
 workspace.test('add two farms and receive rewards', async (test, {root, contract, owner, alice, bob}) => {
   // Add farms which will start in 10s
-  const { farm: farm1, ft: ft1 } = await addFirstFarm(root, contract, owner, true);
+  const { farm: farm1, ft: ft1 } = await addFirstFarm(root, contract, owner, 1);
   test.deepEqual(
     await contract.view("get_farm", { farm_id: farm1.farm_id }),
     farm1
@@ -452,5 +455,61 @@ workspace.test('add two farms and receive rewards', async (test, {root, contract
   test.true(
     rewards2 === NEAR.parse("4").toString()
     || rewards2 === NEAR.parse("6").toString()
+  );
+});
+
+workspace.test('active farm has ended', async (test, {root, contract, owner, alice, bob}) => {
+  // Add farm which will start in 10s
+  const { farm } = await addFirstFarm(root, contract, owner, 2);
+  test.deepEqual(
+    await contract.view("get_farm", { farm_id: farm.farm_id }),
+    farm
+  );
+  // Wait until farm starts
+  await sleep(10000);
+
+  // Alice deposits and stakes
+  const stakeAmount = NEAR.parse('10');
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    { attachedDeposit: stakeAmount },
+  );
+  // Wait 2 seconds for rewards: 50K FT token distributed per second
+  await sleep(2000);
+  // Notice that Alice received 25K FT (50% of total) per second
+  // because the default initial staked amount is 10Ⓝ
+  // However, it can be 2 or 3 seconds later when comes to the next line.
+  const rewards = await contract.view("get_unclaimed_reward", {
+    account_id: alice,
+    farm_id: farm.farm_id
+  });
+  test.true(
+    rewards === NEAR.parse("50000").toString()
+    || rewards === NEAR.parse("75000").toString()
+  );
+
+  // Wait 20 seconds, check whether the farm has ended
+  await sleep(20000);
+  // The farm should end, but it actually needs someone to 
+  // stake or unstake again to mark the farm as inactive
+  test.deepEqual(
+    await contract.view("get_active_farms", {}),
+    [farm]
+  );
+
+  // Next, Bob deposits and stakes
+  const stakeAmount2 = NEAR.parse('20');
+  await bob.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    { attachedDeposit: stakeAmount2 },
+  );
+  // The farm should end now
+  test.deepEqual(
+    await contract.view("get_active_farms", {}),
+    []
   );
 });

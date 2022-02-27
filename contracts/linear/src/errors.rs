@@ -49,3 +49,11 @@ pub const ERR_FEE_EXCEEDS_UP_LIMIT: &str = "The fee should be less than 10000";
 pub const ERR_NO_ENOUGH_LIQUIDITY: &str = "Not enough liquidity in the pool";
 pub const ERR_ACCOUNT_NO_SHARE: &str = "Account has no shares in liquidity pool";
 pub const ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE: &str = "Not enough liquidity shares to remove from the pool";
+
+// staking farm
+pub const ERR_FARM_START_TOO_EARLY: &str = "Farm start date should not be earlier than the current time";
+pub const ERR_FARM_END_TOO_EARLY: &str = "Farm end date is too close to start date";
+pub const ERR_NON_POSITIVE_FARM_AMOUNT: &str = "Farm amount should be positive";
+pub const ERR_FARM_AMOUNT_TOO_SMALL: &str = "Farm amount is too small";
+pub const ERR_NO_FARM: &str = "Farm not found";
+pub const ERR_NO_FARM_REWARDS: &str = "No rewards to claim";

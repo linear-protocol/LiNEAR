@@ -54,12 +54,12 @@ impl LiquidStakingContract {
         start_date: Timestamp,
         end_date: Timestamp,
     ) {
-        require!(start_date >= env::block_timestamp(), "ERR_FARM_TOO_EARLY");
-        require!(end_date > start_date + SESSION_INTERVAL, "ERR_FARM_DATE");
-        require!(amount > 0, "ERR_FARM_AMOUNT_NON_ZERO");
+        require!(start_date >= env::block_timestamp(), ERR_FARM_START_TOO_EARLY);
+        require!(end_date > start_date + SESSION_INTERVAL, ERR_FARM_END_TOO_EARLY);
+        require!(amount > 0, ERR_NON_POSITIVE_FARM_AMOUNT);
         require!(
             amount / ((end_date - start_date) / SESSION_INTERVAL) as u128 > 0,
-            "ERR_FARM_AMOUNT_TOO_SMALL"
+            ERR_FARM_AMOUNT_TOO_SMALL
         );
         self.farms.push(&Farm {
             name,
@@ -78,7 +78,7 @@ impl LiquidStakingContract {
     }
 
     pub(crate) fn internal_get_farm(&self, farm_id: u64) -> Farm {
-        self.farms.get(farm_id).expect("ERR_NO_FARM")
+        self.farms.get(farm_id).expect(ERR_NO_FARM)
     }
 
     fn internal_calculate_distribution(
@@ -205,7 +205,7 @@ impl LiquidStakingContract {
         let mut account = self.internal_get_account(&claim_account_id);
         self.internal_distribute_all_rewards(&mut account);
         let amount = account.amounts.remove(&token_id).unwrap_or(0);
-        require!(amount > 0, "ERR_ZERO_AMOUNT");
+        require!(amount > 0, ERR_NO_FARM_REWARDS);
         log!(
             "{} receives {} of {} from {}",
             send_account_id, amount, token_id, claim_account_id

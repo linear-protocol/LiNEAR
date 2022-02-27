@@ -53,6 +53,10 @@ impl ValidatorPool {
         }
     }
 
+    pub fn count(&self) -> u64{
+        self.validators.len()
+    }
+
     pub fn get_validator(
         &self,
         validator_id: &AccountId

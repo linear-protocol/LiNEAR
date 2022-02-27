@@ -202,9 +202,13 @@ impl ValidatorPool {
 
             let target_amount = self.validator_target_stake_amount(total_staked_near_amount, &validator);
             if validator.staked_amount > target_amount {
-                let delta = min(
-                    validator.staked_amount - target_amount,
-                    amount
+                let delta = min3(
+                    // more NEAR than delta will be unstaked to
+                    // prevent the need to unstake from all validators,
+                    // which blocks all of them.
+                    2 * (validator.staked_amount - target_amount),
+                    amount,
+                    validator.staked_amount
                 );
                 if delta > amount_to_unstake {
                     amount_to_unstake = delta;
@@ -212,8 +216,13 @@ impl ValidatorPool {
                 }
             }
         }
+
+        // if the amount left is too small, we try to unstake them at once
         if amount_to_unstake > 0 && amount - amount_to_unstake < STAKE_SMALL_CHANGE_AMOUNT {
-            amount_to_unstake = amount;
+            amount_to_unstake = min(
+                amount,
+                candidate.as_ref().unwrap().staked_amount
+            );
         }
 
         return (candidate, amount_to_unstake);
@@ -233,6 +242,13 @@ impl ValidatorPool {
         // TODO: the num of epoches can be doubled or trippled if not enough stake is available
         NUM_EPOCHS_TO_UNLOCK
     }
+}
+
+fn min3(x: u128, y: u128, z: u128) -> u128 {
+    min(
+        x,
+        min(y, z)
+    )
 }
 
 #[near_bindgen]
@@ -611,7 +627,7 @@ mod tests {
         let (candidate, amount)= validator_pool.get_candidate_to_unstake(110 * ONE_NEAR, 400 * ONE_NEAR);
         assert!(candidate.is_some());
         assert_eq!(candidate.unwrap().account_id, zoo.account_id);
-        assert_eq!(amount, 10 * ONE_NEAR);
+        assert_eq!(amount, 20 * ONE_NEAR);
 
         // reset staked amount
         foo.staked_amount = 100; // target is 100
@@ -637,7 +653,7 @@ mod tests {
         validator_pool.validators.insert(&bar.account_id, &bar);
         validator_pool.validators.insert(&zoo.account_id, &zoo);
 
-        // in case no staking is needed
+        // in case no unstaking is needed
 
         let (candidate, _)= validator_pool.get_candidate_to_unstake(100, 400);
         assert!(candidate.is_none());

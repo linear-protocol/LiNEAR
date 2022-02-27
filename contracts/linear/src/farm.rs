@@ -177,10 +177,10 @@ impl LiquidStakingContract {
             if let Some(mut farm) = self.farms.get(farm_id) {
                 self.internal_distribute_reward(&mut account, farm_id, &mut farm);
                 self.farms.replace(farm_id, &farm);
-                // TODO: currently all farms continue to be active.
-                // if farm.is_active() {
-                self.active_farms.push(farm_id);
-                // }
+                // Only include active farm
+                if farm.is_active() {
+                    self.active_farms.push(farm_id);
+                }
             }
         }
     }

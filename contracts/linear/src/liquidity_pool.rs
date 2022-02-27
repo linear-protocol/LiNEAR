@@ -226,9 +226,13 @@ impl LiquidityPool {
     /// Calculate account liquidity pool shares percentage
     pub fn get_account_shares_percentage(&self, account_id: &AccountId) -> u32 {
         let shares = self.get_account_shares(&account_id);
-        (U256::from(ONE_HUNDRED_PERCENT)
-            * U256::from(shares)
-            / U256::from(self.shares_total_supply)).as_u32()
+        if self.shares_total_supply == 0 || shares == 0 {
+            0
+        } else {
+            (U256::from(ONE_HUNDRED_PERCENT)
+                * U256::from(shares)
+                / U256::from(self.shares_total_supply)).as_u32()
+        }
     }
 
     /// Mint new shares for given user.

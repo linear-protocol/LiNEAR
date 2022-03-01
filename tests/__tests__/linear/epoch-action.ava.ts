@@ -237,9 +237,9 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
   await unstakeAll(owner, contract);
 
   // 60 NEAR was initially staked, 30 was taken out
-  await assertValidator(v1, '5', '5');
-  await assertValidator(v2, '10', '10');
-  await assertValidator(v3, '15', '15');
+  await assertValidator(v1, '10', '0');
+  await assertValidator(v2, '20', '0');
+  await assertValidator(v3, '0', '30');
 
   // unstake more
   await alice.call(
@@ -249,10 +249,9 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
   );
 
   // epoch unstake should not take effect now
-  await unstakeAll(owner, contract);
-  await assertValidator(v1, '5', '5');
-  await assertValidator(v2, '10', '10');
-  await assertValidator(v3, '15', '15');
+  await assertValidator(v1, '10', '0');
+  await assertValidator(v2, '20', '0');
+  await assertValidator(v3, '0', '30');
 
   // fast-forward 
   await owner.call(
@@ -263,9 +262,9 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
 
   // only 12 NEAR left in stake now
   await unstakeAll(owner, contract);
-  await assertValidator(v1, '2', '8');
-  await assertValidator(v2, '4', '16');
-  await assertValidator(v3, '6', '24');
+  await assertValidator(v1, '10', '0');
+  await assertValidator(v2, '2', '18');
+  await assertValidator(v3, '0', '30');
 });
 
 workspace.test('epoch collect rewards', async (test, {root, contract, alice, owner}) => {
@@ -487,7 +486,7 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, owner}) =>
       contract,
       'epoch_withdraw',
       {
-        validator_id: v1.accountId
+        validator_id: v3.accountId
       },
       {
         gas: Gas.parse('200 Tgas')
@@ -508,26 +507,6 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, owner}) =>
     contract,
     'epoch_withdraw',
     {
-      validator_id: v1.accountId
-    },
-    {
-      gas: Gas.parse('200 Tgas')
-    }
-  );
-  await owner.call(
-    contract,
-    'epoch_withdraw',
-    {
-      validator_id: v2.accountId
-    },
-    {
-      gas: Gas.parse('200 Tgas')
-    }
-  );
-  await owner.call(
-    contract,
-    'epoch_withdraw',
-    {
       validator_id: v3.accountId
     },
     {
@@ -535,7 +514,7 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, owner}) =>
     }
   );
 
-  await assertValidator(v1, '5', '0');
-  await assertValidator(v2, '10', '0');
-  await assertValidator(v3, '15', '0');
+  await assertValidator(v1, '10', '0');
+  await assertValidator(v2, '20', '0');
+  await assertValidator(v3, '0', '0');
 });

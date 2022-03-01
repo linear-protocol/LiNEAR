@@ -158,6 +158,7 @@ impl LiquidityPool {
             / U256::from(ONE_HUNDRED_PERCENT)).as_u128();
         // Calculate the total received fee in LiNEAR
         let pool_fee_shares = fee_num_shares - treasury_fee_shares;
+        require!(pool_fee_shares > 0, ERR_NON_POSITIVE_RECEIVED_FEE);
         self.total_fee_shares += pool_fee_shares;
 
         // Swap out NEAR from pool

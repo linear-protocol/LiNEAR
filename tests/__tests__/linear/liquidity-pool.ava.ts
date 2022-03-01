@@ -36,7 +36,7 @@ workspace.test('add initial liquidity', async (test, { contract, alice, bob }) =
     { attachedDeposit: addedLiqudityAmount },
   );
   test.is(
-    (await contract.view('get_account', { account_id: bob }) as any).liquidity_pool_share,
+    (await contract.view('get_account', { account_id: bob }) as any).liquidity_pool_share_value,
     addedLiqudityAmount.toString()
   );
 
@@ -49,7 +49,7 @@ workspace.test('add initial liquidity', async (test, { contract, alice, bob }) =
     { attachedDeposit: addedLiqudityAmount2 },
   );
   test.is(
-    (await contract.view('get_account', { account_id: alice }) as any).liquidity_pool_share,
+    (await contract.view('get_account', { account_id: alice }) as any).liquidity_pool_share_value,
     addedLiqudityAmount2.toString()
   );
 });
@@ -160,7 +160,7 @@ workspace.test('remove liquidity', async (test, { contract, alice, bob }) => {
     { attachedDeposit: addedLiqudityAmount },
   );
   test.is(
-    (await contract.view('get_account', { account_id: bob }) as any).liquidity_pool_share,
+    (await contract.view('get_account', { account_id: bob }) as any).liquidity_pool_share_value,
     addedLiqudityAmount.toString()
   );
 

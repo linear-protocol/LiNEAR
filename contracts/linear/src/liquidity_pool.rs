@@ -28,6 +28,8 @@ pub struct LiquidityPool {
     pub min_fee: u32,
     /// Fee allocated to DAO 
     pub fee_treasury_percentage: u32,
+    /// Total swap fee in LiNEAR received by the pool
+    pub total_fee_shares: ShareBalance,
 }
 
 pub struct Context {
@@ -54,12 +56,13 @@ impl LiquidityPool {
         Self {
             token_account_ids: token_account_ids.clone(),
             amounts: vec![0u128; token_account_ids.len()],
+            shares: LookupMap::new(StorageKey::Shares),
+            shares_total_supply: 0,
             expected_near_amount,
             max_fee,
             min_fee,
-            shares: LookupMap::new(StorageKey::Shares),
-            shares_total_supply: 0,
             fee_treasury_percentage,
+            total_fee_shares: 0,
         }
     }
 
@@ -153,6 +156,9 @@ impl LiquidityPool {
         let treasury_fee_shares = (U256::from(fee_num_shares)
             * U256::from(self.fee_treasury_percentage)
             / U256::from(ONE_HUNDRED_PERCENT)).as_u128();
+        // Calculate the total received fee in LiNEAR
+        let pool_fee_shares = fee_num_shares - treasury_fee_shares;
+        self.total_fee_shares += pool_fee_shares;
 
         // Swap out NEAR from pool
         self.amounts[0] -= received_amount;

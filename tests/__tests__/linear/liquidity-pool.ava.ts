@@ -73,7 +73,7 @@ workspace.test('instant unstake', async (test, { contract, alice, bob }) => {
     { attachedDeposit: addedLiqudityAmount },
   );
   test.is(
-    (await contract.view('get_account', { account_id: bob }) as any).liquidity_pool_share,
+    (await contract.view('get_account', { account_id: bob }) as any).liquidity_pool_share_value,
     addedLiqudityAmount.toString()
   );
 

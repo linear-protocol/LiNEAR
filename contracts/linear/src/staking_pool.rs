@@ -12,6 +12,7 @@ use crate::errors::*;
 use crate::utils::*;
 
 const STAKE_SMALL_CHANGE_AMOUNT: Balance = ONE_NEAR;
+const UNSTAKE_FACTOR: u128 = 2;
 
 #[ext_contract(ext_staking_pool)]
 pub trait ExtStakingPool {
@@ -206,7 +207,7 @@ impl ValidatorPool {
                     // more NEAR than delta will be unstaked to
                     // prevent the need to unstake from all validators,
                     // which blocks all of them.
-                    2 * (validator.staked_amount - target_amount),
+                    UNSTAKE_FACTOR * (validator.staked_amount - target_amount),
                     amount,
                     validator.staked_amount
                 );
@@ -238,7 +239,7 @@ impl ValidatorPool {
             / (self.total_weight as u128)
     }
 
-    pub fn get_num_epoch_to_unstake(&self, amount: u128) -> EpochHeight {
+    pub fn get_num_epoch_to_unstake(&self, _amount: u128) -> EpochHeight {
         // TODO: the num of epoches can be doubled or trippled if not enough stake is available
         NUM_EPOCHS_TO_UNLOCK
     }

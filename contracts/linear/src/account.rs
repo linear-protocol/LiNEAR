@@ -37,6 +37,9 @@ pub struct HumanReadableAccount {
     pub unstaked_balance: U128,
     /// The amount balance staked at the current "stake" share price.
     pub staked_balance: U128,
+    /// The minimum epoch height when the withdrawn is allowed.
+    /// This changes after unstaking action, because the amount is still locked for 3 epochs.
+    pub unstaked_available_epoch_height: EpochHeight,
     /// Whether the unstaked balance is available for withdrawal now.
     pub can_withdraw: bool,
     /// The liquidity pool share of the account

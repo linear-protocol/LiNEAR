@@ -183,7 +183,7 @@ impl LiquidStakingContract {
             .then(ext_self_action_cb::validator_withdraw_callback(
                 validator.account_id.clone(),
                 amount,
-                validator.account_id,
+                env::current_account_id(),
                 NO_DEPOSIT,
                 GAS_CB_VALIDATOR_WITHDRAW
             ));

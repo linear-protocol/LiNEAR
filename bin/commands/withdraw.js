@@ -29,8 +29,6 @@ exports.handler = async function (argv) {
   const near = await init(argv.network);
   const signer = await near.account(argv.signer);
 
-  console.log(argv);
-
   const outcome = await signer.functionCall({
     contractId: address,
     methodName: 'epoch_withdraw',

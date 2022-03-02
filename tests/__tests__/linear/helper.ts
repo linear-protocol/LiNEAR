@@ -100,6 +100,14 @@ export async function numbersEqual(test: any, a: NEAR, b: NEAR, diff = 0.000001)
   )
 }
 
+// Match considering precision loss
+export async function noMoreThanOneYoctoDiff(test: any, a: NEAR, b: NEAR) {
+  test.is(
+    a.sub(b).abs().lte(NEAR.from("1")),
+    true
+  )
+}
+
 export function skip(...args: any[]) {};
 
 export function parseNEAR(a: number): NEAR {

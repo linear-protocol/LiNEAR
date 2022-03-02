@@ -135,6 +135,7 @@ impl LiquidityPool {
         // Calculate the swap fee percentage from requested amount
         let swap_fee_percentage = self.get_current_swap_fee_percentage(requested_amount);
         require!(swap_fee_percentage < ONE_HUNDRED_PERCENT, ERR_FEE_EXCEEDS_UP_LIMIT);
+        // Calculate swap fee and received NEAR amount
         let swap_fee = (U256::from(requested_amount)
             * U256::from(swap_fee_percentage)
             / U256::from(ONE_HUNDRED_PERCENT)).as_u128();
@@ -161,18 +162,18 @@ impl LiquidityPool {
         require!(pool_fee_shares > 0, ERR_NON_POSITIVE_RECEIVED_FEE);
         self.total_fee_shares += pool_fee_shares;
 
-        // Swap out NEAR from pool
+        // Swap NEAR out of pool
         self.amounts[0] -= received_amount;
 
-        // Swap in LiNEAR into pool, excluding the fees for treasury
+        // Swap LiNEAR into pool, excluding the fees for treasury
         let received_num_shares = stake_shares_in - treasury_fee_shares;
         self.amounts[1] += received_num_shares;
 
         (received_amount, treasury_fee_shares)
     }
 
-    /// Calculate NEAR value from shares
-    pub fn get_value_from_shares(
+    /// Calculate NEAR value from shares, rounding down
+    pub fn get_value_from_shares_rounded_down(
         &self,
         shares: Balance,
         context: Context
@@ -181,13 +182,31 @@ impl LiquidityPool {
             0
         } else {
             let pool_value_in_near = self.get_pool_value(context);
-            (U256::from(shares) * U256::from(pool_value_in_near)
-                / U256::from(self.shares_total_supply)).as_u128()
+            (U256::from(pool_value_in_near) * U256::from(shares)
+                / U256::from(self.shares_total_supply))
+            .as_u128()
         }
     }
 
-    /// Calculate shares from give value in NEAR
-    pub fn get_shares_from_value(
+    /// Calculate NEAR value from shares, rounding up
+    pub fn get_value_from_shares_rounded_up(
+        &self,
+        shares: Balance,
+        context: Context
+    ) -> Balance {
+        if self.shares_total_supply == 0 || shares == 0 {
+            0
+        } else {
+            let pool_value_in_near = self.get_pool_value(context);
+            ((U256::from(pool_value_in_near) * U256::from(shares)
+                + U256::from(self.shares_total_supply - 1))
+                / U256::from(self.shares_total_supply))
+            .as_u128()
+        }
+    }
+
+    /// Calculate shares from give value in NEAR, rounding down
+    pub fn get_shares_from_value_rounded_down(
         &self,
         amount: Balance,
         context: Context
@@ -200,6 +219,25 @@ impl LiquidityPool {
         } else {
             (U256::from(amount) * U256::from(self.shares_total_supply)
                 / U256::from(pool_value_in_near)).as_u128()
+        }
+    }
+
+    /// Calculate shares from give value in NEAR, rounding up
+    pub fn get_shares_from_value_rounded_up(
+        &self,
+        amount: Balance,
+        context: Context
+    ) -> Balance {
+        let pool_value_in_near = self.get_pool_value(context);
+        if self.shares_total_supply == 0 {
+            amount
+        } else if amount == 0 || pool_value_in_near == 0 {
+            0
+        } else {
+            ((U256::from(amount) * U256::from(self.shares_total_supply)
+                + U256::from(pool_value_in_near - 1))
+                / U256::from(pool_value_in_near))
+            .as_u128()
         }
     }
 
@@ -227,7 +265,7 @@ impl LiquidityPool {
         context: Context
     ) -> Balance {
         let shares = self.get_account_shares(&account_id);
-        self.get_value_from_shares(shares, context)
+        self.get_value_from_shares_rounded_up(shares, context)
     }
 
     /// Calculate account liquidity pool shares percentage
@@ -304,11 +342,12 @@ impl LiquidStakingContract {
         let account_id = env::predecessor_account_id();
         let amount = env::attached_deposit();
 
-        // Add shares in liquidity pool
-        let added_shares = self.liquidity_pool.get_shares_from_value(
+        // Calculate liquidity pool shares, rounding down
+        let added_shares = self.liquidity_pool.get_shares_from_value_rounded_down(
             amount,
             self.internal_get_context()
         );
+        // Add shares in liquidity pool
         self.liquidity_pool.add_liquidity(
             &account_id,
             amount,
@@ -338,10 +377,17 @@ impl LiquidStakingContract {
         // );
 
         // Calculate liquidity pool shares from NEAR amount
-        let removed_shares = self.liquidity_pool.get_shares_from_value(
+        let mut removed_shares = self.liquidity_pool.get_shares_from_value_rounded_up(
             amount,
             self.internal_get_context()
         );
+        // If value exceeds the actual amount, decrease shares by 1 yocto
+        if self.liquidity_pool.get_value_from_shares_rounded_down(
+            removed_shares,
+            self.internal_get_context()
+        ) > amount {
+            removed_shares -= 1;
+        }
         // Remove shares from liquidity pool
         let results = self.liquidity_pool.remove_liquidity(
             &account_id,
@@ -360,6 +406,7 @@ impl LiquidStakingContract {
     }
 
     /// Instant Unstake: swap LiNEAR to NEAR via the Liquidity Pool
+    /// Notice that total staked NEAR amount and total staked shares won't change here
     pub fn instant_unstake(
         &mut self,
         staked_shares_in: U128,     // LiNEAR amount sent by the account
@@ -393,11 +440,11 @@ impl LiquidStakingContract {
         treasury_account.stake_shares += treasury_fee_shares;
         self.internal_save_account(&treasury_account_id, &treasury_account);
 
-        // Update account balance and shares
+        // Update account staked shares
         account.stake_shares -= staked_shares_in;
-        account.unstaked += received_amount;
         self.internal_save_account(&account_id, &account);
-        Promise::new(env::predecessor_account_id()).transfer(received_amount);
+        // Transfer NEAR to account
+        Promise::new(account_id.clone()).transfer(received_amount);
 
         log!(
             "@{} instantly unstaked {} LiNEAR, received {} NEAR",

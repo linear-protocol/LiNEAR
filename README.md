@@ -16,7 +16,9 @@ NEAR Liquid Staking
 
 ## Deploy
 A cli tool is made to help deploy and manage the contract.     
-In order to use it, run `npm i` first.     
+In order to use it, run `npm i` first.        
+
+*All cli arguments could be passed as environment variables as well, with `LI` prefix.*     
 
 - deploy contract:
   - `./bin/cli.js deploy linear.testnet`

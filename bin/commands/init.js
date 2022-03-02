@@ -13,18 +13,18 @@ exports.builder = yargs => {
       default: 'testnet',
       choices: ['testnet', 'mainnet']
     })
-    .demandOption(['signer', 'owner_id'])
+    .demandOption(['signer', 'owner'])
     .option('signer', {
       describe: 'signer account ID to call new'
     })
-    .option('owner_id', {
+    .option('owner', {
       describe: 'owner ID'
     })
 };
 
 exports.handler = async function (argv) {
   const address = argv.address;
-  const ownerId = argv.owner_id;
+  const ownerId = argv.owner;
   console.log(`Init contract at ${address}, with ownerId ${ownerId}`);
 
   const near = await init(argv.network);

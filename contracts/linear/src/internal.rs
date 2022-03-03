@@ -139,6 +139,9 @@ impl LiquidStakingContract {
             "Contract total staked balance is {}. Total number of shares {}",
             self.total_staked_near_amount, self.total_share_amount
         );
+
+        // Rebalance the liquidity pool if needed
+        self.rebalance_liquidity();
     }
 
     /// Asserts that the method was called by the owner.

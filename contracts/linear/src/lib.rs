@@ -360,7 +360,7 @@ impl LiquidStakingContract {
             unstaked_available_epoch_height: account.unstaked_available_epoch_height,
             can_withdraw: account.unstaked_available_epoch_height <= get_epoch_height(),
             liquidity_pool_share: self.liquidity_pool.get_account_shares(&account_id).into(),
-            liquidity_pool_share_value: self.liquidity_pool.get_account_value(&account_id, self.internal_get_context()).into(),
+            liquidity_pool_share_value: self.liquidity_pool.get_account_value(&account_id, &self.internal_get_context()).into(),
             liquidity_pool_share_percentage: self.liquidity_pool.get_account_shares_percentage(&account_id),
         }
     }

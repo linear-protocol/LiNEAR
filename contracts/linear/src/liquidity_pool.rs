@@ -464,4 +464,12 @@ impl LiquidStakingContract {
         }
     }
 
+    /// Rebalance NEAR / LiNEAR distribution to make the liqudity pool more efficient
+    /// Automatically swap LiNEAR with newly staked NEAR
+    pub(crate) fn rebalance(&mut self) {
+        if self.epoch_requested_stake_amount <= 0 {
+            return;
+        }
+        let amount = self.epoch_requested_stake_amount;
+    }
 }

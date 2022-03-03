@@ -1,23 +1,8 @@
 import { Workspace, NEAR, NearAccount } from 'near-workspaces-ava';
-import { initWorkSpace, assertFailure } from './helper';
+import { initWorkSpace, assertFailure, registerFungibleTokenUser } from './helper';
 
 const ONE_YOCTO_NEAR = '1';
 const ERR_NO_ENOUGH_BALANCE = 'The account doesn\'t have enough balance';
-
-async function registerUser(ft: NearAccount, user: NearAccount) {
-  const storage_balance = await ft.view(
-    'storage_balance_bounds',
-    {}
-  ) as any;
-
-  await user.call(
-    ft,
-    'storage_deposit',
-    { account_id: user },
-    // Deposit pulled from ported sim test
-    { attachedDeposit: storage_balance.min.toString() },
-  );
-}
 
 async function transfer(
   contract: NearAccount,
@@ -61,7 +46,7 @@ workspace.test('ft price', async (test, {contract, alice}) => {
 });
 
 workspace.test('cannot transfer with no balance', async (test, {contract, alice, bob}) => {
-  await registerUser(contract, alice);
+  await registerFungibleTokenUser(contract, alice);
 
   await assertFailure(
     test,
@@ -71,8 +56,8 @@ workspace.test('cannot transfer with no balance', async (test, {contract, alice,
 });
 
 workspace.test('stake NEAR and transfer LiNEAR', async (test, {contract, alice, bob}) => {
-  await registerUser(contract, alice);
-  await registerUser(contract, bob);
+  await registerFungibleTokenUser(contract, alice);
+  await registerFungibleTokenUser(contract, bob);
 
   // deposit and stake 10 NEAR
   const stakeAmount = NEAR.parse('10');

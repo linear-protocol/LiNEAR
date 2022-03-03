@@ -42,6 +42,11 @@ impl LiquidStakingContract {
 
 #[derive(BorshStorageKey, BorshSerialize)]
 pub(crate) enum StorageKey {
+    Accounts,
     Shares,
+    Beneficiaries,
     Validators,
+    Farms,
+    // AuthorizedUsers,
+    AuthorizedFarmTokens
 }

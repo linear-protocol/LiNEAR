@@ -2,7 +2,7 @@ use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize,},
     serde::{Deserialize, Serialize,},
     json_types::{U128},
-    collections::{UnorderedMap},
+    collections::{UnorderedMap, Vector, UnorderedSet},
     env, near_bindgen, ext_contract, require,
     AccountId, Balance, PanicOnDefault, EpochHeight, PublicKey, StorageUsage
 };
@@ -22,12 +22,15 @@ mod fungible_token_metadata;
 mod fungible_token_storage;
 mod fungible_token_custom;
 mod liquidity_pool;
+mod farm;
+mod token_receiver;
 
 use crate::types::*;
 use crate::utils::*;
 use crate::errors::*;
 use crate::account::*;
 use crate::staking_pool::*;
+use crate::farm::{Farm};
 // use crate::internal::*;
 pub use crate::fungible_token_core::*;
 pub use crate::fungible_token_metadata::*;
@@ -45,6 +48,23 @@ pub trait SelfContract {
     /// follow withdraw calls might fail. To mitigate this, the contract will issue a new unstaking
     /// action in case of the failure of the first staking action.
     fn on_stake_action(&mut self);
+
+    /// Check if reward withdrawal succeeded and if it failed, refund reward back to the user.
+    fn callback_post_withdraw_reward(
+        &mut self,
+        token_id: AccountId,
+        sender_id: AccountId,
+        amount: U128,
+    );
+
+    /// Callback after getting the owner of the given account.
+    fn callback_post_get_owner(
+        &mut self,
+        token_id: AccountId,
+        delegator_id: AccountId,
+        account_id: AccountId,
+    ) -> Promise;
+
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
@@ -86,30 +106,38 @@ pub struct LiquidStakingContract {
     /// The account ID of the owner who's running the staking validator node.
     /// NOTE: This is different from the current account ID which is used as a validator account.
     /// The owner of the staking pool can change staking public key and adjust reward fees.
-    pub owner_id: AccountId,
+    owner_id: AccountId,
     /// The last epoch height when `ping` was called.
-    pub last_epoch_height: EpochHeight,
+    last_epoch_height: EpochHeight,
     /// The last total balance of the account (consists of staked and unstaked balances).
-    pub last_total_balance: Balance,
+    last_total_balance: Balance,
     /// Total amount of LiNEAR that was minted (minus burned).
-    pub total_share_amount: ShareBalance,
+    total_share_amount: ShareBalance,
     /// Total amount of NEAR that was staked by users to this contract.         
     /// 
     /// This is effectively 1) amount of NEAR that was deposited to this contract but hasn't yet been staked on any validators 
     /// plus 2) amount of NEAR that has already been staked on validators.    
     /// Note that the amount of NEAR that is pending release or is already released by hasn't been withdrawn is not considered.
-    pub total_staked_near_amount: Balance,
+    total_staked_near_amount: Balance,
     /// Persistent map from an account ID to the corresponding account.
-    pub accounts: UnorderedMap<AccountId, Account>,
+    accounts: UnorderedMap<AccountId, Account>,
     /// Whether the staking is paused.
     /// When paused, the account unstakes everything (stakes 0) and doesn't restake.
     /// It doesn't affect the staking shares or reward distribution.
     /// Pausing is useful for node maintenance. Only the owner can pause and resume staking.
     /// The contract is not paused by default.
-    pub paused: bool,
+    paused: bool,
 
     /// The storage size in bytes for one account.
-    pub account_storage_usage: StorageUsage,
+    account_storage_usage: StorageUsage,
+
+    /// Beneficiaries for staking rewards.
+    beneficiaries: UnorderedMap<AccountId, Fraction>,
+  
+    /// The single-direction liquidity pool that enables instant unstake
+    liquidity_pool: LiquidityPool,
+  
+    // --- Validator Pool ---
 
     /// The validator pool that manage the actions against validators
     validator_pool: ValidatorPool,
@@ -118,11 +146,19 @@ pub struct LiquidStakingContract {
     /// Amount of NEAR that is requested to unstake by all users during the last epoch
     epoch_requested_unstake_amount: Balance,
 
-    /// The single-direction liquidity pool that enables instant unstake
-    liquidity_pool: LiquidityPool,
-  
-    /// Beneficiaries for staking rewards.
-    beneficiaries: UnorderedMap<AccountId, Fraction>,
+    // --- Staking Farm ---
+
+    /// Farm tokens.
+    farms: Vector<Farm>,
+    /// Active farms: indicies into `farms`.
+    active_farms: Vec<u64>,
+    /// Authorized users, allowed to add farms.
+    /// This is done to prevent farm spam with random tokens.
+    /// Should not be a large number.
+    // authorized_users: UnorderedSet<AccountId>,
+    /// Authorized tokens for farms.
+    /// Required because any contract can call method with ft_transfer_call, so must verify that contract will accept it.
+    authorized_farm_tokens: UnorderedSet<AccountId>,
 }
 
 #[near_bindgen]
@@ -160,14 +196,20 @@ impl LiquidStakingContract {
             last_total_balance: 10 * ONE_NEAR,
             total_share_amount: 10 * ONE_NEAR,
             total_staked_near_amount: 10 * ONE_NEAR,
-            accounts: UnorderedMap::new(b"a".to_vec()),
+            accounts: UnorderedMap::new(StorageKey::Accounts),
             paused: false,
             account_storage_usage: 0,
+            beneficiaries: UnorderedMap::new(StorageKey::Beneficiaries),
+            liquidity_pool: LiquidityPool::new(10000 * ONE_NEAR, 300, 30, 7000),
+            // Validator Pool
             validator_pool: ValidatorPool::new(),
             epoch_requested_stake_amount: 10 * ONE_NEAR,
             epoch_requested_unstake_amount: 0,
-            liquidity_pool: LiquidityPool::new(10000 * ONE_NEAR, 300, 30, 7000),
-            beneficiaries: UnorderedMap::new(b"b".to_vec()),
+            // Staking Farm
+            farms: Vector::new(StorageKey::Farms),
+            active_farms: Vec::new(),
+            // authorized_users: UnorderedSet::new(StorageKey::AuthorizedUsers),
+            authorized_farm_tokens: UnorderedSet::new(StorageKey::AuthorizedFarmTokens),
         };
         this.measure_account_storage_usage();
         // Staking with the current pool to make sure the staking key is valid.

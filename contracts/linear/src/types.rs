@@ -1,5 +1,6 @@
 use near_sdk::{
     Balance, EpochHeight, Gas,
+    borsh::{self, BorshDeserialize, BorshSerialize},
 };
 use uint::construct_uint;
 
@@ -18,6 +19,14 @@ pub const NUM_EPOCHS_TO_UNLOCK: EpochHeight = 4;
 pub const ONE_HUNDRED_PERCENT: u32 = 10_000;
 /// DAO treasuary account should be configurable
 pub const TREASURY_ACCOUNT: &str = "treasury";
+
+/// Maximum number of active farms at one time.
+pub const MAX_NUM_ACTIVE_FARMS: usize = 5;
+
+/// Zero address is implicit address that doesn't have a key for it.
+/// Used for burning tokens.
+// pub const ZERO_ADDRESS: &str = "0000000000000000000000000000000000000000000000000000000000000000";
+
 
 /// -- GAS
 
@@ -45,5 +54,6 @@ pub type ShareBalance = u128;
 
 construct_uint! {
     /// 256-bit unsigned integer.
+    #[derive(BorshSerialize, BorshDeserialize)]
     pub struct U256(4);
 }

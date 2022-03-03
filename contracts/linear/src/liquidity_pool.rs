@@ -415,13 +415,6 @@ impl LiquidStakingContract {
             amount,
             &self.internal_get_context()
         );
-        // If value exceeds the actual amount, decrease shares by 1 yocto
-        if self.liquidity_pool.get_value_from_shares_rounded_down(
-            removed_shares,
-            &self.internal_get_context()
-        ) > amount {
-            removed_shares -= 1;
-        }
         // Remove shares from liquidity pool
         let results = self.liquidity_pool.remove_liquidity(
             &account_id,

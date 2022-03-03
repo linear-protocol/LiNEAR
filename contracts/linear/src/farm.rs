@@ -12,12 +12,12 @@ const SESSION_INTERVAL: u64 = 1_000_000_000;
 const DENOMINATOR: u128 = 1_000_000_000_000_000_000_000_000;
 
 /// Amount of gas for fungible token transfers.
-const GAS_FOR_FT_TRANSFER: Gas = Gas(10_000_000_000_000);
+const GAS_FOR_FT_TRANSFER: Gas = Gas(10 * TGAS);
 /// hotfix_insuffient_gas_for_mft_resolve_transfer, increase from 5T to 20T
-const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(20_000_000_000_000);
+const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(20 * TGAS);
 /// Gas for calling `get_owner` method.
-const GAS_FOR_GET_OWNER: Gas = Gas(10_000_000_000_000);
-const GAS_LEFTOVERS: Gas = Gas(20_000_000_000_000);
+const GAS_FOR_GET_OWNER: Gas = Gas(10 * TGAS);
+const GAS_LEFTOVERS: Gas = Gas(20 * TGAS);
 /// Get owner method on external contracts.
 const GET_OWNER_METHOD: &str = "get_owner_account_id";
 

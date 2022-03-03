@@ -177,25 +177,25 @@ impl LiquidityPool {
         requested_amount: Balance,
         context: &Context
     ) -> (Balance, ShareBalance) {
-        let available_staked_shares = self.amounts[1];
-        // No requested amounts or no LiNEAR, no need to rebalance
-        if requested_amount <= 0 || available_staked_shares <= 0 {
+        let staked_shares = self.amounts[1];
+        // If no requested amounts or no LiNEAR available, don't rebalance
+        if requested_amount <= 0 || staked_shares <= 0 {
             return (0, 0);
         }
         // Calculate increased NEAR amount, and decreased LiNEAR amount
         let staked_shares_value = self.staked_amount_from_num_shares_rounded_down(
-            available_staked_shares,
+            staked_shares,
             &context
         );
         let (increased_amount, decreased_stake_shares) = if requested_amount >= staked_shares_value {
             (
-                available_staked_shares,
-                staked_shares_value
+                staked_shares_value,
+                staked_shares
             )
         } else {
             (
+                requested_amount,
                 self.num_shares_from_staked_amount_rounded_down(requested_amount, &context),
-                requested_amount
             )
         };
         // Increase NEAR
@@ -505,14 +505,13 @@ impl LiquidStakingContract {
         if self.epoch_requested_stake_amount <= 0 {
             return;
         }
-        // Update with current requested stake amount
-        let amount = self.epoch_requested_stake_amount;
+        // Rebalance in the pool and return actual rebalanced amount and staked shares
         let (increased_amount, decreased_staked_shares) = self.liquidity_pool.rebalance(
-            amount,
+            self.epoch_requested_stake_amount,
             &self.internal_get_context()
         );
-        // Reverse the staking request, to rebalance the side effect of instant unstake
-        // Decrease the amount that needs to be staked
+        // Reverse the staking request, to mitigate the side effect of instant unstake
+        // Decrease staked amount, which now has been moved into liquidity pool
         self.epoch_requested_stake_amount -= increased_amount;
         self.total_staked_near_amount -= increased_amount;
         // Decrease staked shares

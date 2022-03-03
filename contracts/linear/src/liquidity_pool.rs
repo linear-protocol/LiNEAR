@@ -203,6 +203,12 @@ impl LiquidityPool {
         // Decrease LiNEAR
         self.amounts[1] -= decreased_stake_shares;
 
+        log!(
+            "Liquidity has been rebalanced by adding {} NEAR and removing {} LiNEAR",
+            increased_amount,
+            decreased_stake_shares
+        );
+
         (increased_amount, decreased_stake_shares)
     }
 

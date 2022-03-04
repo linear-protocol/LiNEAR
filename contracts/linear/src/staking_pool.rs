@@ -406,11 +406,8 @@ impl Validator {
 
     pub fn deposit_and_stake(
         &mut self,
-        pool: &mut ValidatorPool,
         amount: Balance
     ) -> Promise {
-        self.staked_amount += amount;
-        pool.save_validator(self);
         ext_staking_pool::deposit_and_stake(
             self.account_id.clone(),
             amount,
@@ -418,12 +415,12 @@ impl Validator {
         )
     }
 
-    pub fn on_stake_failed(
+    pub fn on_stake_success(
         &mut self,
         pool: &mut ValidatorPool,
         amount: Balance
     ) {
-        self.staked_amount -= amount;
+        self.staked_amount += amount;
         pool.save_validator(self);
     }
 
@@ -449,7 +446,6 @@ impl Validator {
         );
 
         self.staked_amount -= amount;
-        self.unstaked_amount += amount;
         self.last_unstake_fired_epoch = self.unstake_fired_epoch;
         self.unstake_fired_epoch = get_epoch_height();
 
@@ -463,13 +459,21 @@ impl Validator {
         )
     }
 
+    pub fn on_unstake_success(
+        &mut self,
+        pool: &mut ValidatorPool,
+        amount: Balance
+    ) {
+        self.unstaked_amount += amount;
+        pool.save_validator(self);
+    }
+
     pub fn on_unstake_failed(
         &mut self,
         pool: &mut ValidatorPool,
         amount: Balance
     ) {
         self.staked_amount += amount;
-        self.unstaked_amount -= amount;
         self.unstake_fired_epoch = self.last_unstake_fired_epoch;
         pool.save_validator(self);
     }

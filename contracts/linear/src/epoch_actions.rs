@@ -72,7 +72,7 @@ impl LiquidStakingContract {
 
         // do staking on selected validator
         candidate
-            .deposit_and_stake(&mut self.validator_pool, amount_to_stake)
+            .deposit_and_stake(amount_to_stake)
             .then(ext_self_action_cb::validator_staked_callback(
                 candidate.account_id.clone(),
                 amount_to_stake,
@@ -243,20 +243,17 @@ impl LiquidStakingContract {
         assert_is_callback();
 
         if is_promise_success() {
+            let mut validator = self.validator_pool
+                .get_validator(&validator_id)
+                .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
+            validator.on_stake_success(&mut self.validator_pool, amount);
+
             log_stake_success(&validator_id, amount);
             return;
         }
 
         // stake failed, revert
-        // 1. revert contract states
         self.epoch_requested_stake_amount += amount;
-
-        // 2. revert validator states
-        let mut validator = self.validator_pool
-            .get_validator(&validator_id)
-            .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
-
-        validator.on_stake_failed(&mut self.validator_pool, amount); 
 
         log_stake_failed(&validator_id, amount);
     }
@@ -268,7 +265,12 @@ impl LiquidStakingContract {
     ) {
         assert_is_callback();
 
+        let mut validator = self.validator_pool
+            .get_validator(&validator_id)
+            .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
+
         if is_promise_success() {
+            validator.on_unstake_success(&mut self.validator_pool, amount);
             log_unstake_success(&validator_id, amount);
             return;
         }
@@ -278,10 +280,6 @@ impl LiquidStakingContract {
         self.epoch_requested_unstake_amount += amount;
 
         // 2. revert validator states
-        let mut validator = self.validator_pool
-            .get_validator(&validator_id)
-            .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
-
         validator.on_unstake_failed(&mut self.validator_pool, amount);
 
         log_unstake_failed(&validator_id, amount);

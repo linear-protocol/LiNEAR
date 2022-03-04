@@ -130,7 +130,7 @@ impl LiquidityPool {
         requested_amount: Balance,      // NEAR
         stake_shares_in: ShareBalance,  // LiNEAR
         min_amount_out: Balance,
-        context: Context
+        context: &Context
     ) -> (Balance, ShareBalance) {
         // Calculate the swap fee percentage from requested amount
         let swap_fee_percentage = self.get_current_swap_fee_percentage(requested_amount);
@@ -172,11 +172,51 @@ impl LiquidityPool {
         (received_amount, treasury_fee_shares)
     }
 
+    /// Rebalance pool distribution, increase NEAR and decrease LiNEAR
+    pub fn rebalance(&mut self,
+        requested_amount: Balance,
+        context: &Context
+    ) -> (Balance, ShareBalance) {
+        let staked_shares = self.amounts[1];
+        // If no requested amounts or no LiNEAR available, don't rebalance
+        if requested_amount <= 0 || staked_shares <= 0 {
+            return (0, 0);
+        }
+        // Calculate increased NEAR amount, and decreased LiNEAR amount
+        let staked_shares_value = self.staked_amount_from_num_shares_rounded_down(
+            staked_shares,
+            &context
+        );
+        let (increased_amount, decreased_stake_shares) = if requested_amount >= staked_shares_value {
+            (
+                staked_shares_value,
+                staked_shares
+            )
+        } else {
+            (
+                requested_amount,
+                self.num_shares_from_staked_amount_rounded_down(requested_amount, &context),
+            )
+        };
+        // Increase NEAR
+        self.amounts[0] += increased_amount;
+        // Decrease LiNEAR
+        self.amounts[1] -= decreased_stake_shares;
+
+        log!(
+            "Liquidity has been rebalanced by adding {} NEAR and removing {} LiNEAR",
+            increased_amount,
+            decreased_stake_shares
+        );
+
+        (increased_amount, decreased_stake_shares)
+    }
+
     /// Calculate NEAR value from shares, rounding down
     pub fn get_value_from_shares_rounded_down(
         &self,
         shares: Balance,
-        context: Context
+        context: &Context
     ) -> Balance {
         if self.shares_total_supply == 0 || shares == 0 {
             0
@@ -192,7 +232,7 @@ impl LiquidityPool {
     pub fn get_value_from_shares_rounded_up(
         &self,
         shares: Balance,
-        context: Context
+        context: &Context
     ) -> Balance {
         if self.shares_total_supply == 0 || shares == 0 {
             0
@@ -209,7 +249,7 @@ impl LiquidityPool {
     pub fn get_shares_from_value_rounded_down(
         &self,
         amount: Balance,
-        context: Context
+        context: &Context
     ) -> Balance {
         let pool_value_in_near = self.get_pool_value(context);
         if self.shares_total_supply == 0 {
@@ -226,7 +266,7 @@ impl LiquidityPool {
     pub fn get_shares_from_value_rounded_up(
         &self,
         amount: Balance,
-        context: Context
+        context: &Context
     ) -> Balance {
         let pool_value_in_near = self.get_pool_value(context);
         if self.shares_total_supply == 0 {
@@ -244,7 +284,7 @@ impl LiquidityPool {
     /// Calculate the Liquidity Pool value in NEAR
     fn get_pool_value(
         &self,
-        context: Context
+        context: &Context
     ) -> Balance {
         self.amounts[0] +
             self.staked_amount_from_num_shares_rounded_down(
@@ -262,7 +302,7 @@ impl LiquidityPool {
     pub fn get_account_value(
         &self,
         account_id: &AccountId,
-        context: Context
+        context: &Context
     ) -> Balance {
         let shares = self.get_account_shares(&account_id);
         self.get_value_from_shares_rounded_up(shares, context)
@@ -293,7 +333,7 @@ impl LiquidityPool {
     fn num_shares_from_staked_amount_rounded_down(
         &self,
         amount: Balance,
-        context: Context
+        context: &Context
     ) -> ShareBalance {
         require!(context.total_staked_near_amount > 0, ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE);
         (U256::from(context.total_share_amount) * U256::from(amount)
@@ -304,7 +344,7 @@ impl LiquidityPool {
     fn staked_amount_from_num_shares_rounded_down(
         &self,
         num_shares: ShareBalance,
-        context: Context
+        context: &Context
     ) -> Balance {
         require!(context.total_share_amount > 0, ERR_NON_POSITIVE_TOTAL_STAKE_SHARES);
         (U256::from(context.total_staked_near_amount) * U256::from(num_shares)
@@ -345,7 +385,7 @@ impl LiquidStakingContract {
         // Calculate liquidity pool shares, rounding down
         let added_shares = self.liquidity_pool.get_shares_from_value_rounded_down(
             amount,
-            self.internal_get_context()
+            &self.internal_get_context()
         );
         // Add shares in liquidity pool
         self.liquidity_pool.add_liquidity(
@@ -379,15 +419,8 @@ impl LiquidStakingContract {
         // Calculate liquidity pool shares from NEAR amount
         let mut removed_shares = self.liquidity_pool.get_shares_from_value_rounded_up(
             amount,
-            self.internal_get_context()
+            &self.internal_get_context()
         );
-        // If value exceeds the actual amount, decrease shares by 1 yocto
-        if self.liquidity_pool.get_value_from_shares_rounded_down(
-            removed_shares,
-            self.internal_get_context()
-        ) > amount {
-            removed_shares -= 1;
-        }
         // Remove shares from liquidity pool
         let results = self.liquidity_pool.remove_liquidity(
             &account_id,
@@ -434,7 +467,7 @@ impl LiquidStakingContract {
             requested_amount,
             staked_shares_in,
             min_amount_out,
-            self.internal_get_context()
+            &self.internal_get_context()
         );
 
         // Calculate and distribute fees for DAO treasury
@@ -467,4 +500,23 @@ impl LiquidStakingContract {
         }
     }
 
+    /// Rebalance NEAR / LiNEAR distribution to make the liqudity pool more efficient
+    /// Automatically swap LiNEAR out with newly staked NEAR
+    pub(crate) fn rebalance_liquidity(&mut self) {
+        // If no new staking request, skip the rebalance
+        if self.epoch_requested_stake_amount <= 0 {
+            return;
+        }
+        // Rebalance in the pool and return actual rebalanced amount and staked shares
+        let (increased_amount, decreased_staked_shares) = self.liquidity_pool.rebalance(
+            self.epoch_requested_stake_amount,
+            &self.internal_get_context()
+        );
+        // Reverse the staking request, to mitigate the side effect of instant unstake
+        // Decrease staked amount, which now has been moved into liquidity pool
+        self.epoch_requested_stake_amount -= increased_amount;
+        self.total_staked_near_amount -= increased_amount;
+        // Decrease staked shares
+        self.total_share_amount -= decreased_staked_shares;
+    }
 }

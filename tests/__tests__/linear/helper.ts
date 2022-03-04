@@ -108,7 +108,9 @@ export async function noMoreThanOneYoctoDiff(test: any, a: NEAR, b: NEAR) {
   )
 }
 
-export function skip(...args: any[]) {};
+export function skip(...args: any[]) {
+  console.debug(`Skipping test ${args[0]} ...`);
+};
 
 export async function registerFungibleTokenUser(ft: NearAccount, user: NearAccount) {
   const storage_balance = await ft.view(

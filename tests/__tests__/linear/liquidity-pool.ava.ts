@@ -26,6 +26,10 @@ const getSummary = async (contract) => {
   return await contract.view("get_summary", {}) as any;
 }
 
+const getTotalStakedNEAR = async (contract) => {
+  return NEAR.from((await getSummary(contract)).total_staked_near_amount);
+}
+
 const getPoolValue = async (contract) => {
   const summary = await getSummary(contract);
   const { lp_near_amount, ft_price, lp_staked_share } = summary;
@@ -278,4 +282,49 @@ workspace.test('issue: remove liquidity precision loss', async (test, { contract
     user: bob,
     amount: NEAR.parse('15')
   });
+});
+
+workspace.test('rebalance liquidity', async (test, { contract, alice, bob }) => {
+  // Alice deposits and stakes to avoid empty stake shares
+  await stake(test, {
+    contract,
+    user: alice,
+    amount: NEAR.parse('10')
+  });
+
+  // Bob adds initial liquidity
+  await addLiquidity(test, {
+    contract,
+    user: bob,
+    amount: NEAR.parse('50')
+  });
+
+  // Alice requests instant unstake
+  await instantUnstake(test, {
+    contract,
+    user: alice,
+    amount: NEAR.parse('5')
+  });
+
+  // Bob deposits and stakes
+  await stake(test, {
+    contract,
+    user: bob,
+    amount: NEAR.parse('3')
+  });
+  test.is(
+    (await getTotalStakedNEAR(contract)).toString(),
+    NEAR.parse("18.10465").toString()   // 10 + 10 + 3 - 4.89535
+  );
+
+  // Bob deposits and stakes
+  await stake(test, {
+    contract,
+    user: bob,
+    amount: NEAR.parse('4')
+  });
+  test.is(
+    (await getTotalStakedNEAR(contract)).toString(),
+    NEAR.parse("22.10465").toString()
+  );
 });

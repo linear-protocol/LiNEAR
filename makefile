@@ -36,17 +36,19 @@ test-unit:
 
 TEST_FILE ?= **
 LOGS ?=
-test-linear: linear_test
+test-linear: linear_test mock-staking-pool mock-fungible-token
 	@mkdir -p ./tests/compiled-contracts/
-	@cp ./res/linear_test.wasm ./tests/compiled-contracts/linear.wasm
+	cp ./res/linear_test.wasm ./tests/compiled-contracts/linear.wasm
+	cp ./res/mock_staking_pool.wasm ./tests/compiled-contracts/mock_staking_pool.wasm
+	cp ./res/mock_fungible_token.wasm ./tests/compiled-contracts/mock_fungible_token.wasm
 	cd tests && NEAR_PRINT_LOGS=$(LOGS) npx near-workspaces-ava --timeout=2m __tests__/linear/$(TEST_FILE).ava.ts --verbose
 
 test-mock-staking-pool: mock-staking-pool
-	mkdir -p ./tests/compiled-contracts/
+	@mkdir -p ./tests/compiled-contracts/
 	cp ./res/mock_staking_pool.wasm ./tests/compiled-contracts/mock_staking_pool.wasm
 	cd tests && npx near-workspaces-ava __tests__/mock-staking-pool/**.ts --verbose
 
 test-mock-fungible-token: mock-fungible-token
-	mkdir -p ./tests/compiled-contracts/
+	@mkdir -p ./tests/compiled-contracts/
 	cp ./res/mock_fungible_token.wasm ./tests/compiled-contracts/mock_fungible_token.wasm
 	cd tests && npx near-workspaces-ava __tests__/mock-fungible-token/**.ts --verbose

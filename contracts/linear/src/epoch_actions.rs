@@ -36,9 +36,6 @@ impl LiquidStakingContract {
             return false;
         }
 
-        // Rebalance the liquidity pool if needed
-        self.rebalance_liquidity();
-
         let (candidate, amount_to_stake) = self
             .validator_pool
             .get_candidate_to_stake(self.epoch_requested_stake_amount, self.total_staked_near_amount);

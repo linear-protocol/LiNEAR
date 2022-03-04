@@ -3,14 +3,14 @@ use near_contract_standards::fungible_token::metadata::{
     FungibleTokenMetadata, FungibleTokenMetadataProvider, FT_METADATA_SPEC,
 };
 
-const DATA_IMAGE_SVG_NEAR_ICON: &str = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 288 288'%3E%3Cg id='l' data-name='l'%3E%3Cpath d='M187.58,79.81l-30.1,44.69a3.2,3.2,0,0,0,4.75,4.2L191.86,103a1.2,1.2,0,0,1,2,.91v80.46a1.2,1.2,0,0,1-2.12.77L102.18,77.93A15.35,15.35,0,0,0,90.47,72.5H87.34A15.34,15.34,0,0,0,72,87.84V201.16A15.34,15.34,0,0,0,87.34,216.5h0a15.35,15.35,0,0,0,13.08-7.31l30.1-44.69a3.2,3.2,0,0,0-4.75-4.2L96.14,186a1.2,1.2,0,0,1-2-.91V104.61a1.2,1.2,0,0,1,2.12-.77l89.55,107.23a15.35,15.35,0,0,0,11.71,5.43h3.13A15.34,15.34,0,0,0,216,201.16V87.84A15.34,15.34,0,0,0,200.66,72.5h0A15.35,15.35,0,0,0,187.58,79.81Z'/%3E%3C/g%3E%3C/svg%3E";
+const DATA_IMAGE_SVG_NEAR_ICON: &str = "data:image/svg+xml,%3Csvg width='36' height='35' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M36 33V19l-1-1L6 1H4L1 2 0 5v12l1 1 29 16 2 1 2-1 2-1zm0-28V3l-2-2h-4l-9 5v1l14 8h1V5zM0 30l1 2 1 2 2 1 2-1 9-5v-1h-1L2 21v-1H0v10z' fill='url(%23paint0_linear_19_80)'/%3E%3Cdefs%3E%3ClinearGradient id='paint0_linear_19_80' x1='2.743' y1='1.96' x2='34.816' y2='34.956' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%231BB3CC'/%3E%3Cstop offset='1' stop-color='%23824ACC'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E";
 
 #[near_bindgen]
 impl FungibleTokenMetadataProvider for LiquidStakingContract {
     fn ft_metadata(&self) -> FungibleTokenMetadata {
         FungibleTokenMetadata {
             spec: FT_METADATA_SPEC.to_string(),
-            name: String::from("Liquid Staked NEAR"),
+            name: String::from("LiNEAR"),
             symbol: String::from("LINEAR"),
             icon: Some(String::from(DATA_IMAGE_SVG_NEAR_ICON)),
             reference: None,

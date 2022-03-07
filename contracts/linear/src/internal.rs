@@ -140,66 +140,6 @@ impl LiquidStakingContract {
         );
     }
 
-    /// Distributes rewards after the new epoch. It's automatically called before every action.
-    /// Returns true if the current epoch height is different from the last epoch height.
-    pub(crate) fn internal_ping(&mut self) -> bool {
-        // keep the internal method temporarily, since we may ping the validator pool here
-        false
-
-        // let epoch_height = get_epoch_height();
-        // if self.last_epoch_height == epoch_height {
-        //     return false;
-        // }
-        // self.last_epoch_height = epoch_height;
-
-        // // New total amount (both locked and unlocked balances).
-        // // NOTE: We need to subtract `attached_deposit` in case `ping` called from `deposit` call
-        // // since the attached deposit gets included in the `account_balance`, and we have not
-        // // accounted it yet.
-        // let total_balance =
-        //     env::account_locked_balance() + env::account_balance() - env::attached_deposit();
-
-        // assert!(
-        //     total_balance >= self.last_total_balance,
-        //     "The new total balance should not be less than the old total balance"
-        // );
-        // let total_reward = total_balance - self.last_total_balance;
-        // if total_reward > 0 {
-        //     // The validation fee that the contract owner takes.
-        //     let owners_fee = self.reward_fee_fraction.multiply(total_reward);
-
-        //     // Distributing the remaining reward to the delegators first.
-        //     let remaining_reward = total_reward - owners_fee;
-        //     self.total_staked_near_amount += remaining_reward;
-
-        //     // Now buying "stake" shares for the contract owner at the new share price.
-        //     let num_shares = self.num_shares_from_staked_amount_rounded_down(owners_fee);
-        //     if num_shares > 0 {
-        //         // Updating owner's inner account
-        //         let owner_id = self.owner_id.clone();
-        //         let mut account = self.internal_get_account(&owner_id);
-        //         account.stake_shares += num_shares;
-        //         self.internal_save_account(&owner_id, &account);
-        //         // Increasing the total amount of "stake" shares.
-        //         self.total_share_amount += num_shares;
-        //     }
-        //     // Increasing the total staked balance by the owners fee, no matter whether the owner
-        //     // received any shares or not.
-        //     self.total_staked_near_amount += owners_fee;
-
-        //     log!(
-        //         "Epoch {}: Contract received total rewards of {} tokens. New total staked balance is {}. Total number of shares {}",
-        //         epoch_height, total_reward, self.total_staked_near_amount, self.total_share_amount,
-        //     );
-        //     if num_shares > 0 {
-        //         log!("Total rewards fee is {} stake shares.", num_shares);
-        //     }
-        // }
-
-        // self.last_total_balance = total_balance;
-        // true
-    }
-
     pub(crate) fn internal_get_beneficiaries(& self) -> HashMap<AccountId, Fraction> {
         let mut result: HashMap<AccountId, Fraction> = HashMap::new();
         for (account_id, fraction) in self.beneficiaries.iter() {

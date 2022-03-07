@@ -252,8 +252,6 @@ impl LiquidStakingContract {
     /// Deposits the attached amount into the inner account of the predecessor.
     #[payable]
     pub fn deposit(&mut self) {
-        let need_to_restake = self.internal_ping();
-
         let amount = env::attached_deposit();
         self.internal_deposit(amount);
     }
@@ -261,8 +259,6 @@ impl LiquidStakingContract {
     /// Deposits the attached amount into the inner account of the predecessor and stakes it.
     #[payable]
     pub fn deposit_and_stake(&mut self) {
-        self.internal_ping();
-
         let amount = env::attached_deposit();
         self.internal_deposit(amount);
         self.internal_stake(amount);
@@ -271,8 +267,6 @@ impl LiquidStakingContract {
     /// Withdraws the entire unstaked balance from the predecessor account.
     /// It's only allowed if the `unstake` action was not performed in the four most recent epochs.
     pub fn withdraw_all(&mut self) {
-        let need_to_restake = self.internal_ping();
-
         let account_id = env::predecessor_account_id();
         let account = self.internal_get_account(&account_id);
         self.internal_withdraw(account.unstaked);
@@ -281,17 +275,12 @@ impl LiquidStakingContract {
     /// Withdraws the non staked balance for given account.
     /// It's only allowed if the `unstake` action was not performed in the four most recent epochs.
     pub fn withdraw(&mut self, amount: U128) {
-        let need_to_restake = self.internal_ping();
-
         let amount: Balance = amount.into();
         self.internal_withdraw(amount);
     }
 
     /// Stakes all available unstaked balance from the inner account of the predecessor.
     pub fn stake_all(&mut self) {
-        // Stake action always restakes
-        self.internal_ping();
-
         let account_id = env::predecessor_account_id();
         let account = self.internal_get_account(&account_id);
         self.internal_stake(account.unstaked);
@@ -300,9 +289,6 @@ impl LiquidStakingContract {
     /// Stakes the given amount from the inner account of the predecessor.
     /// The inner account should have enough unstaked balance.
     pub fn stake(&mut self, amount: U128) {
-        // Stake action always restakes
-        self.internal_ping();
-
         let amount: Balance = amount.into();
         self.internal_stake(amount);
     }
@@ -310,9 +296,6 @@ impl LiquidStakingContract {
     /// Unstakes all staked balance from the inner account of the predecessor.
     /// The new total unstaked balance will be available for withdrawal in four epochs.
     pub fn unstake_all(&mut self) {
-        // Unstake action always restakes
-        self.internal_ping();
-
         let account_id = env::predecessor_account_id();
         let account = self.internal_get_account(&account_id);
         let amount = self.staked_amount_from_num_shares_rounded_down(account.stake_shares);
@@ -323,9 +306,6 @@ impl LiquidStakingContract {
     /// The inner account should have enough staked balance.
     /// The new total unstaked balance will be available for withdrawal in four epochs.
     pub fn unstake(&mut self, amount: U128) {
-        // Unstake action always restakes
-        self.internal_ping();
-
         let amount: Balance = amount.into();
         self.internal_unstake(amount);
     }

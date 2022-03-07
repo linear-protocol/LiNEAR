@@ -222,8 +222,6 @@ impl LiquidStakingContract {
             authorized_farm_tokens: UnorderedSet::new(StorageKey::AuthorizedFarmTokens),
         };
         this.measure_account_storage_usage();
-        // Staking with the current pool to make sure the staking key is valid.
-        this.internal_restake();
         this
     }
 
@@ -258,10 +256,6 @@ impl LiquidStakingContract {
 
         let amount = env::attached_deposit();
         self.internal_deposit(amount);
-
-        if need_to_restake {
-            self.internal_restake();
-        }
     }
 
     /// Deposits the attached amount into the inner account of the predecessor and stakes it.
@@ -272,8 +266,6 @@ impl LiquidStakingContract {
         let amount = env::attached_deposit();
         self.internal_deposit(amount);
         self.internal_stake(amount);
-
-        self.internal_restake();
     }
 
     /// Withdraws the entire unstaked balance from the predecessor account.
@@ -284,10 +276,6 @@ impl LiquidStakingContract {
         let account_id = env::predecessor_account_id();
         let account = self.internal_get_account(&account_id);
         self.internal_withdraw(account.unstaked);
-
-        if need_to_restake {
-            self.internal_restake();
-        }
     }
 
     /// Withdraws the non staked balance for given account.
@@ -297,10 +285,6 @@ impl LiquidStakingContract {
 
         let amount: Balance = amount.into();
         self.internal_withdraw(amount);
-
-        if need_to_restake {
-            self.internal_restake();
-        }
     }
 
     /// Stakes all available unstaked balance from the inner account of the predecessor.
@@ -311,8 +295,6 @@ impl LiquidStakingContract {
         let account_id = env::predecessor_account_id();
         let account = self.internal_get_account(&account_id);
         self.internal_stake(account.unstaked);
-
-        self.internal_restake();
     }
 
     /// Stakes the given amount from the inner account of the predecessor.
@@ -323,8 +305,6 @@ impl LiquidStakingContract {
 
         let amount: Balance = amount.into();
         self.internal_stake(amount);
-
-        self.internal_restake();
     }
 
     /// Unstakes all staked balance from the inner account of the predecessor.
@@ -337,8 +317,6 @@ impl LiquidStakingContract {
         let account = self.internal_get_account(&account_id);
         let amount = self.staked_amount_from_num_shares_rounded_down(account.stake_shares);
         self.internal_unstake(amount);
-
-        self.internal_restake();
     }
 
     /// Unstakes the given amount from the inner account of the predecessor.
@@ -350,8 +328,6 @@ impl LiquidStakingContract {
 
         let amount: Balance = amount.into();
         self.internal_unstake(amount);
-
-        self.internal_restake();
     }
 }
 

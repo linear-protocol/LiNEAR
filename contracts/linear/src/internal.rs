@@ -11,22 +11,6 @@ impl LiquidStakingContract {
     /* Internal methods */
     /********************/
 
-    /// Restakes the current `total_staked_balance` again.
-    pub(crate) fn internal_restake(&mut self) {
-        if self.paused {
-            return;
-        }
-        // Stakes with the staking public key. If the public key is invalid the entire function
-        // call will be rolled back.
-        // Promise::new(env::current_account_id())
-        //     .stake(self.total_staked_balance, self.stake_public_key.clone())
-        //     .then(ext_self::on_stake_action(
-        //         env::current_account_id(),
-        //         NO_DEPOSIT,
-        //         ON_STAKE_ACTION_GAS,
-        //     ));
-    }
-
     pub(crate) fn internal_deposit(&mut self, amount: Balance) {
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);

@@ -2,7 +2,7 @@ use crate::*;
 use near_sdk::json_types::{U128};
 use near_sdk::{
     assert_one_yocto, env, near_bindgen, AccountId, Balance, Gas, 
-    PromiseOrValue, PromiseResult,
+    PromiseOrValue, PromiseResult, log
 };
 use near_contract_standards::fungible_token::core::FungibleTokenCore;
 use near_contract_standards::fungible_token::resolver::FungibleTokenResolver;
@@ -111,20 +111,16 @@ impl FungibleTokenResolver for LiquidStakingContract {
             let receiver_balance = receiver.stake_shares;
             if receiver_balance > 0 {
                 let refund_amount = std::cmp::min(receiver_balance, unused_amount);
-                // TODO: conversion between stake_shares (LINEAR) and NEAR amount
                 receiver.stake_shares -= refund_amount;
                 self.internal_save_account(&receiver_id, &receiver);
 
                 let mut sender = self.internal_get_account(&sender_id);
-                // TODO: conversion between stake_shares (LINEAR) and NEAR amount
                 sender.stake_shares += refund_amount;
                 self.internal_save_account(&sender_id, &sender);
 
-                env::log_str(
-                    format!(
-                        "Refund {} from {} to {}",
-                        refund_amount, receiver_id, sender_id
-                    ).as_ref()
+                log!(
+                    "Refund {} from {} to {}",
+                    refund_amount, receiver_id, sender_id
                 );
                 return (amount - refund_amount).into();
             }

@@ -15,6 +15,7 @@ mod events;
 mod errors;
 mod account;
 mod internal;
+mod stake;
 mod validator_pool;
 mod epoch_actions;
 mod fungible_token_core;
@@ -37,28 +38,6 @@ pub use crate::fungible_token_metadata::*;
 pub use crate::fungible_token_storage::*;
 pub use crate::fungible_token_custom::*;
 pub use crate::liquidity_pool::*;
-
-
-/// Interface for the contract itself.
-#[ext_contract(ext_self)]
-pub trait SelfContract {
-    /// Check if reward withdrawal succeeded and if it failed, refund reward back to the user.
-    fn callback_post_withdraw_reward(
-        &mut self,
-        token_id: AccountId,
-        sender_id: AccountId,
-        amount: U128,
-    );
-
-    /// Callback after getting the owner of the given account.
-    fn callback_post_get_owner(
-        &mut self,
-        token_id: AccountId,
-        delegator_id: AccountId,
-        account_id: AccountId,
-    ) -> Promise;
-
-}
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
 #[serde(crate = "near_sdk::serde")]
@@ -222,79 +201,6 @@ impl LiquidStakingContract {
         self.accounts.insert(&tmp_account_id, &Account::default());
         self.account_storage_usage = env::storage_usage() - initial_storage_usage;
         self.accounts.remove(&tmp_account_id);
-    }
-}
-
-
-/// -- Staking Pool change methods
-
-#[near_bindgen]
-impl LiquidStakingContract {
-    /// Please notice ping() is not available for liquid staking.
-    /// Keep here for interface consistency.
-    pub fn ping(&mut self) {
-        return
-    }
-
-    /// Deposits the attached amount into the inner account of the predecessor.
-    #[payable]
-    pub fn deposit(&mut self) {
-        let amount = env::attached_deposit();
-        self.internal_deposit(amount);
-    }
-
-    /// Deposits the attached amount into the inner account of the predecessor and stakes it.
-    #[payable]
-    pub fn deposit_and_stake(&mut self) {
-        let amount = env::attached_deposit();
-        self.internal_deposit(amount);
-        self.internal_stake(amount);
-    }
-
-    /// Withdraws the entire unstaked balance from the predecessor account.
-    /// It's only allowed if the `unstake` action was not performed in the four most recent epochs.
-    pub fn withdraw_all(&mut self) {
-        let account_id = env::predecessor_account_id();
-        let account = self.internal_get_account(&account_id);
-        self.internal_withdraw(account.unstaked);
-    }
-
-    /// Withdraws the non staked balance for given account.
-    /// It's only allowed if the `unstake` action was not performed in the four most recent epochs.
-    pub fn withdraw(&mut self, amount: U128) {
-        let amount: Balance = amount.into();
-        self.internal_withdraw(amount);
-    }
-
-    /// Stakes all available unstaked balance from the inner account of the predecessor.
-    pub fn stake_all(&mut self) {
-        let account_id = env::predecessor_account_id();
-        let account = self.internal_get_account(&account_id);
-        self.internal_stake(account.unstaked);
-    }
-
-    /// Stakes the given amount from the inner account of the predecessor.
-    /// The inner account should have enough unstaked balance.
-    pub fn stake(&mut self, amount: U128) {
-        let amount: Balance = amount.into();
-        self.internal_stake(amount);
-    }
-
-    /// Unstakes all staked balance from the inner account of the predecessor.
-    /// The new total unstaked balance will be available for withdrawal in four epochs.
-    pub fn unstake_all(&mut self) {
-        let account_id = env::predecessor_account_id();
-        let account = self.internal_get_account(&account_id);
-        let amount = self.staked_amount_from_num_shares_rounded_down(account.stake_shares);
-        self.internal_unstake(amount);
-    }
-
-    /// Unstakes the given amount from the inner account of the predecessor.
-    /// The inner account should have enough staked balance.
-    /// The new total unstaked balance will be available for withdrawal in four epochs.
-    pub fn unstake(&mut self, amount: U128) {
-        let amount: Balance = amount.into();
-        self.internal_unstake(amount);
     }
 }
 

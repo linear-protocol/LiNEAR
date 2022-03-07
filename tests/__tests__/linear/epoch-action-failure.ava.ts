@@ -228,3 +228,63 @@ workspace.test('withdraw failure', async (test, { root, contract, owner, alice }
   // no actual withdraw should happen
   await assertValidator(v1, '50', '10');
 });
+
+workspace.test('get balance failure', async (test, { root, contract, owner, alice }) => {
+  const assertValidator = assertValidatorHelper(test, contract, owner);
+
+  const v1 = await createStakingPool(root, 'v1');
+
+  await owner.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: v1.accountId,
+      weight: 10
+    }
+  );
+
+  // user stake
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    {
+      attachedDeposit: NEAR.parse('50')
+    }
+  );
+
+  await owner.call(
+    contract,
+    'epoch_stake',
+    {},
+    {
+      gas: Gas.parse('200 Tgas')
+    }
+  );
+
+  await assertValidator(v1, '60', '0');
+
+  // generate rewards
+  await contract.call(
+    v1,
+    'add_reward',
+    { amount: NEAR.parse('1').toString() }
+  );
+
+  await setPanic(v1);
+
+  // update reward
+  await owner.call(
+    contract,
+    'epoch_update_rewards',
+    {
+      validator_id: v1.accountId
+    },
+    {
+      gas: Gas.parse('200 Tgas')
+    }
+  );
+
+  // balance should not change
+  await assertValidator(v1, '60', '0');
+});

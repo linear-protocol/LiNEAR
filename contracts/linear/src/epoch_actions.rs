@@ -237,13 +237,12 @@ trait EpochActionCallbacks {
 /// functions here SHOULD NOT PANIC!
 #[near_bindgen]
 impl LiquidStakingContract {
+    #[private]
     pub fn validator_staked_callback(
         &mut self,
         validator_id: AccountId,
         amount: Balance
     ) {
-        assert_is_callback();
-
         if is_promise_success() {
             let mut validator = self.validator_pool
                 .get_validator(&validator_id)
@@ -260,13 +259,12 @@ impl LiquidStakingContract {
         log_stake_failed(&validator_id, amount);
     }
 
+    #[private]
     pub fn validator_unstaked_callback(
         &mut self,
         validator_id: AccountId,
         amount: Balance
     ) {
-        assert_is_callback();
-
         let mut validator = self.validator_pool
             .get_validator(&validator_id)
             .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
@@ -287,13 +285,12 @@ impl LiquidStakingContract {
         log_unstake_failed(&validator_id, amount);
     }
 
+    #[private]
     pub fn validator_get_balance_callback(
         &mut self,
         validator_id: AccountId,
         #[callback] total_balance: U128 
     ) {
-        assert_is_callback();
-
         let mut validator = self.validator_pool
             .get_validator(&validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST);
@@ -318,13 +315,12 @@ impl LiquidStakingContract {
         self.internal_distribute_rewards(rewards);
     }
 
+    #[private]
     pub fn validator_withdraw_callback(
         &mut self,
         validator_id: AccountId,
         amount: Balance
     ) {
-        assert_is_callback();
-
         if is_promise_success() {
             log_withdraw_success(&validator_id, amount);
             return;

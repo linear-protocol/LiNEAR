@@ -3,10 +3,6 @@ use near_sdk::{
 };
 use crate::*;
 
-pub fn assert_is_callback() {
-    assert_eq!(env::predecessor_account_id(), env::current_account_id());
-}
-
 #[cfg(not(feature = "test"))]
 pub fn get_epoch_height() -> EpochHeight {
     env::epoch_height()

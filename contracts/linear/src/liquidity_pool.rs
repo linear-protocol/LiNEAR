@@ -405,17 +405,6 @@ impl LiquidStakingContract {
         let account_id = env::predecessor_account_id();
         let amount: Balance = amount.into();
 
-        // Is this necessary? already asserted by shares in next steps
-        // Calculate the NEAR value owned by the account
-        // let account_value = self.liquidity_pool.get_account_value(
-        //     &account_id,
-        //     self.internal_get_context()
-        // );
-        // require!(
-        //     account_value >= amount,
-        //     ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE
-        // );
-
         // Calculate liquidity pool shares from NEAR amount
         let removed_shares = self.liquidity_pool.get_shares_from_value_rounded_up(
             amount,

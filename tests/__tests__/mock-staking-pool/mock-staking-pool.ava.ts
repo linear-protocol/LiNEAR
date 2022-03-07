@@ -1,4 +1,5 @@
  import {Workspace, NEAR} from 'near-workspaces-ava';
+import { assertFailure } from '../linear/helper';
 
 const workspace = Workspace.init(async ({root}) => {
   const alice = await root.createAccount('alice');
@@ -247,4 +248,53 @@ workspace.test('withdraw', async (test, { contract, alice }) => {
     stakeAmount.add(reward).sub(unstakeAmount).sub(withdrawAmount).toString()
   );
 
+});
+
+workspace.test('panic', async (test, { contract, alice }) => {
+  await alice.call(
+    contract,
+    'set_panic',
+    { panic: true }
+  );
+
+  await assertFailure(
+    test,
+    alice.call(
+      contract,
+      'deposit',
+      {},
+      { attachedDeposit: NEAR.parse('10') }
+    ),
+    'Test Panic!'
+  );
+
+  await assertFailure(
+    test,
+    alice.call(
+      contract,
+      'stake',
+      { amount: NEAR.parse('4') }
+    ),
+    'Test Panic!'
+  );
+
+  await assertFailure(
+    test,
+    alice.call(
+      contract,
+      'withdraw',
+      { amount: NEAR.parse('1') }
+    ),
+    'Test Panic!'
+  );
+
+  await assertFailure(
+    test,
+    alice.call(
+      contract,
+      'unstake',
+      { amount: NEAR.parse('1') }
+    ),
+    'Test Panic!'
+  );
 });

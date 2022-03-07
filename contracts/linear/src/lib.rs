@@ -334,7 +334,7 @@ impl LiquidStakingContract {
         let account_id = env::predecessor_account_id();
         let account = self.internal_get_account(&account_id);
         let amount = self.staked_amount_from_num_shares_rounded_down(account.stake_shares);
-        self.inner_unstake(amount);
+        self.internal_unstake(amount);
 
         self.internal_restake();
     }
@@ -347,7 +347,7 @@ impl LiquidStakingContract {
         self.internal_ping();
 
         let amount: Balance = amount.into();
-        self.inner_unstake(amount);
+        self.internal_unstake(amount);
 
         self.internal_restake();
     }

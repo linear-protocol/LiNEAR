@@ -103,7 +103,7 @@ impl LiquidStakingContract {
         self.rebalance_liquidity();
     }
 
-    pub(crate) fn inner_unstake(&mut self, amount: u128) {
+    pub(crate) fn internal_unstake(&mut self, amount: u128) {
         require!(amount > 0, ERR_NON_POSITIVE_UNSTAKING_AMOUNT);
 
         let account_id = env::predecessor_account_id();

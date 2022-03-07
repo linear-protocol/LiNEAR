@@ -144,6 +144,13 @@ workspace.test('epoch stake', async (test, {root, contract, alice, owner, bob}) 
   await assertValidator(v2, '20', '0');
   await assertValidator(v3, '30', '0');
 
+  // fast-forward
+  await owner.call(
+    contract,
+    'set_epoch_height',
+    { epoch: 11 }
+  );
+
   // stake more
   await bob.call(
     contract,
@@ -469,6 +476,13 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, owner}) =>
   // epoch stake
   await stakeAll(owner, contract);
 
+  // fast-forward
+  await owner.call(
+    contract,
+    'set_epoch_height',
+    { epoch: 11 }
+  );
+
   // user unstake
   await alice.call(
     contract,
@@ -499,7 +513,7 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, owner}) =>
   await owner.call(
     contract,
     'set_epoch_height',
-    { epoch: 14 }
+    { epoch: 15 }
   );
 
   // withdraw again

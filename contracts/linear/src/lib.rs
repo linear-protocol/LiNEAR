@@ -146,6 +146,13 @@ pub struct LiquidStakingContract {
     /// Amount of NEAR that is requested to unstake by all users during the last epoch
     epoch_requested_unstake_amount: Balance,
 
+    /// Amount of NEAR that needs to be settled by staking on validators
+    stake_amount_to_settle: Balance,
+    /// Amount of NEAR that needs to be settled by unstaking from validators
+    unstake_amount_to_settle: Balance,
+    /// Last epoch height stake/unstake settlements were calculated
+    last_settlement_epoch: EpochHeight,
+
     // --- Staking Farm ---
 
     /// Farm tokens.
@@ -205,6 +212,9 @@ impl LiquidStakingContract {
             validator_pool: ValidatorPool::new(),
             epoch_requested_stake_amount: 10 * ONE_NEAR,
             epoch_requested_unstake_amount: 0,
+            stake_amount_to_settle: 0,
+            unstake_amount_to_settle: 0,
+            last_settlement_epoch: 0,
             // Staking Farm
             farms: Vector::new(StorageKey::Farms),
             active_farms: Vec::new(),

@@ -417,7 +417,7 @@ impl LiquidStakingContract {
         // );
 
         // Calculate liquidity pool shares from NEAR amount
-        let mut removed_shares = self.liquidity_pool.get_shares_from_value_rounded_up(
+        let removed_shares = self.liquidity_pool.get_shares_from_value_rounded_up(
             amount,
             &self.internal_get_context()
         );

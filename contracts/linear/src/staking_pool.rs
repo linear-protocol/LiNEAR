@@ -1,7 +1,7 @@
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     ext_contract, AccountId, Balance, EpochHeight, Promise,
-    require, near_bindgen, log,
+    require, near_bindgen,
     json_types::{U128},
     collections::{UnorderedMap},
 };
@@ -162,12 +162,6 @@ impl ValidatorPool {
                 continue;
             }
             let target_amount = self.validator_target_stake_amount(total_staked_near_amount, &validator);
-            // DEBUG
-            log!(
-                "target amount: {}. {}",
-                target_amount,
-                validator.account_id
-            );
             if validator.staked_amount < target_amount {
                 let delta = min(
                     target_amount - validator.staked_amount,

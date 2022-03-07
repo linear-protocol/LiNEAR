@@ -32,28 +32,19 @@ impl LiquidStakingContract {
 
         self.epoch_cleanup();
         // after cleanup, there might be no need to stake
-        if self.epoch_requested_stake_amount == 0 {
+        if self.cleanup_stake_amount == 0 {
             return false;
         }
 
         let (candidate, amount_to_stake) = self
             .validator_pool
-            .get_candidate_to_stake(self.epoch_requested_stake_amount, self.total_staked_near_amount);
+            .get_candidate_to_stake(self.cleanup_stake_amount, self.total_staked_near_amount);
 
         if candidate.is_none() {
             // TODO no candidate found
             return false;
         }
         let mut candidate = candidate.unwrap();
-
-        // DEBUG
-        log!(
-            "amount need stake: {}, candidate: {}, amount to stake: {}, candidate staked: {}",
-            self.epoch_requested_stake_amount,
-            candidate.account_id,
-            amount_to_stake,
-            candidate.staked_amount
-        );
 
         if amount_to_stake < MIN_AMOUNT_TO_PERFORM_STAKE {
             log!("stake amount too low: {}", amount_to_stake);
@@ -66,7 +57,7 @@ impl LiquidStakingContract {
         );
 
         // update internal state
-        self.epoch_requested_stake_amount -= amount_to_stake;
+        self.cleanup_stake_amount -= amount_to_stake;
 
         log_stake_attempt(&candidate.account_id, amount_to_stake);
 
@@ -94,13 +85,13 @@ impl LiquidStakingContract {
 
         self.epoch_cleanup();
         // after cleanup, there might be no need to unstake
-        if self.epoch_requested_unstake_amount == 0 {
+        if self.cleanup_unstake_amount == 0 {
             return false;
         }
 
         let (candidate, amount_to_unstake) = self
             .validator_pool
-            .get_candidate_to_unstake(self.epoch_requested_unstake_amount, self.total_staked_near_amount);
+            .get_candidate_to_unstake(self.cleanup_unstake_amount, self.total_staked_near_amount);
         if candidate.is_none() {
             // TODO
             return false;
@@ -113,7 +104,7 @@ impl LiquidStakingContract {
         }
 
         // update internal state
-        self.epoch_requested_unstake_amount -= amount_to_unstake;
+        self.cleanup_unstake_amount -= amount_to_unstake;
 
         log_unstake_attempt(&candidate.account_id, amount_to_unstake);
 
@@ -193,12 +184,23 @@ impl LiquidStakingContract {
     /// since some stake requirements could be eliminated if 
     /// there are more unstake requirements, and vice versa.
     fn epoch_cleanup(&mut self) {
-        if self.epoch_requested_stake_amount > self.epoch_requested_unstake_amount {
-            self.epoch_requested_stake_amount -= self.epoch_requested_unstake_amount;
-            self.epoch_requested_unstake_amount = 0;
+        if self.last_cleanup_epoch == get_epoch_height() {
+            return;
+        }
+        self.last_cleanup_epoch = get_epoch_height();
+
+        // here we use += because cleanup amount might not be 0
+        self.cleanup_stake_amount += self.epoch_requested_stake_amount;
+        self.cleanup_unstake_amount += self.epoch_requested_unstake_amount;
+        self.epoch_requested_stake_amount = 0;
+        self.epoch_requested_unstake_amount = 0;
+
+        if self.cleanup_stake_amount > self.cleanup_unstake_amount {
+            self.cleanup_stake_amount -= self.cleanup_unstake_amount;
+            self.cleanup_unstake_amount = 0;
         } else {
-            self.epoch_requested_unstake_amount -= self.epoch_requested_stake_amount;
-            self.epoch_requested_stake_amount = 0;
+            self.cleanup_unstake_amount -= self.cleanup_stake_amount;
+            self.cleanup_stake_amount = 0;
         }
     }
 }
@@ -253,7 +255,7 @@ impl LiquidStakingContract {
         }
 
         // stake failed, revert
-        self.epoch_requested_stake_amount += amount;
+        self.cleanup_stake_amount += amount;
 
         log_stake_failed(&validator_id, amount);
     }
@@ -277,7 +279,7 @@ impl LiquidStakingContract {
 
         // unstake failed, revert
         // 1. revert contract states
-        self.epoch_requested_unstake_amount += amount;
+        self.cleanup_unstake_amount += amount;
 
         // 2. revert validator states
         validator.on_unstake_failed(&mut self.validator_pool, amount);

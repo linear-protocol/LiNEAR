@@ -146,6 +146,10 @@ pub struct LiquidStakingContract {
     /// Amount of NEAR that is requested to unstake by all users during the last epoch
     epoch_requested_unstake_amount: Balance,
 
+    cleanup_stake_amount: Balance,
+    cleanup_unstake_amount: Balance,
+    last_cleanup_epoch: EpochHeight,
+
     // --- Staking Farm ---
 
     /// Farm tokens.
@@ -205,6 +209,9 @@ impl LiquidStakingContract {
             validator_pool: ValidatorPool::new(),
             epoch_requested_stake_amount: 10 * ONE_NEAR,
             epoch_requested_unstake_amount: 0,
+            cleanup_stake_amount: 0,
+            cleanup_unstake_amount: 0,
+            last_cleanup_epoch: 0,
             // Staking Farm
             farms: Vector::new(StorageKey::Farms),
             active_farms: Vec::new(),

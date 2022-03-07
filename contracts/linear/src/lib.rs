@@ -21,7 +21,6 @@ mod epoch_actions;
 mod fungible_token;
 mod liquidity_pool;
 mod farm;
-mod token_receiver;
 
 use crate::types::*;
 use crate::utils::*;

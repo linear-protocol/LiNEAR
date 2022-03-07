@@ -18,10 +18,7 @@ mod internal;
 mod stake;
 mod validator_pool;
 mod epoch_actions;
-mod fungible_token_core;
-mod fungible_token_metadata;
-mod fungible_token_storage;
-mod fungible_token_custom;
+mod fungible_token;
 mod liquidity_pool;
 mod farm;
 mod token_receiver;
@@ -32,11 +29,7 @@ use crate::errors::*;
 use crate::account::*;
 use crate::validator_pool::*;
 use crate::farm::{Farm};
-// use crate::internal::*;
-pub use crate::fungible_token_core::*;
-pub use crate::fungible_token_metadata::*;
-pub use crate::fungible_token_storage::*;
-pub use crate::fungible_token_custom::*;
+pub use crate::fungible_token::*;
 pub use crate::liquidity_pool::*;
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]

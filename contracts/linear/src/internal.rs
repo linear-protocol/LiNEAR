@@ -27,16 +27,14 @@ impl LiquidStakingContract {
         //     ));
     }
 
-    pub(crate) fn internal_deposit(&mut self) -> u128 {
+    pub(crate) fn internal_deposit(&mut self, amount: Balance) {
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);
-        let amount = env::attached_deposit();
         account.unstaked += amount;
         self.internal_save_account(&account_id, &account);
         self.last_total_balance += amount;
 
         log!("@{} deposited {}. New unstaked balance is {}", account_id, amount, account.unstaked);
-        amount
     }
 
     pub(crate) fn internal_withdraw(&mut self, amount: Balance) {

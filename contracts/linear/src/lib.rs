@@ -256,7 +256,8 @@ impl LiquidStakingContract {
     pub fn deposit(&mut self) {
         let need_to_restake = self.internal_ping();
 
-        self.internal_deposit();
+        let amount = env::attached_deposit();
+        self.internal_deposit(amount);
 
         if need_to_restake {
             self.internal_restake();
@@ -268,7 +269,8 @@ impl LiquidStakingContract {
     pub fn deposit_and_stake(&mut self) {
         self.internal_ping();
 
-        let amount = self.internal_deposit();
+        let amount = env::attached_deposit();
+        self.internal_deposit(amount);
         self.internal_stake(amount);
 
         self.internal_restake();

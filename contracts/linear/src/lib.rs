@@ -42,13 +42,6 @@ pub use crate::liquidity_pool::*;
 /// Interface for the contract itself.
 #[ext_contract(ext_self)]
 pub trait SelfContract {
-    /// A callback to check the result of the staking action.
-    /// In case the stake amount is less than the minimum staking threshold, the staking action
-    /// fails, and the stake amount is not changed. This might lead to inconsistent state and the
-    /// follow withdraw calls might fail. To mitigate this, the contract will issue a new unstaking
-    /// action in case of the failure of the first staking action.
-    fn on_stake_action(&mut self);
-
     /// Check if reward withdrawal succeeded and if it failed, refund reward back to the user.
     fn callback_post_withdraw_reward(
         &mut self,
@@ -103,12 +96,8 @@ impl Fraction {
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct LiquidStakingContract {
-    /// The account ID of the owner who's running the staking validator node.
-    /// NOTE: This is different from the current account ID which is used as a validator account.
-    /// The owner of the staking pool can change staking public key and adjust reward fees.
+    /// The account ID of the owner who's running the liquid staking contract.
     owner_id: AccountId,
-    /// The last epoch height when `ping` was called.
-    last_epoch_height: EpochHeight,
     /// The last total balance of the account (consists of staked and unstaked balances).
     last_total_balance: Balance,
     /// Total amount of LiNEAR that was minted (minus burned).
@@ -170,8 +159,7 @@ pub struct LiquidStakingContract {
 
 #[near_bindgen]
 impl LiquidStakingContract {
-    /// Initializes the contract with the given owner_id and initial reward fee fraction that 
-    /// owner charges for the validation work.
+    /// Initializes the contract with the given owner_id.
     ///
     /// The entire current balance of this contract will be used to stake. This allows contract to
     /// always maintain staking shares that can't be unstaked or withdrawn.
@@ -199,7 +187,6 @@ impl LiquidStakingContract {
         );
         let mut this = Self {
             owner_id,
-            last_epoch_height: get_epoch_height(),
             last_total_balance: 10 * ONE_NEAR,
             total_share_amount: 10 * ONE_NEAR,
             total_staked_near_amount: 10 * ONE_NEAR,
@@ -239,13 +226,13 @@ impl LiquidStakingContract {
 }
 
 
-/// -- Staking pool change methods
+/// -- Staking Pool change methods
 
 #[near_bindgen]
 impl LiquidStakingContract {
-    /// Distributes rewards and restakes if needed.
+    /// Please notice ping() is not available for liquid staking.
+    /// Keep here for interface consistency.
     pub fn ping(&mut self) {
-        // panic!("ping is not available for liquid staking");
         return
     }
 

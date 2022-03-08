@@ -20,6 +20,16 @@ pub struct LiquidityPool {
     /// Total number of shares
     pub shares_total_supply: Balance,
 
+    /// Configuration of the pool
+    pub config: LiquidityPoolConfig,
+
+    /// Total swap fee in LiNEAR received by the pool
+    pub total_fee_shares: ShareBalance,
+}
+
+#[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct LiquidityPoolConfig {
     /// The amount of expected near amount to keep fee lower
     pub expected_near_amount: Balance,
     /// Max fee percentage
@@ -28,8 +38,6 @@ pub struct LiquidityPool {
     pub min_fee: u32,
     /// Fee allocated to DAO 
     pub fee_treasury_percentage: u32,
-    /// Total swap fee in LiNEAR received by the pool
-    pub total_fee_shares: ShareBalance,
 }
 
 pub struct Context {
@@ -39,13 +47,10 @@ pub struct Context {
 
 impl LiquidityPool {
     pub fn new(
-        expected_near_amount: Balance,
-        max_fee: u32,
-        min_fee: u32,
-        fee_treasury_percentage: u32,
+        config: LiquidityPoolConfig,
     ) -> Self {
-        require!(min_fee > 0, ERR_NON_POSITIVE_MIN_FEE);
-        require!(max_fee >= min_fee, ERR_FEE_MAX_LESS_THAN_MIN);
+        require!(config.min_fee > 0, ERR_NON_POSITIVE_MIN_FEE);
+        require!(config.max_fee >= config.min_fee, ERR_FEE_MAX_LESS_THAN_MIN);
 
         // Default token IDs
         let token_account_ids: Vec<AccountId> = Vec::from([
@@ -58,12 +63,17 @@ impl LiquidityPool {
             amounts: vec![0u128; token_account_ids.len()],
             shares: LookupMap::new(StorageKey::Shares),
             shares_total_supply: 0,
-            expected_near_amount,
-            max_fee,
-            min_fee,
-            fee_treasury_percentage,
+            config,
             total_fee_shares: 0,
         }
+    }
+
+    /// Set the liquidity pool configuration
+    pub fn configure(
+        &mut self,
+        config: LiquidityPoolConfig
+    ) {
+        self.config = config;
     }
 
     /// Adds the amounts of tokens to liquidity pool and returns number of shares that this user receives.
@@ -155,7 +165,7 @@ impl LiquidityPool {
             context
         );
         let treasury_fee_shares = (U256::from(fee_num_shares)
-            * U256::from(self.fee_treasury_percentage)
+            * U256::from(self.config.fee_treasury_percentage)
             / U256::from(ONE_HUNDRED_PERCENT)).as_u128();
         // Calculate the total received fee in LiNEAR
         let pool_fee_shares = fee_num_shares - treasury_fee_shares;
@@ -355,18 +365,18 @@ impl LiquidityPool {
     /// Swap fee calculated based on swap amount
     pub fn get_current_swap_fee_percentage(&self, amount_out: u128) -> u32 {
         if self.amounts[0] <= amount_out {
-            return self.max_fee;
+            return self.config.max_fee;
         }
 
         let remaining_amount = self.amounts[0] - amount_out;
-        if remaining_amount >= self.expected_near_amount {
-            return self.min_fee;
+        if remaining_amount >= self.config.expected_near_amount {
+            return self.config.min_fee;
         }
 
-        let diff = self.max_fee - self.min_fee;
-        self.max_fee -
+        let diff = self.config.max_fee - self.config.min_fee;
+        self.config.max_fee -
             (U256::from(diff) * U256::from(remaining_amount) 
-                / U256::from(self.expected_near_amount))
+                / U256::from(self.config.expected_near_amount))
                 .as_u32()
     }
 
@@ -456,7 +466,7 @@ impl LiquidStakingContract {
         );
 
         // Calculate and distribute fees for DAO treasury
-        let treasury_account_id = TREASURY_ACCOUNT.parse::<AccountId>().unwrap();
+        let treasury_account_id = self.treasury_id.clone();
         let mut treasury_account = self.internal_get_account(&treasury_account_id);
         treasury_account.stake_shares += treasury_fee_shares;
         self.internal_save_account(&treasury_account_id, &treasury_account);

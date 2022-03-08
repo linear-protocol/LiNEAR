@@ -69,6 +69,8 @@ impl Fraction {
 pub struct LiquidStakingContract {
     /// The account ID of the owner who's running the liquid staking contract.
     owner_id: AccountId,
+    /// The account ID of the treasury that manages portion of the received fees and rewards.
+    treasury_id: AccountId,
     /// Total amount of LiNEAR that was minted (minus burned).
     total_share_amount: ShareBalance,
     /// Total amount of NEAR that was staked by users to this contract.         
@@ -155,14 +157,20 @@ impl LiquidStakingContract {
             )
         );
         let mut this = Self {
-            owner_id,
+            owner_id: owner_id.clone(),
+            treasury_id: owner_id.clone(),
             total_share_amount: 10 * ONE_NEAR,
             total_staked_near_amount: 10 * ONE_NEAR,
             accounts: UnorderedMap::new(StorageKey::Accounts),
             paused: false,
             account_storage_usage: 0,
             beneficiaries: UnorderedMap::new(StorageKey::Beneficiaries),
-            liquidity_pool: LiquidityPool::new(10000 * ONE_NEAR, 300, 30, 7000),
+            liquidity_pool: LiquidityPool::new(LiquidityPoolConfig {
+                expected_near_amount: 10000 * ONE_NEAR,
+                max_fee: 300,
+                min_fee: 30,
+                fee_treasury_percentage: 7000
+            }),
             // Validator Pool
             validator_pool: ValidatorPool::new(),
             epoch_requested_stake_amount: 10 * ONE_NEAR,

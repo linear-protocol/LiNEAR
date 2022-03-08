@@ -90,7 +90,7 @@ impl LiquidStakingContract {
           total_share_amount: self.total_share_amount.into(),
           total_staked_near_amount: self.total_staked_near_amount.into(),
           ft_price: self.ft_price(),
-          lp_target_amount: self.liquidity_pool.expected_near_amount.into(),
+          lp_target_amount: self.liquidity_pool.config.expected_near_amount.into(),
           lp_near_amount: self.liquidity_pool.amounts[0].into(),
           lp_staked_share: self.liquidity_pool.amounts[1].into(),
           lp_swap_fee_percentage: self.liquidity_pool.get_current_swap_fee_percentage(10 * ONE_NEAR),

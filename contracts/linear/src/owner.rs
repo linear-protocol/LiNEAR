@@ -23,6 +23,17 @@ impl LiquidStakingContract {
         self.beneficiaries.remove(&account_id);
     }
   
+    /// Set account ID of the treasury
+    pub fn set_treasury(
+        &mut self,
+        account_id: AccountId
+    ) {
+        self.assert_owner();
+        self.treasury_id = account_id;
+    }
+
+    // --- Staking Farm ----
+
     /// Add authorized user to the current contract.
     // pub fn add_authorized_user(&mut self, account_id: AccountId) {
     //     self.assert_owner();
@@ -56,4 +67,11 @@ impl LiquidStakingContract {
     //         "ERR_NOT_AUTHORIZED_USER"
     //     );
     // }
+
+    // --- Liquidity Pool ----
+
+    pub fn configure_liquidity_pool(&mut self, config: LiquidityPoolConfig) {
+        self.assert_owner();
+        self.liquidity_pool.configure(config);
+    }
 }

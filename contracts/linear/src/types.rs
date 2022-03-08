@@ -17,11 +17,9 @@ pub const ONE_NEAR: Balance = 1_000_000_000_000_000_000_000_000;
 pub const NUM_EPOCHS_TO_UNLOCK: EpochHeight = 4;
 /// One hundred percent in 10,000
 pub const ONE_HUNDRED_PERCENT: u32 = 10_000;
-/// DAO treasuary account should be configurable
-pub const TREASURY_ACCOUNT: &str = "treasury";
 
 /// Maximum number of active farms at one time.
-pub const MAX_NUM_ACTIVE_FARMS: usize = 5;
+pub const MAX_NUM_ACTIVE_FARMS: usize = 10;
 
 /// Zero address is implicit address that doesn't have a key for it.
 /// Used for burning tokens.

@@ -1,5 +1,5 @@
 import { BN, NEAR, NearAccount } from 'near-workspaces-ava';
-import { initWorkSpace, registerFungibleTokenUser } from './helper';
+import { initWorkSpace, registerFungibleTokenUser, matchMultipleValues } from './helper';
 
 const ONE_YOCTO_NEAR = '1';
 
@@ -209,9 +209,13 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
     account_id: alice,
     farm_id: farm.farm_id
   });
-  test.true(
-    rewards === NEAR.parse("1").toString()
-    || rewards === NEAR.parse("1.5").toString()
+  matchMultipleValues(
+    test,
+    rewards,
+    [
+      NEAR.parse("1").toString(),
+      NEAR.parse("1.5").toString()
+    ]
   );
 
   // Register Alice for FT, otherwise claim will fail
@@ -236,9 +240,13 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
     account_id: alice,
     farm_id: farm.farm_id
   });
-  test.true(
-    rewards === NEAR.parse("0.5").toString()
-    || rewards === NEAR.parse("1").toString()
+  matchMultipleValues(
+    test,
+    rewards,
+    [
+      NEAR.parse("0.5").toString(),
+      NEAR.parse("1").toString()
+    ]
   );
 
   // Next, Bob deposits and stakes
@@ -258,9 +266,13 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
     account_id: bob,
     farm_id: farm.farm_id
   });
-  test.true(
-    rewards === NEAR.parse("1").toString()
-    || rewards === NEAR.parse("1.5").toString()
+  matchMultipleValues(
+    test,
+    rewards,
+    [
+      NEAR.parse("1").toString(),
+      NEAR.parse("1.5").toString()
+    ]
   );
 });
 
@@ -291,9 +303,13 @@ workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) =>
     account_id: alice,
     farm_id: farm.farm_id
   });
-  test.true(
-    rewards === NEAR.parse("1").toString()
-    || rewards === NEAR.parse("1.5").toString()
+  matchMultipleValues(
+    test,
+    rewards,
+    [
+      NEAR.parse("1").toString(),
+      NEAR.parse("1.5").toString()
+    ]
   );
 
   // Stop farm
@@ -359,13 +375,21 @@ workspace.test('add two farms and receive rewards', async (test, {root, contract
       farm_id: farm2.farm_id
     }),
   ]);
-  test.true(
-    rewards1 === NEAR.parse("1").toString()
-    || rewards1 === NEAR.parse("1.5").toString()
+  matchMultipleValues(
+    test,
+    rewards1,
+    [
+      NEAR.parse("1").toString(),
+      NEAR.parse("1.5").toString()
+    ]
   );
-  test.true(
-    rewards2 === NEAR.parse("4").toString()
-    || rewards2 === NEAR.parse("6").toString()
+  matchMultipleValues(
+    test,
+    rewards2,
+    [
+      NEAR.parse("4").toString(),
+      NEAR.parse("6").toString()
+    ]
   );
 
   // Register Alice for FT-1, otherwise claim will fail
@@ -390,9 +414,13 @@ workspace.test('add two farms and receive rewards', async (test, {root, contract
     account_id: alice,
     farm_id: farm1.farm_id
   });
-  test.true(
-    rewards1 === NEAR.parse("0.5").toString()
-    || rewards1 === NEAR.parse("1").toString()
+  matchMultipleValues(
+    test,
+    rewards1,
+    [
+      NEAR.parse("0.5").toString(),
+      NEAR.parse("1").toString()
+    ]
   );
 
   // Register Alice for FT-2, otherwise claim will fail
@@ -417,9 +445,13 @@ workspace.test('add two farms and receive rewards', async (test, {root, contract
     account_id: alice,
     farm_id: farm2.farm_id
   });
-  test.true(
-    rewards2 === NEAR.parse("2").toString()
-    || rewards2 === NEAR.parse("4").toString()
+  matchMultipleValues(
+    test,
+    rewards2,
+    [
+      NEAR.parse("2").toString(),
+      NEAR.parse("4").toString()
+    ]
   );
 
   // Next, Bob deposits and stakes
@@ -448,13 +480,21 @@ workspace.test('add two farms and receive rewards', async (test, {root, contract
       farm_id: farm2.farm_id
     }),
   ]);
-  test.true(
-    rewards1 === NEAR.parse("1").toString()
-    || rewards1 === NEAR.parse("1.5").toString()
+  matchMultipleValues(
+    test,
+    rewards1,
+    [
+      NEAR.parse("1").toString(),
+      NEAR.parse("1.5").toString()
+    ]
   );
-  test.true(
-    rewards2 === NEAR.parse("4").toString()
-    || rewards2 === NEAR.parse("6").toString()
+  matchMultipleValues(
+    test,
+    rewards2,
+    [
+      NEAR.parse("4").toString(),
+      NEAR.parse("6").toString()
+    ]
   );
 });
 
@@ -485,11 +525,14 @@ workspace.test('active farm has ended', async (test, {root, contract, owner, ali
     account_id: alice,
     farm_id: farm.farm_id
   });
-  test.true(
-    rewards === NEAR.parse("50000").toString()
-    || rewards === NEAR.parse("75000").toString()
+  matchMultipleValues(
+    test,
+    rewards,
+    [
+      NEAR.parse("50000").toString(),
+      NEAR.parse("75000").toString()
+    ]
   );
-
   // Wait 20 seconds, check whether the farm has ended
   await sleep(20000);
   // The farm should end, but it actually needs someone to 

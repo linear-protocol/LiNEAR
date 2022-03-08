@@ -108,9 +108,17 @@ export async function noMoreThanOneYoctoDiff(test: any, a: NEAR, b: NEAR) {
   )
 }
 
+// Match with one of the expected values
+export function matchMultipleValues(test: any, actual: any, expected: Array<any>) {
+  test.true(
+    expected.includes(actual),
+    `The actual value ${actual} doesn't match with any of the expected values: [ ${expected.join(', ')} ]`
+  );
+}
+
 export function skip(...args: any[]) {
   console.debug(`Skipping test ${args[0]} ...`);
-};
+}
 
 export async function registerFungibleTokenUser(ft: NearAccount, user: NearAccount) {
   const storage_balance = await ft.view(

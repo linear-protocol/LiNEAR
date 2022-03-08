@@ -2,7 +2,7 @@ use crate::*;
 use near_sdk::json_types::{U128};
 use near_sdk::{
     assert_one_yocto, env, near_bindgen, AccountId, Balance, Gas, 
-    PromiseOrValue, PromiseResult, log
+    PromiseOrValue, PromiseResult
 };
 use near_contract_standards::fungible_token::core::FungibleTokenCore;
 use near_contract_standards::fungible_token::resolver::FungibleTokenResolver;

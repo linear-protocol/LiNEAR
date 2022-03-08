@@ -169,7 +169,7 @@ impl LiquidStakingContract {
                 expected_near_amount: 10000 * ONE_NEAR,
                 max_fee: 300,
                 min_fee: 30,
-                fee_treasury_percentage: 7000
+                fee_treasury_percentage: 3000
             }),
             // Validator Pool
             validator_pool: ValidatorPool::new(),

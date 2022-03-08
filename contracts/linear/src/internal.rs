@@ -16,7 +16,6 @@ impl LiquidStakingContract {
         let mut account = self.internal_get_account(&account_id);
         account.unstaked += amount;
         self.internal_save_account(&account_id, &account);
-        self.last_total_balance += amount;
 
         log!("@{} deposited {}. New unstaked balance is {}", account_id, amount, account.unstaked);
     }
@@ -34,7 +33,6 @@ impl LiquidStakingContract {
         log!("@{} withdrawing {}. New unstaked balance is {}", account_id, amount, account.unstaked);
 
         Promise::new(account_id).transfer(amount);
-        self.last_total_balance -= amount;
     }
 
     pub(crate) fn internal_stake(&mut self, amount: Balance) {

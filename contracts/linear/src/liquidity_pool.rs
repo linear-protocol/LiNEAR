@@ -393,10 +393,6 @@ impl LiquidStakingContract {
             amount,
             added_shares
         );
-
-        // Update the toal balance
-        // TODO: fix the usage of last_total_balance
-        self.last_total_balance += amount;
     }
 
     /// Remove shares from the liquidity pool and return NEAR and LiNEAR.

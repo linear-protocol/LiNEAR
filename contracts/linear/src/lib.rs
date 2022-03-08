@@ -69,8 +69,6 @@ impl Fraction {
 pub struct LiquidStakingContract {
     /// The account ID of the owner who's running the liquid staking contract.
     owner_id: AccountId,
-    /// The last total balance of the account (consists of staked and unstaked balances).
-    last_total_balance: Balance,
     /// Total amount of LiNEAR that was minted (minus burned).
     total_share_amount: ShareBalance,
     /// Total amount of NEAR that was staked by users to this contract.         
@@ -158,7 +156,6 @@ impl LiquidStakingContract {
         );
         let mut this = Self {
             owner_id,
-            last_total_balance: 10 * ONE_NEAR,
             total_share_amount: 10 * ONE_NEAR,
             total_staked_near_amount: 10 * ONE_NEAR,
             accounts: UnorderedMap::new(StorageKey::Accounts),

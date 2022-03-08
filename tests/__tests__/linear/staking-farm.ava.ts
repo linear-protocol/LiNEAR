@@ -1,5 +1,5 @@
 import { BN, NEAR, NearAccount } from 'near-workspaces-ava';
-import { initWorkSpace, registerFungibleTokenUser } from './helper';
+import { initWorkSpace, registerFungibleTokenUser, matchMultipleValues } from './helper';
 
 const ONE_YOCTO_NEAR = '1';
 
@@ -167,6 +167,31 @@ function sleep(ms: number) {
   return new Promise( resolve => setTimeout(resolve, ms) );
 }
 
+function delayedRewards(rewards: number, timeElapsed: number, delayedMs: number) {
+  return rewards * (timeElapsed + delayedMs) / timeElapsed;
+}
+
+function assertUnclaimedRewards(
+  test: any,
+  actual: any,
+  expected: number,
+  timeElapsed: number
+) {
+  // Extra 1 or 2 seconds might have passed when we get the unclaimed rewards
+  const rewardsDelay1s = delayedRewards(expected, timeElapsed, 1000);
+  const rewardsDelay2s = delayedRewards(expected, timeElapsed, 2000);
+  matchMultipleValues(
+    test,
+    actual as string,
+    [
+      NEAR.parse(expected.toString()).toString(),
+      NEAR.parse(rewardsDelay1s.toString()).toString(),
+      NEAR.parse(rewardsDelay2s.toString()).toString(),
+    ]
+  );
+}
+
+
 // Please notice the staking farm feature is time-sensitive.
 // In the test cases, we added few `sleep(ms)` to wait for rewards being distributed,
 // but this brings some uncertainty to the rewards amount because the execution
@@ -201,7 +226,8 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
     { attachedDeposit: stakeAmount },
   );
   // Wait 2 seconds for rewards: 1 FT token distributed per second
-  await sleep(2000);
+  let timeElapsed = 2000;
+  await sleep(timeElapsed);
   // Notice that Alice received 0.5 FT (50% of total) per second
   // because the default initial staked amount is 10Ⓝ.
   // However, it can be 2 or 3 seconds later when comes to the next line.
@@ -209,9 +235,11 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
     account_id: alice,
     farm_id: farm.farm_id
   });
-  test.true(
-    rewards === NEAR.parse("1").toString()
-    || rewards === NEAR.parse("1.5").toString()
+  assertUnclaimedRewards(
+    test,
+    rewards,
+    1,
+    timeElapsed
   );
 
   // Register Alice for FT, otherwise claim will fail
@@ -236,9 +264,11 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
     account_id: alice,
     farm_id: farm.farm_id
   });
-  test.true(
-    rewards === NEAR.parse("0.5").toString()
-    || rewards === NEAR.parse("1").toString()
+  assertUnclaimedRewards(
+    test,
+    rewards,
+    0.5,
+    1000
   );
 
   // Next, Bob deposits and stakes
@@ -250,7 +280,8 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
     { attachedDeposit: stakeAmount2 },
   );
   // Wait 2 seconds for rewards: 1 FT token distributed per second
-  await sleep(2000);
+  timeElapsed = 2000;
+  await sleep(timeElapsed);
   // Notice that Bob received 0.5 FT (50% of total) per second
   // because the default initial staked amount is 10Ⓝ + Alice staked 10Ⓝ
   // However, it can be 2 or 3 seconds later when comes to the next line.
@@ -258,9 +289,11 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
     account_id: bob,
     farm_id: farm.farm_id
   });
-  test.true(
-    rewards === NEAR.parse("1").toString()
-    || rewards === NEAR.parse("1.5").toString()
+  assertUnclaimedRewards(
+    test,
+    rewards,
+    1,
+    timeElapsed
   );
 });
 
@@ -283,7 +316,8 @@ workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) =>
     { attachedDeposit: stakeAmount },
   );
   // Wait 2 seconds for rewards: 1 FT token distributed per second
-  await sleep(2000);
+  let timeElapsed = 2000;
+  await sleep(timeElapsed);
   // Notice that Alice received 0.5 FT (50% of total) per second
   // because the default initial staked amount is 10Ⓝ
   // However, it can be 2 or 3 seconds later when comes to the next line.
@@ -291,9 +325,11 @@ workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) =>
     account_id: alice,
     farm_id: farm.farm_id
   });
-  test.true(
-    rewards === NEAR.parse("1").toString()
-    || rewards === NEAR.parse("1.5").toString()
+  assertUnclaimedRewards(
+    test,
+    rewards,
+    1,
+    timeElapsed
   );
 
   // Stop farm
@@ -344,7 +380,8 @@ workspace.test('add two farms and receive rewards', async (test, {root, contract
   // Wait 2 seconds for rewards: 
   // (1) One FT-1 token distributed per second
   // (2) Four FT-2 tokens distributed per seconds
-  await sleep(2000);
+  let timeElapsed = 2000;
+  await sleep(timeElapsed);
   // Alice will receive 0.5 FT-1 (50% of total) per second
   // and Alice will receive 2 FT-2 (50% of total) per second,
   // because the default initial staked amount is 10Ⓝ.
@@ -359,13 +396,17 @@ workspace.test('add two farms and receive rewards', async (test, {root, contract
       farm_id: farm2.farm_id
     }),
   ]);
-  test.true(
-    rewards1 === NEAR.parse("1").toString()
-    || rewards1 === NEAR.parse("1.5").toString()
+  assertUnclaimedRewards(
+    test,
+    rewards1,
+    1,
+    timeElapsed
   );
-  test.true(
-    rewards2 === NEAR.parse("4").toString()
-    || rewards2 === NEAR.parse("6").toString()
+  assertUnclaimedRewards(
+    test,
+    rewards2,
+    4,
+    timeElapsed
   );
 
   // Register Alice for FT-1, otherwise claim will fail
@@ -390,9 +431,11 @@ workspace.test('add two farms and receive rewards', async (test, {root, contract
     account_id: alice,
     farm_id: farm1.farm_id
   });
-  test.true(
-    rewards1 === NEAR.parse("0.5").toString()
-    || rewards1 === NEAR.parse("1").toString()
+  assertUnclaimedRewards(
+    test,
+    rewards1,
+    0.5,
+    1000
   );
 
   // Register Alice for FT-2, otherwise claim will fail
@@ -417,9 +460,11 @@ workspace.test('add two farms and receive rewards', async (test, {root, contract
     account_id: alice,
     farm_id: farm2.farm_id
   });
-  test.true(
-    rewards2 === NEAR.parse("2").toString()
-    || rewards2 === NEAR.parse("4").toString()
+  assertUnclaimedRewards(
+    test,
+    rewards2,
+    2,
+    1000
   );
 
   // Next, Bob deposits and stakes
@@ -433,7 +478,8 @@ workspace.test('add two farms and receive rewards', async (test, {root, contract
   // Wait 2 seconds for rewards: 
   // (1) One FT-1 token distributed per second
   // (2) Four FT-2 tokens distributed per seconds
-  await sleep(2000);
+  timeElapsed = 2000;
+  await sleep(timeElapsed);
   // Bob will receive 0.5 FT-1 (50% of total) per second
   // and Bob will receive 2 FT-2 (50% of total) per second,
   // because the default initial staked amount is 10Ⓝ + Alice staked 10Ⓝ
@@ -448,13 +494,17 @@ workspace.test('add two farms and receive rewards', async (test, {root, contract
       farm_id: farm2.farm_id
     }),
   ]);
-  test.true(
-    rewards1 === NEAR.parse("1").toString()
-    || rewards1 === NEAR.parse("1.5").toString()
+  assertUnclaimedRewards(
+    test,
+    rewards1,
+    1,
+    timeElapsed
   );
-  test.true(
-    rewards2 === NEAR.parse("4").toString()
-    || rewards2 === NEAR.parse("6").toString()
+  assertUnclaimedRewards(
+    test,
+    rewards2,
+    4,
+    timeElapsed
   );
 });
 
@@ -477,7 +527,8 @@ workspace.test('active farm has ended', async (test, {root, contract, owner, ali
     { attachedDeposit: stakeAmount },
   );
   // Wait 2 seconds for rewards: 50K FT token distributed per second
-  await sleep(2000);
+  let timeElapsed = 2000;
+  await sleep(timeElapsed);
   // Notice that Alice received 25K FT (50% of total) per second
   // because the default initial staked amount is 10Ⓝ
   // However, it can be 2 or 3 seconds later when comes to the next line.
@@ -485,11 +536,12 @@ workspace.test('active farm has ended', async (test, {root, contract, owner, ali
     account_id: alice,
     farm_id: farm.farm_id
   });
-  test.true(
-    rewards === NEAR.parse("50000").toString()
-    || rewards === NEAR.parse("75000").toString()
+  assertUnclaimedRewards(
+    test,
+    rewards,
+    50000,
+    timeElapsed
   );
-
   // Wait 20 seconds, check whether the farm has ended
   await sleep(20000);
   // The farm should end, but it actually needs someone to 

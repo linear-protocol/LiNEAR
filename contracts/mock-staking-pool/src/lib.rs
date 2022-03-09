@@ -121,6 +121,10 @@ impl MockStakingPool {
     /// for testing purpose only
     pub fn add_reward(&mut self, amount: U128) {
         let account_id = env::predecessor_account_id();
+        self.add_reward_for(amount, account_id);
+    }
+
+    pub fn add_reward_for(&mut self, amount: U128, account_id: AccountId) {
         let staked_amount = self.internal_get_staked(&account_id);
         assert!(staked_amount > 0);
 

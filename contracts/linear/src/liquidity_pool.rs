@@ -146,7 +146,7 @@ impl LiquidityPool {
         );
 
         // Calculate LiNEAR amount for the swap fee
-        let fee_num_shares = self.num_shares_from_staked_amount_rounded_down(
+        let fee_num_shares = num_shares_from_staked_amount_rounded_down(
             swap_fee,
             context
         );
@@ -179,7 +179,7 @@ impl LiquidityPool {
             return (0, 0);
         }
         // Calculate increased NEAR amount, and decreased LiNEAR amount
-        let staked_shares_value = self.staked_amount_from_num_shares_rounded_down(
+        let staked_shares_value = staked_amount_from_num_shares_rounded_down(
             staked_shares,
             &context
         );
@@ -191,7 +191,7 @@ impl LiquidityPool {
         } else {
             (
                 requested_amount,
-                self.num_shares_from_staked_amount_rounded_down(requested_amount, &context),
+                num_shares_from_staked_amount_rounded_down(requested_amount, &context),
             )
         };
         // Increase NEAR
@@ -283,7 +283,7 @@ impl LiquidityPool {
         context: &Context
     ) -> Balance {
         self.amounts[0] +
-            self.staked_amount_from_num_shares_rounded_down(
+            staked_amount_from_num_shares_rounded_down(
                 self.amounts[1],
                 context
             )
@@ -324,28 +324,6 @@ impl LiquidityPool {
         let prev_shares_amount = self.get_account_shares(&account_id);
         self.shares.insert(&account_id, &(prev_shares_amount + shares));
         self.shares_total_supply += shares;
-    }
-
-    fn num_shares_from_staked_amount_rounded_down(
-        &self,
-        amount: Balance,
-        context: &Context
-    ) -> ShareBalance {
-        require!(context.total_staked_near_amount > 0, ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE);
-        (U256::from(context.total_share_amount) * U256::from(amount)
-            / U256::from(context.total_staked_near_amount))
-        .as_u128()
-    }
-
-    fn staked_amount_from_num_shares_rounded_down(
-        &self,
-        num_shares: ShareBalance,
-        context: &Context
-    ) -> Balance {
-        require!(context.total_share_amount > 0, ERR_NON_POSITIVE_TOTAL_STAKE_SHARES);
-        (U256::from(context.total_staked_near_amount) * U256::from(num_shares)
-            / U256::from(context.total_share_amount))
-        .as_u128()
     }
 
     /// Swap fee basis points calculated based on swap amount

@@ -105,12 +105,8 @@ impl LiquidityPool {
             self.amounts[i] -= amount;
             result.push(amount);
         }
-        if prev_shares_amount == shares {
-            self.shares.insert(&account_id, &0);
-        } else {
-            self.shares
+        self.shares
                 .insert(&account_id, &(prev_shares_amount - shares));
-        }
         log!(
             "{} shares of liquidity removed: receive back {:?}",
             shares,

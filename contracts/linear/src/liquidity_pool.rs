@@ -402,7 +402,7 @@ impl LiquidStakingContract {
     pub fn instant_unstake(
         &mut self,
         staked_shares_in: U128,     // LiNEAR amount sent by the account
-        min_amount_out: U128        // Minimal NEAR amount should be returned
+        min_amount_out: U128        // Minimum NEAR amount should be returned
     ) -> U128 {
         let staked_shares_in: ShareBalance = staked_shares_in.into();
         require!(staked_shares_in > 0, ERR_NON_POSITIVE_UNSTAKING_AMOUNT);

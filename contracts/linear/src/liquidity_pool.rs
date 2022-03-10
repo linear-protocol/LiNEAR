@@ -161,7 +161,7 @@ impl LiquidityPool {
             context
         );
         let treasury_fee_shares = (U256::from(fee_num_shares)
-            * U256::from(self.config.fee_treasury_percentage)
+            * U256::from(self.config.fee_treasury_basis_points)
             / U256::from(FULL_BASIS_POINTS)).as_u128();
         // Calculate the total received fee in LiNEAR
         let pool_fee_shares = fee_num_shares - treasury_fee_shares;

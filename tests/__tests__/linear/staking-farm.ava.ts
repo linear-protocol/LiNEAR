@@ -1,7 +1,5 @@
 import { BN, NEAR, NearAccount } from 'near-workspaces-ava';
-import { initWorkSpace, registerFungibleTokenUser } from './helper';
-
-const ONE_YOCTO_NEAR = '1';
+import { initWorkSpace, registerFungibleTokenUser, ONE_YOCTO } from './helper';
 
 const workspace = initWorkSpace();
 
@@ -49,7 +47,7 @@ async function transferCall(
     },
     {
       gas: new BN("50000000000000"),
-      attachedDeposit: ONE_YOCTO_NEAR
+      attachedDeposit: ONE_YOCTO
     }
   );
 }
@@ -223,7 +221,7 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
     { token_id: ft },
     {
       gas: new BN("75000000000000"), 
-      attachedDeposit: ONE_YOCTO_NEAR
+      attachedDeposit: ONE_YOCTO
     },
   );
   test.true(
@@ -377,7 +375,7 @@ workspace.test('add two farms and receive rewards', async (test, {root, contract
     { token_id: ft1 },
     {
       gas: new BN("75000000000000"), 
-      attachedDeposit: ONE_YOCTO_NEAR
+      attachedDeposit: ONE_YOCTO
     },
   );
   test.true(
@@ -404,7 +402,7 @@ workspace.test('add two farms and receive rewards', async (test, {root, contract
     { token_id: ft2 },
     {
       gas: new BN("75000000000000"), 
-      attachedDeposit: ONE_YOCTO_NEAR
+      attachedDeposit: ONE_YOCTO
     },
   );
   test.true(

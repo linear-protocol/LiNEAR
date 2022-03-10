@@ -1,5 +1,7 @@
 import { Workspace, NEAR, NearAccount, BN } from "near-workspaces-ava";
 
+export const ONE_YOCTO = '1';
+
 interface RewardFee {
   numerator: number,
   denominator: number

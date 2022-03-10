@@ -24,8 +24,8 @@ pub struct Summary {
     /// Current LiNEAR amount in Liquidity Pool
     pub lp_staked_share: U128,
     /// Current instant unstake fee in Liquidity Pool.
-    /// For example, fee percentage is `30`, which means `0.3%`
-    pub lp_swap_fee_percentage: u32,
+    /// For example, fee basis points is `30`, which means `0.3%` in percentage
+    pub lp_swap_fee_basis_points: u32,
     /// Total received unstake fee as LiNEAR in Liquidity Pool
     pub lp_total_fee_shares: U128,
 
@@ -93,7 +93,7 @@ impl LiquidStakingContract {
           lp_target_amount: self.liquidity_pool.expected_near_amount.into(),
           lp_near_amount: self.liquidity_pool.amounts[0].into(),
           lp_staked_share: self.liquidity_pool.amounts[1].into(),
-          lp_swap_fee_percentage: self.liquidity_pool.get_current_swap_fee_percentage(10 * ONE_NEAR),
+          lp_swap_fee_basis_points: self.liquidity_pool.get_current_swap_fee_basis_points(10 * ONE_NEAR),
           lp_total_fee_shares: self.liquidity_pool.total_fee_shares.into(),
           validators_num: self.validator_pool.count(),
           farms: self.get_active_farms(),
@@ -158,7 +158,7 @@ impl LiquidStakingContract {
             can_withdraw: account.unstaked_available_epoch_height <= get_epoch_height(),
             liquidity_pool_share: self.liquidity_pool.get_account_shares(&account_id).into(),
             liquidity_pool_share_value: self.liquidity_pool.get_account_value(&account_id, &self.internal_get_context()).into(),
-            liquidity_pool_share_percentage: self.liquidity_pool.get_account_shares_percentage(&account_id),
+            liquidity_pool_share_ratio_in_basis_points: self.liquidity_pool.get_account_shares_ratio_in_basis_points(&account_id),
         }
     }
 

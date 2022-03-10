@@ -22,12 +22,12 @@ pub struct LiquidityPool {
 
     /// The amount of expected near amount to keep fee lower
     pub expected_near_amount: Balance,
-    /// Max fee percentage
+    /// Max fee basis points
     pub max_fee: u32,
-    /// Min fee percentage
+    /// Min fee basis points
     pub min_fee: u32,
     /// Fee allocated to DAO 
-    pub fee_treasury_percentage: u32,
+    pub fee_treasury_basis_points: u32,
     /// Total swap fee in LiNEAR received by the pool
     pub total_fee_shares: ShareBalance,
 }
@@ -42,7 +42,7 @@ impl LiquidityPool {
         expected_near_amount: Balance,
         max_fee: u32,
         min_fee: u32,
-        fee_treasury_percentage: u32,
+        fee_treasury_basis_points: u32,
     ) -> Self {
         require!(min_fee > 0, ERR_NON_POSITIVE_MIN_FEE);
         require!(max_fee >= min_fee, ERR_FEE_MAX_LESS_THAN_MIN);
@@ -61,7 +61,7 @@ impl LiquidityPool {
             expected_near_amount,
             max_fee,
             min_fee,
-            fee_treasury_percentage,
+            fee_treasury_basis_points,
             total_fee_shares: 0,
         }
     }
@@ -128,13 +128,13 @@ impl LiquidityPool {
         min_amount_out: Balance,
         context: &Context
     ) -> (Balance, ShareBalance) {
-        // Calculate the swap fee percentage from requested amount
-        let swap_fee_percentage = self.get_current_swap_fee_percentage(requested_amount);
-        require!(swap_fee_percentage < ONE_HUNDRED_PERCENT, ERR_FEE_EXCEEDS_UP_LIMIT);
+        // Calculate the swap fee basis points from requested amount
+        let swap_fee_bps = self.get_current_swap_fee_basis_points(requested_amount);
+        require!(swap_fee_bps < FULL_BASIS_POINTS, ERR_FEE_EXCEEDS_UP_LIMIT);
         // Calculate swap fee and received NEAR amount
         let swap_fee = (U256::from(requested_amount)
-            * U256::from(swap_fee_percentage)
-            / U256::from(ONE_HUNDRED_PERCENT)).as_u128();
+            * U256::from(swap_fee_bps)
+            / U256::from(FULL_BASIS_POINTS)).as_u128();
         let received_amount = requested_amount - swap_fee;
         require!(self.amounts[0] >= received_amount, ERR_NO_ENOUGH_LIQUIDITY);
         require!(received_amount >= min_amount_out,
@@ -151,8 +151,8 @@ impl LiquidityPool {
             context
         );
         let treasury_fee_shares = (U256::from(fee_num_shares)
-            * U256::from(self.fee_treasury_percentage)
-            / U256::from(ONE_HUNDRED_PERCENT)).as_u128();
+            * U256::from(self.fee_treasury_basis_points)
+            / U256::from(FULL_BASIS_POINTS)).as_u128();
         // Calculate the total received fee in LiNEAR
         let pool_fee_shares = fee_num_shares - treasury_fee_shares;
         require!(pool_fee_shares > 0, ERR_NON_POSITIVE_RECEIVED_FEE);
@@ -304,13 +304,13 @@ impl LiquidityPool {
         self.get_value_from_shares_rounded_up(shares, context)
     }
 
-    /// Calculate account liquidity pool shares percentage
-    pub fn get_account_shares_percentage(&self, account_id: &AccountId) -> u32 {
+    /// Calculate account liquidity pool shares ratio in basis points
+    pub fn get_account_shares_ratio_in_basis_points(&self, account_id: &AccountId) -> u32 {
         let shares = self.get_account_shares(&account_id);
         if self.shares_total_supply == 0 || shares == 0 {
             0
         } else {
-            (U256::from(ONE_HUNDRED_PERCENT)
+            (U256::from(FULL_BASIS_POINTS)
                 * U256::from(shares)
                 / U256::from(self.shares_total_supply)).as_u32()
         }
@@ -348,8 +348,8 @@ impl LiquidityPool {
         .as_u128()
     }
 
-    /// Swap fee calculated based on swap amount
-    pub fn get_current_swap_fee_percentage(&self, amount_out: u128) -> u32 {
+    /// Swap fee basis points calculated based on swap amount
+    pub fn get_current_swap_fee_basis_points(&self, amount_out: u128) -> u32 {
         if self.amounts[0] <= amount_out {
             return self.max_fee;
         }

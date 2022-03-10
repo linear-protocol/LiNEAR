@@ -356,15 +356,16 @@ impl LiquidityPool {
             return self.config.max_fee_bps;
         }
 
+        let expected_near_amount: Balance = self.config.expected_near_amount.into();
         let remaining_amount = self.amounts[0] - amount_out;
-        if remaining_amount >= self.config.expected_near_amount.into() {
+        if remaining_amount >= expected_near_amount {
             return self.config.min_fee_bps;
         }
 
         let diff = self.config.max_fee_bps - self.config.min_fee_bps;
         self.config.max_fee_bps -
             (U256::from(diff) * U256::from(remaining_amount) 
-                / U256::from(self.config.expected_near_amount.0))
+                / U256::from(expected_near_amount))
                 .as_u32()
     }
 

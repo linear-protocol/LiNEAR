@@ -155,10 +155,10 @@ impl LiquidityPool {
         let swap_fee_bps = self.get_current_swap_fee_basis_points(requested_amount);
         require!(swap_fee_bps < FULL_BASIS_POINTS, ERR_FEE_EXCEEDS_UP_LIMIT);
         // Calculate swap fee and received NEAR amount
-        let swap_fee = (U256::from(requested_amount)
+        let swap_fee_amount = (U256::from(requested_amount)
             * U256::from(swap_fee_bps)
             / U256::from(FULL_BASIS_POINTS)).as_u128();
-        let received_amount = requested_amount - swap_fee;
+        let received_amount = requested_amount - swap_fee_amount;
         require!(self.amounts[0] >= received_amount, ERR_NO_ENOUGH_LIQUIDITY);
         require!(received_amount >= min_amount_out,
             format!(
@@ -169,26 +169,27 @@ impl LiquidityPool {
         );
 
         // Calculate LiNEAR amount for the swap fee
-        let fee_num_shares = num_shares_from_staked_amount_rounded_down(
-            swap_fee,
+        let swap_fee_stake_shares = num_shares_from_staked_amount_rounded_down(
+            swap_fee_amount,
             context
         );
-        let treasury_fee_shares = (U256::from(fee_num_shares)
+        let treasury_fee_stake_shares = (U256::from(swap_fee_stake_shares)
             * U256::from(self.config.treasury_fee_bps)
             / U256::from(FULL_BASIS_POINTS)).as_u128();
-        // Calculate the total received fee in LiNEAR
-        let pool_fee_shares = fee_num_shares - treasury_fee_shares;
-        require!(pool_fee_shares > 0, ERR_NON_POSITIVE_RECEIVED_FEE);
-        self.total_fee_shares += pool_fee_shares;
+
+        // Accumulate the total received fee by the pool in LiNEAR
+        let pool_fee_stake_shares = swap_fee_stake_shares - treasury_fee_stake_shares;
+        require!(pool_fee_stake_shares > 0, ERR_NON_POSITIVE_RECEIVED_FEE);
+        self.total_fee_shares += pool_fee_stake_shares;
 
         // Swap NEAR out of pool
         self.amounts[0] -= received_amount;
 
         // Swap LiNEAR into pool, excluding the fees for treasury
-        let received_num_shares = stake_shares_in - treasury_fee_shares;
+        let received_num_shares = stake_shares_in - treasury_fee_stake_shares;
         self.amounts[1] += received_num_shares;
 
-        (received_amount, treasury_fee_shares)
+        (received_amount, treasury_fee_stake_shares)
     }
 
     /// Rebalance pool distribution, increase NEAR and decrease LiNEAR
@@ -448,7 +449,7 @@ impl LiquidStakingContract {
         require!(requested_amount > 0, ERR_NON_POSITIVE_CALCULATED_STAKED_AMOUNT);
 
         // Swap NEAR out from liquidity pool
-        let (received_amount, treasury_fee_shares) = self.liquidity_pool.swap(
+        let (received_amount, treasury_fee_stake_shares) = self.liquidity_pool.swap(
             requested_amount,
             staked_shares_in,
             min_amount_out,
@@ -458,7 +459,7 @@ impl LiquidStakingContract {
         // Calculate and distribute fees for DAO treasury
         let treasury_account_id = self.treasury_id.clone();
         let mut treasury_account = self.internal_get_account(&treasury_account_id);
-        treasury_account.stake_shares += treasury_fee_shares;
+        treasury_account.stake_shares += treasury_fee_stake_shares;
         self.internal_save_account(&treasury_account_id, &treasury_account);
 
         // Update account staked shares

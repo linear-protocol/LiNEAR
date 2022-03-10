@@ -15,7 +15,7 @@ exports.builder = yargs => {
       choices: ['testnet', 'mainnet']
     })
     .option('wasm', {
-      describe: 'LiNEAR wasm file path',
+      describe: 'Contract wasm file path',
       default: 'res/linear.wasm'
     })
 };

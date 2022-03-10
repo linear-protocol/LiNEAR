@@ -2,7 +2,7 @@ use crate::*;
 use near_sdk::json_types::{U128};
 use near_sdk::{
     assert_one_yocto, env, near_bindgen, AccountId, Balance, Gas, 
-    PromiseOrValue, PromiseResult, log
+    PromiseOrValue, PromiseResult
 };
 use near_contract_standards::fungible_token::core::FungibleTokenCore;
 use near_contract_standards::fungible_token::resolver::FungibleTokenResolver;
@@ -119,10 +119,14 @@ impl FungibleTokenResolver for LiquidStakingContract {
                 sender.stake_shares += refund_amount;
                 self.internal_save_account(&sender_id, &sender);
 
-                log!(
-                    "Refund {} from {} to {}",
-                    refund_amount, receiver_id, sender_id
-                );
+                FtTransfer {
+                    old_owner_id: &receiver_id,
+                    new_owner_id: &sender_id,
+                    amount: &U128(refund_amount),
+                    memo: Some("refund"),
+                }
+                .emit();
+
                 return (amount - refund_amount).into();
             }
         }

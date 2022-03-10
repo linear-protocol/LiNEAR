@@ -184,6 +184,13 @@ workspace.test('withdraw failure', async (test, { root, contract, owner, alice }
     }
   );
 
+  // fast-forward 4 epoch
+  await owner.call(
+    contract,
+    'set_epoch_height',
+    { epoch: 14 }
+  );
+
   await assertValidator(v1, '60', '0');
 
   // user unstake
@@ -208,7 +215,7 @@ workspace.test('withdraw failure', async (test, { root, contract, owner, alice }
   await owner.call(
     contract,
     'set_epoch_height',
-    { epoch: 14 }
+    { epoch: 18 }
   );
 
   await setPanic(v1);

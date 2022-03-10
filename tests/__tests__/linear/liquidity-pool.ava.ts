@@ -1,5 +1,11 @@
 import { NEAR, BN } from 'near-workspaces-ava';
-import { initWorkSpace, callWithMetrics, numbersEqual, noMoreThanOneYoctoDiff } from './helper';
+import {
+  initWorkSpace,
+  callWithMetrics,
+  numbersEqual,
+  noMoreThanOneYoctoDiff,
+  ONE_YOCTO
+} from './helper';
 
 // helper functions
 
@@ -78,7 +84,8 @@ const removeLiqudity = async (test, {contract, user, amount}) => {
     user,
     contract,
     'remove_liquidity',
-    { amount }
+    { amount },
+    { attachedDeposit: ONE_YOCTO }
   );
   const updatedPoolValue = await getPoolValue(contract);
 

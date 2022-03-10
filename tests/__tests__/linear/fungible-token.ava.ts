@@ -1,7 +1,11 @@
 import { Workspace, NEAR, NearAccount } from 'near-workspaces-ava';
-import { initWorkSpace, assertFailure, registerFungibleTokenUser } from './helper';
+import {
+  initWorkSpace,
+  assertFailure,
+  registerFungibleTokenUser,
+  ONE_YOCTO
+} from './helper';
 
-const ONE_YOCTO_NEAR = '1';
 const ERR_NO_ENOUGH_BALANCE = 'The account doesn\'t have enough balance';
 
 async function transfer(
@@ -18,7 +22,7 @@ async function transfer(
       amount:   amount.toString()
     },
     {
-      attachedDeposit: ONE_YOCTO_NEAR
+      attachedDeposit: ONE_YOCTO
     }
   );
 }

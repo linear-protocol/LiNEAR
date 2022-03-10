@@ -15,8 +15,8 @@ pub const ONE_NEAR: Balance = 1_000_000_000_000_000_000_000_000;
 /// when the unstaking promise can arrive at the next epoch, while the inner state is already
 /// updated in the previous epoch. It will not unlock the funds for 4 epochs.
 pub const NUM_EPOCHS_TO_UNLOCK: EpochHeight = 4;
-/// One hundred percent in 10,000
-pub const ONE_HUNDRED_PERCENT: u32 = 10_000;
+/// Full basis points, i.e. 10,000
+pub const FULL_BASIS_POINTS: u32 = 10_000;
 
 /// Maximum number of active farms at one time.
 pub const MAX_NUM_ACTIVE_FARMS: usize = 10;

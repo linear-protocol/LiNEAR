@@ -1,6 +1,6 @@
 use crate::*;
 use near_sdk::{
-    near_bindgen, Balance, log, Promise,
+    near_bindgen, Balance, Promise, log, assert_one_yocto,
     collections::LookupMap
 };
 
@@ -32,12 +32,12 @@ pub struct LiquidityPool {
 pub struct LiquidityPoolConfig {
     /// The amount of expected near amount to keep fee lower
     pub expected_near_amount: Balance,
-    /// Max fee percentage
+    /// Max fee basis points
     pub max_fee: u32,
-    /// Min fee percentage
+    /// Min fee basis points
     pub min_fee: u32,
     /// Fee allocated to DAO 
-    pub fee_treasury_percentage: u32,
+    pub fee_treasury_basis_points: u32,
 }
 
 pub struct Context {
@@ -115,12 +115,8 @@ impl LiquidityPool {
             self.amounts[i] -= amount;
             result.push(amount);
         }
-        if prev_shares_amount == shares {
-            self.shares.insert(&account_id, &0);
-        } else {
-            self.shares
+        self.shares
                 .insert(&account_id, &(prev_shares_amount - shares));
-        }
         log!(
             "{} shares of liquidity removed: receive back {:?}",
             shares,
@@ -142,13 +138,13 @@ impl LiquidityPool {
         min_amount_out: Balance,
         context: &Context
     ) -> (Balance, ShareBalance) {
-        // Calculate the swap fee percentage from requested amount
-        let swap_fee_percentage = self.get_current_swap_fee_percentage(requested_amount);
-        require!(swap_fee_percentage < ONE_HUNDRED_PERCENT, ERR_FEE_EXCEEDS_UP_LIMIT);
+        // Calculate the swap fee basis points from requested amount
+        let swap_fee_bps = self.get_current_swap_fee_basis_points(requested_amount);
+        require!(swap_fee_bps < FULL_BASIS_POINTS, ERR_FEE_EXCEEDS_UP_LIMIT);
         // Calculate swap fee and received NEAR amount
         let swap_fee = (U256::from(requested_amount)
-            * U256::from(swap_fee_percentage)
-            / U256::from(ONE_HUNDRED_PERCENT)).as_u128();
+            * U256::from(swap_fee_bps)
+            / U256::from(FULL_BASIS_POINTS)).as_u128();
         let received_amount = requested_amount - swap_fee;
         require!(self.amounts[0] >= received_amount, ERR_NO_ENOUGH_LIQUIDITY);
         require!(received_amount >= min_amount_out,
@@ -160,13 +156,13 @@ impl LiquidityPool {
         );
 
         // Calculate LiNEAR amount for the swap fee
-        let fee_num_shares = self.num_shares_from_staked_amount_rounded_down(
+        let fee_num_shares = num_shares_from_staked_amount_rounded_down(
             swap_fee,
             context
         );
         let treasury_fee_shares = (U256::from(fee_num_shares)
             * U256::from(self.config.fee_treasury_percentage)
-            / U256::from(ONE_HUNDRED_PERCENT)).as_u128();
+            / U256::from(FULL_BASIS_POINTS)).as_u128();
         // Calculate the total received fee in LiNEAR
         let pool_fee_shares = fee_num_shares - treasury_fee_shares;
         require!(pool_fee_shares > 0, ERR_NON_POSITIVE_RECEIVED_FEE);
@@ -193,7 +189,7 @@ impl LiquidityPool {
             return (0, 0);
         }
         // Calculate increased NEAR amount, and decreased LiNEAR amount
-        let staked_shares_value = self.staked_amount_from_num_shares_rounded_down(
+        let staked_shares_value = staked_amount_from_num_shares_rounded_down(
             staked_shares,
             &context
         );
@@ -205,7 +201,7 @@ impl LiquidityPool {
         } else {
             (
                 requested_amount,
-                self.num_shares_from_staked_amount_rounded_down(requested_amount, &context),
+                num_shares_from_staked_amount_rounded_down(requested_amount, &context),
             )
         };
         // Increase NEAR
@@ -297,7 +293,7 @@ impl LiquidityPool {
         context: &Context
     ) -> Balance {
         self.amounts[0] +
-            self.staked_amount_from_num_shares_rounded_down(
+            staked_amount_from_num_shares_rounded_down(
                 self.amounts[1],
                 context
             )
@@ -318,13 +314,13 @@ impl LiquidityPool {
         self.get_value_from_shares_rounded_up(shares, context)
     }
 
-    /// Calculate account liquidity pool shares percentage
-    pub fn get_account_shares_percentage(&self, account_id: &AccountId) -> u32 {
+    /// Calculate account liquidity pool shares ratio in basis points
+    pub fn get_account_shares_ratio_in_basis_points(&self, account_id: &AccountId) -> u32 {
         let shares = self.get_account_shares(&account_id);
         if self.shares_total_supply == 0 || shares == 0 {
             0
         } else {
-            (U256::from(ONE_HUNDRED_PERCENT)
+            (U256::from(FULL_BASIS_POINTS)
                 * U256::from(shares)
                 / U256::from(self.shares_total_supply)).as_u32()
         }
@@ -340,30 +336,8 @@ impl LiquidityPool {
         self.shares_total_supply += shares;
     }
 
-    fn num_shares_from_staked_amount_rounded_down(
-        &self,
-        amount: Balance,
-        context: &Context
-    ) -> ShareBalance {
-        require!(context.total_staked_near_amount > 0, ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE);
-        (U256::from(context.total_share_amount) * U256::from(amount)
-            / U256::from(context.total_staked_near_amount))
-        .as_u128()
-    }
-
-    fn staked_amount_from_num_shares_rounded_down(
-        &self,
-        num_shares: ShareBalance,
-        context: &Context
-    ) -> Balance {
-        require!(context.total_share_amount > 0, ERR_NON_POSITIVE_TOTAL_STAKE_SHARES);
-        (U256::from(context.total_staked_near_amount) * U256::from(num_shares)
-            / U256::from(context.total_share_amount))
-        .as_u128()
-    }
-
-    /// Swap fee calculated based on swap amount
-    pub fn get_current_swap_fee_percentage(&self, amount_out: u128) -> u32 {
+    /// Swap fee basis points calculated based on swap amount
+    pub fn get_current_swap_fee_basis_points(&self, amount_out: u128) -> u32 {
         if self.amounts[0] <= amount_out {
             return self.config.max_fee;
         }
@@ -407,7 +381,10 @@ impl LiquidStakingContract {
 
     /// Remove shares from the liquidity pool and return NEAR and LiNEAR.
     /// The parameter `amount` means the value of NEAR to be removed
+    #[payable]
     pub fn remove_liquidity(&mut self, amount: U128) -> Vec<U128> {
+        assert_one_yocto();
+
         let account_id = env::predecessor_account_id();
         let amount: Balance = amount.into();
 
@@ -438,7 +415,7 @@ impl LiquidStakingContract {
     pub fn instant_unstake(
         &mut self,
         staked_shares_in: U128,     // LiNEAR amount sent by the account
-        min_amount_out: U128        // Minimal NEAR amount should be returned
+        min_amount_out: U128        // Minimum NEAR amount should be returned
     ) -> U128 {
         let staked_shares_in: ShareBalance = staked_shares_in.into();
         require!(staked_shares_in > 0, ERR_NON_POSITIVE_UNSTAKING_AMOUNT);

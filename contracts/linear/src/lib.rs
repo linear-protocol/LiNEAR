@@ -165,12 +165,7 @@ impl LiquidStakingContract {
             paused: false,
             account_storage_usage: 0,
             beneficiaries: UnorderedMap::new(StorageKey::Beneficiaries),
-            liquidity_pool: LiquidityPool::new(LiquidityPoolConfig {
-                expected_near_amount: 10000 * ONE_NEAR,
-                max_fee: 300,
-                min_fee: 30,
-                fee_treasury_basis_points: 3000
-            }),
+            liquidity_pool: LiquidityPool::new(LiquidityPoolConfig::default()),
             // Validator Pool
             validator_pool: ValidatorPool::new(),
             epoch_requested_stake_amount: 10 * ONE_NEAR,

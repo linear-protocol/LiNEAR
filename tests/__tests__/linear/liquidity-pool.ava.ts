@@ -321,6 +321,65 @@ workspace.test('rebalance liquidity', async (test, { contract, alice, bob }) => 
   });
   test.is(
     (await getTotalStakedNEAR(contract)).toString(),
+    NEAR.parse("18.04485").toString()
+  );
+
+  // Bob deposits and stakes
+  await stake(test, {
+    contract,
+    user: bob,
+    amount: NEAR.parse('4')
+  });
+  test.is(
+    (await getTotalStakedNEAR(contract)).toString(),
+    NEAR.parse("22.04485").toString()
+  );
+});
+
+workspace.test('configure liquidity pool', async (test, { contract, owner, alice, bob }) => {
+  // Alice deposits and stakes to avoid empty stake shares
+  await stake(test, {
+    contract,
+    user: alice,
+    amount: NEAR.parse('10')
+  });
+
+  // Bob adds initial liquidity
+  await addLiquidity(test, {
+    contract,
+    user: bob,
+    amount: NEAR.parse('50')
+  });
+
+  // Increase the treasury fee to 70%
+  await owner.call(
+    contract,
+    'configure_liquidity_pool',
+    {
+      config: {
+        expected_near_amount: NEAR.parse("10000").toString(),
+        max_fee_bps: 300,
+        min_fee_bps: 30,
+        treasury_fee_bps: 7000,
+      }
+    }
+  )
+
+  // Alice requests instant unstake
+  await instantUnstake(test, {
+    contract,
+    user: alice,
+    amount: NEAR.parse('5')
+  });
+
+  // Bob deposits and stakes
+  await stake(test, {
+    contract,
+    user: bob,
+    amount: NEAR.parse('3')
+  });
+  test.is(
+    (await getTotalStakedNEAR(contract)).toString(),
     NEAR.parse("18.10465").toString()   // 10 + 10 + 3 - 4.89535
   );
 

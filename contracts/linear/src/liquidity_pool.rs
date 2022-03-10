@@ -1,6 +1,6 @@
 use crate::*;
 use near_sdk::{
-    near_bindgen, Balance, log, Promise,
+    near_bindgen, Balance, Promise, log, assert_one_yocto,
     collections::LookupMap
 };
 
@@ -371,7 +371,10 @@ impl LiquidStakingContract {
 
     /// Remove shares from the liquidity pool and return NEAR and LiNEAR.
     /// The parameter `amount` means the value of NEAR to be removed
+    #[payable]
     pub fn remove_liquidity(&mut self, amount: U128) -> Vec<U128> {
+        assert_one_yocto();
+
         let account_id = env::predecessor_account_id();
         let amount: Balance = amount.into();
 

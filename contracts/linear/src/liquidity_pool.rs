@@ -52,6 +52,7 @@ impl Default for LiquidityPoolConfig {
     }
 }
 
+/// Context info from the main contract and used in other structs
 pub struct Context {
     pub total_staked_near_amount: Balance,
     pub total_share_amount: ShareBalance

@@ -1,6 +1,6 @@
 const { init } = require("../near");
 
-exports.command = 'init <address>';
+exports.command = 'init-sp <address>';
 exports.desc = 'Init mock staking pool contract';
 exports.builder = yargs => {
   yargs

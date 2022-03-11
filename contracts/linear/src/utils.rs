@@ -3,10 +3,6 @@ use near_sdk::{
 };
 use crate::*;
 
-pub fn assert_is_callback() {
-    assert_eq!(env::predecessor_account_id(), env::current_account_id());
-}
-
 #[cfg(not(feature = "test"))]
 pub fn get_epoch_height() -> EpochHeight {
     env::epoch_height()
@@ -38,6 +34,30 @@ impl LiquidStakingContract {
     pub fn read_epoch_height(&self) -> EpochHeight {
         get_epoch_height()
     }
+}
+
+/// Returns the number of "stake" shares rounded down corresponding to the given staked balance
+/// amount.
+///
+/// price = total_staked / total_shares
+/// Price is fixed
+/// (total_staked + amount) / (total_shares + num_shares) = total_staked / total_shares
+/// (total_staked + amount) * total_shares = total_staked * (total_shares + num_shares)
+/// amount * total_shares = total_staked * num_shares
+/// num_shares = amount * total_shares / total_staked
+pub (crate) fn num_shares_from_staked_amount_rounded_down(amount: Balance, context: &Context) -> ShareBalance {
+    require!(context.total_staked_near_amount > 0, ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE);
+    (U256::from(context.total_share_amount) * U256::from(amount)
+        / U256::from(context.total_staked_near_amount))
+    .as_u128()
+}
+
+/// Returns the staked amount rounded down corresponding to the given number of "stake" shares.
+pub (crate) fn staked_amount_from_num_shares_rounded_down(num_shares: ShareBalance, context: &Context) -> Balance {
+    require!(context.total_share_amount > 0, ERR_NON_POSITIVE_TOTAL_STAKE_SHARES);
+    (U256::from(context.total_staked_near_amount) * U256::from(num_shares)
+        / U256::from(context.total_share_amount))
+    .as_u128()
 }
 
 #[derive(BorshStorageKey, BorshSerialize)]

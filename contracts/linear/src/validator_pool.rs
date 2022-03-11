@@ -136,14 +136,12 @@ impl ValidatorPool {
 
     pub fn get_validators(
         &self,
-        offset: u16,
-        limit: u16
+        offset: u64,
+        limit: u64
     ) -> Vec<Validator> {
-        // TODO UnorderedMap.skip might run out of gas, maybe use this approach: 
-        // https://github.com/ref-finance/ref-contracts/blob/main/ref-farming/src/view.rs#L137
-        self.validators.values()
-            .skip(offset as usize)
-            .take(limit as usize)
+        let keys = self.validators.keys_as_vector();
+        (offset..std::cmp::min(offset + limit, keys.len()))
+            .map(|index| self.get_validator(&keys.get(index).unwrap()).unwrap())
             .collect()
     }
 
@@ -321,8 +319,8 @@ impl LiquidStakingContract {
 
     pub fn get_validators(
         &self,
-        offset: u16,
-        limit: u16
+        offset: u64,
+        limit: u64
     ) -> Vec<ValidatorInfo> {
         self.assert_owner();
         self.validator_pool

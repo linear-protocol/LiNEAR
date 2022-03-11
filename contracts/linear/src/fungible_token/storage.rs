@@ -7,7 +7,7 @@ use near_sdk::{assert_one_yocto, env, log, AccountId, Balance, Promise};
 impl LiquidStakingContract {
     /// Internal method that returns the Account ID and the balance in case the account was
     /// unregistered.
-    pub fn internal_storage_unregister(
+    pub(crate) fn internal_storage_unregister(
         &mut self,
         force: Option<bool>,
     ) -> Option<(AccountId, Balance)> {
@@ -31,11 +31,17 @@ impl LiquidStakingContract {
         }
     }
 
-    fn internal_storage_balance_of(&self, account_id: &AccountId) -> Option<StorageBalance> {
+    pub(crate) fn internal_storage_balance_of(&self, account_id: &AccountId) -> Option<StorageBalance> {
         if let Some(_) = self.accounts.get(account_id) {
             Some(StorageBalance { total: self.storage_balance_bounds().min, available: 0.into() })
         } else {
             None
+        }
+    }
+
+    pub(crate) fn internal_register_account(&mut self, account_id: &AccountId) {
+        if self.accounts.insert(account_id, &Account::default()).is_some() {
+            env::panic_str("The account is already registered");
         }
     }
 }

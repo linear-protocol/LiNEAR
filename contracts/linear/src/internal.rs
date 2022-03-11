@@ -11,32 +11,13 @@ impl LiquidStakingContract {
     /* Internal methods */
     /********************/
 
-    /// Restakes the current `total_staked_balance` again.
-    pub(crate) fn internal_restake(&mut self) {
-        if self.paused {
-            return;
-        }
-        // Stakes with the staking public key. If the public key is invalid the entire function
-        // call will be rolled back.
-        // Promise::new(env::current_account_id())
-        //     .stake(self.total_staked_balance, self.stake_public_key.clone())
-        //     .then(ext_self::on_stake_action(
-        //         env::current_account_id(),
-        //         NO_DEPOSIT,
-        //         ON_STAKE_ACTION_GAS,
-        //     ));
-    }
-
-    pub(crate) fn internal_deposit(&mut self) -> u128 {
+    pub(crate) fn internal_deposit(&mut self, amount: Balance) {
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);
-        let amount = env::attached_deposit();
         account.unstaked += amount;
         self.internal_save_account(&account_id, &account);
-        self.last_total_balance += amount;
 
         log!("@{} deposited {}. New unstaked balance is {}", account_id, amount, account.unstaked);
-        amount
     }
 
     pub(crate) fn internal_withdraw(&mut self, amount: Balance) {
@@ -52,7 +33,6 @@ impl LiquidStakingContract {
         log!("@{} withdrawing {}. New unstaked balance is {}", account_id, amount, account.unstaked);
 
         Promise::new(account_id).transfer(amount);
-        self.last_total_balance -= amount;
     }
 
     pub(crate) fn internal_stake(&mut self, amount: Balance) {
@@ -103,7 +83,7 @@ impl LiquidStakingContract {
         self.rebalance_liquidity();
     }
 
-    pub(crate) fn inner_unstake(&mut self, amount: u128) {
+    pub(crate) fn internal_unstake(&mut self, amount: u128) {
         require!(amount > 0, ERR_NON_POSITIVE_UNSTAKING_AMOUNT);
 
         let account_id = env::predecessor_account_id();
@@ -156,66 +136,6 @@ impl LiquidStakingContract {
             env::predecessor_account_id() == self.owner_id,
             ERR_NOT_OWNER
         );
-    }
-
-    /// Distributes rewards after the new epoch. It's automatically called before every action.
-    /// Returns true if the current epoch height is different from the last epoch height.
-    pub(crate) fn internal_ping(&mut self) -> bool {
-        // keep the internal method temporarily, since we may ping the validator pool here
-        false
-
-        // let epoch_height = get_epoch_height();
-        // if self.last_epoch_height == epoch_height {
-        //     return false;
-        // }
-        // self.last_epoch_height = epoch_height;
-
-        // // New total amount (both locked and unlocked balances).
-        // // NOTE: We need to subtract `attached_deposit` in case `ping` called from `deposit` call
-        // // since the attached deposit gets included in the `account_balance`, and we have not
-        // // accounted it yet.
-        // let total_balance =
-        //     env::account_locked_balance() + env::account_balance() - env::attached_deposit();
-
-        // assert!(
-        //     total_balance >= self.last_total_balance,
-        //     "The new total balance should not be less than the old total balance"
-        // );
-        // let total_reward = total_balance - self.last_total_balance;
-        // if total_reward > 0 {
-        //     // The validation fee that the contract owner takes.
-        //     let owners_fee = self.reward_fee_fraction.multiply(total_reward);
-
-        //     // Distributing the remaining reward to the delegators first.
-        //     let remaining_reward = total_reward - owners_fee;
-        //     self.total_staked_near_amount += remaining_reward;
-
-        //     // Now buying "stake" shares for the contract owner at the new share price.
-        //     let num_shares = self.num_shares_from_staked_amount_rounded_down(owners_fee);
-        //     if num_shares > 0 {
-        //         // Updating owner's inner account
-        //         let owner_id = self.owner_id.clone();
-        //         let mut account = self.internal_get_account(&owner_id);
-        //         account.stake_shares += num_shares;
-        //         self.internal_save_account(&owner_id, &account);
-        //         // Increasing the total amount of "stake" shares.
-        //         self.total_share_amount += num_shares;
-        //     }
-        //     // Increasing the total staked balance by the owners fee, no matter whether the owner
-        //     // received any shares or not.
-        //     self.total_staked_near_amount += owners_fee;
-
-        //     log!(
-        //         "Epoch {}: Contract received total rewards of {} tokens. New total staked balance is {}. Total number of shares {}",
-        //         epoch_height, total_reward, self.total_staked_near_amount, self.total_share_amount,
-        //     );
-        //     if num_shares > 0 {
-        //         log!("Total rewards fee is {} stake shares.", num_shares);
-        //     }
-        // }
-
-        // self.last_total_balance = total_balance;
-        // true
     }
 
     pub(crate) fn internal_get_beneficiaries(& self) -> HashMap<AccountId, Fraction> {
@@ -332,74 +252,6 @@ impl LiquidStakingContract {
             self.accounts.insert(account_id, &account);
         } else {
             self.accounts.remove(account_id);
-        }
-    }
-
-    pub fn internal_ft_get_account(&self, account_id: &AccountId) -> Account {
-        match self.accounts.get(account_id) {
-            Some(account) => account,
-            None => {
-                env::panic_str(format!("The account {} is not registered", &account_id).as_str())
-            }
-        }
-    }
-
-    pub fn internal_ft_deposit(&mut self, account_id: &AccountId, amount: ShareBalance) {
-        let mut account = self.internal_ft_get_account(account_id);
-        let balance = account.stake_shares;
-        if let Some(new_balance) = balance.checked_add(amount) {
-            account.stake_shares = new_balance;
-            self.internal_save_account(account_id, &account);
-            self.total_share_amount = self
-                .total_share_amount
-                .checked_add(amount)
-                .unwrap_or_else(|| env::panic_str("Total supply overflow"));
-        } else {
-            env::panic_str("Balance overflow");
-        }
-    }
-
-    pub fn internal_ft_withdraw(&mut self, account_id: &AccountId, amount: Balance) {
-        let mut account = self.internal_ft_get_account(account_id);
-        let balance = account.stake_shares;
-        if let Some(new_balance) = balance.checked_sub(amount) {
-            account.stake_shares = new_balance;
-            self.internal_save_account(account_id, &account);
-            self.total_share_amount = self
-                .total_share_amount
-                .checked_sub(amount)
-                .unwrap_or_else(|| env::panic_str("Total supply overflow"));
-        } else {
-            env::panic_str("The account doesn't have enough balance");
-        }
-    }
-
-    /// Inner method to transfer LINEAR from sender to receiver
-    pub(crate) fn internal_ft_transfer(
-        &mut self,
-        sender_id: &AccountId,
-        receiver_id: &AccountId,
-        amount: Balance,
-        memo: Option<String>,
-    ) {
-        assert_ne!(
-            sender_id, receiver_id,
-            "Sender and receiver should be different"
-        );
-        assert!(amount > 0, "The amount should be a positive number");
-
-        self.internal_ft_withdraw(sender_id, amount);
-        self.internal_ft_deposit(receiver_id, amount);
-
-        log!("Transfer {} from {} to {}", amount, sender_id, receiver_id);
-        if let Some(memo) = memo {
-            log!("Memo: {}", memo);
-        }
-    }
-
-    pub fn internal_register_account(&mut self, account_id: &AccountId) {
-        if self.accounts.insert(account_id, &Account::default()).is_some() {
-            env::panic_str("The account is already registered");
         }
     }
 }

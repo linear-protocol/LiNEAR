@@ -2,10 +2,11 @@ use crate::*;
 use near_sdk::json_types::{U128};
 use near_sdk::{
     assert_one_yocto, env, near_bindgen, AccountId, Balance, Gas, 
-    PromiseOrValue, PromiseResult,
+    PromiseOrValue, PromiseResult
 };
 use near_contract_standards::fungible_token::core::FungibleTokenCore;
 use near_contract_standards::fungible_token::resolver::FungibleTokenResolver;
+use near_contract_standards::fungible_token::events::FtTransfer;
 
 // allocate enough gas for ft_resolve_transfer() to avoid unexpected failure
 const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(12_000_000_000_000);
@@ -111,24 +112,91 @@ impl FungibleTokenResolver for LiquidStakingContract {
             let receiver_balance = receiver.stake_shares;
             if receiver_balance > 0 {
                 let refund_amount = std::cmp::min(receiver_balance, unused_amount);
-                // TODO: conversion between stake_shares (LINEAR) and NEAR amount
                 receiver.stake_shares -= refund_amount;
                 self.internal_save_account(&receiver_id, &receiver);
 
                 let mut sender = self.internal_get_account(&sender_id);
-                // TODO: conversion between stake_shares (LINEAR) and NEAR amount
                 sender.stake_shares += refund_amount;
                 self.internal_save_account(&sender_id, &sender);
 
-                env::log_str(
-                    format!(
-                        "Refund {} from {} to {}",
-                        refund_amount, receiver_id, sender_id
-                    ).as_ref()
-                );
+                FtTransfer {
+                    old_owner_id: &receiver_id,
+                    new_owner_id: &sender_id,
+                    amount: &U128(refund_amount),
+                    memo: Some("refund"),
+                }
+                .emit();
+
                 return (amount - refund_amount).into();
             }
         }
         amount.into()
+    }
+}
+
+impl LiquidStakingContract {
+    pub(crate) fn internal_ft_get_account(&self, account_id: &AccountId) -> Account {
+        match self.accounts.get(account_id) {
+            Some(account) => account,
+            None => {
+                env::panic_str(format!("The account {} is not registered", &account_id).as_str())
+            }
+        }
+    }
+
+    pub(crate) fn internal_ft_deposit(&mut self, account_id: &AccountId, amount: ShareBalance) {
+        let mut account = self.internal_ft_get_account(account_id);
+        let balance = account.stake_shares;
+        if let Some(new_balance) = balance.checked_add(amount) {
+            account.stake_shares = new_balance;
+            self.internal_save_account(account_id, &account);
+            self.total_share_amount = self
+                .total_share_amount
+                .checked_add(amount)
+                .unwrap_or_else(|| env::panic_str("Total supply overflow"));
+        } else {
+            env::panic_str("Balance overflow");
+        }
+    }
+
+    pub(crate) fn internal_ft_withdraw(&mut self, account_id: &AccountId, amount: Balance) {
+        let mut account = self.internal_ft_get_account(account_id);
+        let balance = account.stake_shares;
+        if let Some(new_balance) = balance.checked_sub(amount) {
+            account.stake_shares = new_balance;
+            self.internal_save_account(account_id, &account);
+            self.total_share_amount = self
+                .total_share_amount
+                .checked_sub(amount)
+                .unwrap_or_else(|| env::panic_str("Total supply overflow"));
+        } else {
+            env::panic_str("The account doesn't have enough balance");
+        }
+    }
+
+    /// Inner method to transfer LINEAR from sender to receiver
+    pub(crate) fn internal_ft_transfer(
+        &mut self,
+        sender_id: &AccountId,
+        receiver_id: &AccountId,
+        amount: Balance,
+        memo: Option<String>,
+    ) {
+        assert_ne!(
+            sender_id, receiver_id,
+            "Sender and receiver should be different"
+        );
+        assert!(amount > 0, "The amount should be a positive number");
+
+        self.internal_ft_withdraw(sender_id, amount);
+        self.internal_ft_deposit(receiver_id, amount);
+
+        FtTransfer {
+            old_owner_id: sender_id,
+            new_owner_id: receiver_id,
+            amount: &U128(amount),
+            memo: memo.as_deref(),
+        }
+        .emit();
     }
 }

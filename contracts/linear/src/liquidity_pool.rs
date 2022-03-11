@@ -41,6 +41,16 @@ pub struct LiquidityPoolConfig {
     pub treasury_fee_bps: u32,
 }
 
+impl LiquidityPoolConfig {
+    pub fn assert_valid(&self) {
+        require!(self.min_fee_bps > 0, ERR_NON_POSITIVE_MIN_FEE);
+        require!(self.max_fee_bps >= self.min_fee_bps, ERR_FEE_MAX_LESS_THAN_MIN);
+        require!(self.max_fee_bps < FULL_BASIS_POINTS, ERR_FEE_EXCEEDS_UP_LIMIT);
+        require!(self.expected_near_amount.0 > 0, ERR_NON_POSITIVE_EXPECTED_NEAR_AMOUNT);
+        require!(self.treasury_fee_bps < FULL_BASIS_POINTS, ERR_FEE_EXCEEDS_UP_LIMIT);
+    }
+}
+
 impl Default for LiquidityPoolConfig {
     fn default() -> Self {
         Self {
@@ -62,8 +72,7 @@ impl LiquidityPool {
     pub fn new(
         config: LiquidityPoolConfig,
     ) -> Self {
-        require!(config.min_fee_bps > 0, ERR_NON_POSITIVE_MIN_FEE);
-        require!(config.max_fee_bps >= config.min_fee_bps, ERR_FEE_MAX_LESS_THAN_MIN);
+        config.assert_valid();
 
         // Default token IDs
         let token_account_ids: Vec<AccountId> = Vec::from([
@@ -86,6 +95,7 @@ impl LiquidityPool {
         &mut self,
         config: LiquidityPoolConfig
     ) {
+        config.assert_valid();
         self.config = config;
     }
 

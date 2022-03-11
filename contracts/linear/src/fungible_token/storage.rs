@@ -4,6 +4,9 @@ use near_contract_standards::storage_management::{
 };
 use near_sdk::{assert_one_yocto, env, log, AccountId, Balance, Promise};
 
+/// Fixed storage amount to be compatible with standard FT implementation
+const STORAGE_AMOUNT_BYTES: usize = 125;
+
 impl LiquidStakingContract {
     /// Internal method that returns the Account ID and the balance in case the account was
     /// unregistered.
@@ -109,8 +112,7 @@ impl StorageManagement for LiquidStakingContract {
     }
 
     fn storage_balance_bounds(&self) -> StorageBalanceBounds {
-        let required_storage_balance =
-            Balance::from(self.account_storage_usage) * env::storage_byte_cost();
+        let required_storage_balance = STORAGE_AMOUNT_BYTES as Balance * env::storage_byte_cost();
         StorageBalanceBounds {
             min: required_storage_balance.into(),
             max: Some(required_storage_balance.into()),

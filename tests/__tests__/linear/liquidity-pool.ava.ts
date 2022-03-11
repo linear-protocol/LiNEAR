@@ -4,6 +4,7 @@ import {
   callWithMetrics,
   numbersEqual,
   noMoreThanOneYoctoDiff,
+  assertFailure,
   ONE_YOCTO
 } from './helper';
 
@@ -393,4 +394,81 @@ workspace.test('configure liquidity pool', async (test, { contract, owner, alice
     (await getTotalStakedNEAR(contract)).toString(),
     NEAR.parse("22.10465").toString()
   );
+});
+
+workspace.test('liquidity pool misconfiguration', async (test, { contract, owner }) => {
+
+  const ERR_NON_POSITIVE_MIN_FEE = "The min fee basis points should be positive";
+  const ERR_FEE_MAX_LESS_THAN_MIN = "The max fee basis points should be no less than the min fee";
+  const ERR_FEE_EXCEEDS_UP_LIMIT = "The fee basis points should be less than 10000";
+  const ERR_NON_POSITIVE_EXPECTED_NEAR_AMOUNT = "The expected NEAR amount should be positive";
+
+  await assertFailure(
+    test,
+    owner.call(
+      contract,
+      'configure_liquidity_pool',
+      {
+        config: {
+          expected_near_amount: NEAR.parse("10000").toString(),
+          max_fee_bps: 300,
+          min_fee_bps: 0,
+          treasury_fee_bps: 3000,
+        }
+      }
+    ),
+    ERR_NON_POSITIVE_MIN_FEE
+  );
+
+  await assertFailure(
+    test,
+    owner.call(
+      contract,
+      'configure_liquidity_pool',
+      {
+        config: {
+          expected_near_amount: NEAR.parse("10000").toString(),
+          max_fee_bps: 30,
+          min_fee_bps: 300,
+          treasury_fee_bps: 3000,
+        }
+      }
+    ),
+    ERR_FEE_MAX_LESS_THAN_MIN
+  );
+
+  await assertFailure(
+    test,
+    owner.call(
+      contract,
+      'configure_liquidity_pool',
+      {
+        config: {
+          expected_near_amount: NEAR.parse("10000").toString(),
+          max_fee_bps: 300,
+          min_fee_bps: 30,
+          treasury_fee_bps: 10001,
+        }
+      }
+    ),
+    ERR_FEE_EXCEEDS_UP_LIMIT
+  );
+
+  await assertFailure(
+    test,
+    owner.call(
+      contract,
+      'configure_liquidity_pool',
+      {
+        config: {
+          expected_near_amount: NEAR.parse("0").toString(),
+          max_fee_bps: 300,
+          min_fee_bps: 30,
+          treasury_fee_bps: 3000,
+        }
+      }
+    ),
+    ERR_NON_POSITIVE_EXPECTED_NEAR_AMOUNT
+  );
+
 });

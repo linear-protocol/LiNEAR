@@ -104,6 +104,7 @@ workspace.test('stake NEAR and transfer LiNEAR', async (test, {contract, alice, 
   );
 });
 
+// Ensure LiNEAR transfer work well with NEAR Wallet
 workspace.test('transfer LiNEAR with 0.00125Ⓝ storage balance', async (test, {contract, alice, bob}) => {
   await registerFungibleTokenUser(contract, alice, NEAR.parse("0.00125"));
   await registerFungibleTokenUser(contract, bob, NEAR.parse("0.00125"));

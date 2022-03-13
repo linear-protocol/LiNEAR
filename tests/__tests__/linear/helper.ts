@@ -122,7 +122,11 @@ export function skip(...args: any[]) {
   console.debug(`Skipping test ${args[0]} ...`);
 }
 
-export async function registerFungibleTokenUser(ft: NearAccount, user: NearAccount) {
+export async function registerFungibleTokenUser(
+  ft: NearAccount,
+  user: NearAccount,
+  storage_cost?: NEAR,
+) {
   const storage_balance = await ft.view(
     'storage_balance_bounds',
     {}
@@ -131,7 +135,7 @@ export async function registerFungibleTokenUser(ft: NearAccount, user: NearAccou
     ft,
     'storage_deposit',
     { account_id: user },
-    { attachedDeposit: storage_balance.min.toString() },
+    { attachedDeposit: storage_cost?.toString() || storage_balance.min.toString() },
   );
 }
 

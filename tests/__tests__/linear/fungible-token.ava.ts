@@ -103,3 +103,30 @@ workspace.test('stake NEAR and transfer LiNEAR', async (test, {contract, alice, 
     ERR_NO_ENOUGH_BALANCE
   );
 });
+
+// Ensure LiNEAR transfer work well with NEAR Wallet
+workspace.test('register LiNEAR with 0.00125Ⓝ storage balance', async (test, {contract, alice, bob}) => {
+  await registerFungibleTokenUser(contract, alice, NEAR.parse("0.00125"));
+  await registerFungibleTokenUser(contract, bob, NEAR.parse("0.00125"));
+
+  // deposit and stake 10 NEAR
+  const stakeAmount = NEAR.parse('10');
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    { attachedDeposit: stakeAmount },
+  );
+
+  // transfer 2 LiNEAR from alice to bob
+  const transferAmount1 = NEAR.parse('2');
+  await transfer(contract, alice, bob, transferAmount1);
+  test.is(
+    await contract.view('ft_balance_of', { account_id: alice }),
+    stakeAmount.sub(transferAmount1).toString()
+  );
+  test.is(
+    await contract.view('ft_balance_of', { account_id: bob }),
+    transferAmount1.toString()
+  );
+});

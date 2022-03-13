@@ -100,7 +100,7 @@ mod upgrade {
     /// Self upgrade and call migrate, optimizes gas by not loading into memory the code.
     /// Takes as input non serialized set of bytes of the code.
     #[no_mangle]
-    pub extern "C" fn upgrade() {
+    pub fn upgrade() {
         env::setup_panic_hook();
         let contract: LiquidStakingContract = env::state_read().expect("ERR_CONTRACT_IS_NOT_INITIALIZED");
         contract.assert_owner();
@@ -109,10 +109,13 @@ mod upgrade {
         unsafe {
             // Load input into register 0.
             sys::input(0);
+            // Create batch action promise for the current contract ID
             let promise_id =
                 sys::promise_batch_create(current_id.len() as _, current_id.as_ptr() as _);
+            // 1st action in the Tx: "deploy contract" (code is taken from register 0)
             sys::promise_batch_action_deploy_contract(promise_id, u64::MAX as _, 0);
             let attached_gas = env::prepaid_gas() - env::used_gas() - GAS_FOR_MIGRATE_CALL;
+            // 2nd action in the Tx: call this_contract.migrate() with remaining gas
             sys::promise_batch_action_function_call(
                 promise_id,
                 method_name.len() as _,

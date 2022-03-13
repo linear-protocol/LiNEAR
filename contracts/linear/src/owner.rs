@@ -114,8 +114,8 @@ mod upgrade {
                 sys::promise_batch_create(current_id.len() as _, current_id.as_ptr() as _);
             // 1st action in the Tx: "deploy contract" (code is taken from register 0)
             sys::promise_batch_action_deploy_contract(promise_id, u64::MAX as _, 0);
-            let attached_gas = env::prepaid_gas() - env::used_gas() - GAS_FOR_MIGRATE_CALL;
             // 2nd action in the Tx: call this_contract.migrate() with remaining gas
+            let attached_gas = env::prepaid_gas() - env::used_gas() - GAS_FOR_MIGRATE_CALL;
             sys::promise_batch_action_function_call(
                 promise_id,
                 method_name.len() as _,

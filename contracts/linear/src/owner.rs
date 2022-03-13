@@ -78,7 +78,7 @@ impl LiquidStakingContract {
     /// Should only be called by this contract on migration.
     /// This is NOOP implementation. KEEP IT if you haven't changed contract state.
     /// If you have changed state, you need to implement migration from old state (keep the old struct with different name to deserialize it first).
-    /// After migration goes live on, return this implementation for next updates.
+    /// After migration goes live, revert back to this implementation for next updates.
     #[init(ignore_state)]
     #[private]
     pub fn migrate() -> Self {

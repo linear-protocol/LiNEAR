@@ -46,11 +46,13 @@ pub const ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED: &str = "Cannot unstake from a pendi
 pub const ERR_VALIDATOR_WITHDRAW_WHEN_LOCKED: &str = "Cannot withdraw from a pending release validator";
 
 // liquidity pool
+pub const ERR_NON_POSITIVE_MIN_FEE: &str = "The min fee basis points should be positive";
+pub const ERR_FEE_MAX_LESS_THAN_MIN: &str = "The max fee basis points should be no less than the min fee";
+pub const ERR_FEE_EXCEEDS_UP_LIMIT: &str = "The fee basis points should be less than 10000";
+pub const ERR_NON_POSITIVE_EXPECTED_NEAR_AMOUNT: &str = "The expected NEAR amount should be positive";
+
 pub const ERR_NON_POSITIVE_LIQUIDITY_POOL_SHARE: &str = "The calculated number of shares received for adding liquidity should be positive";
 pub const ERR_NON_POSITIVE_MIN_RECEIVED_AMOUNT: &str = "The expected received NEAR amount should be positive";
-pub const ERR_NON_POSITIVE_MIN_FEE: &str = "The min fee should be positive";
-pub const ERR_FEE_MAX_LESS_THAN_MIN: &str = "The max fee should be no less than the min fee";
-pub const ERR_FEE_EXCEEDS_UP_LIMIT: &str = "The fee should be less than 10000";
 pub const ERR_NON_POSITIVE_RECEIVED_FEE: &str = "The fee received by the liquidity pool should be positive";
 pub const ERR_NO_ENOUGH_LIQUIDITY: &str = "Not enough liquidity in the pool";
 pub const ERR_ACCOUNT_NO_SHARE: &str = "Account has no shares in liquidity pool";

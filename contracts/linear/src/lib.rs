@@ -27,9 +27,9 @@ use crate::utils::*;
 use crate::errors::*;
 use crate::account::*;
 use crate::validator_pool::*;
+use crate::fungible_token::*;
+use crate::liquidity_pool::*;
 use crate::farm::{Farm};
-pub use crate::fungible_token::*;
-pub use crate::liquidity_pool::*;
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
 #[serde(crate = "near_sdk::serde")]
@@ -69,6 +69,8 @@ impl Fraction {
 pub struct LiquidStakingContract {
     /// The account ID of the owner who's running the liquid staking contract.
     owner_id: AccountId,
+    /// The account ID of the treasury that manages portion of the received fees and rewards.
+    treasury_id: AccountId,
     /// Total amount of LiNEAR that was minted (minus burned).
     total_share_amount: ShareBalance,
     /// Total amount of NEAR that was staked by users to this contract.         
@@ -155,14 +157,15 @@ impl LiquidStakingContract {
             )
         );
         let mut this = Self {
-            owner_id,
+            owner_id: owner_id.clone(),
+            treasury_id: owner_id.clone(),
             total_share_amount: 10 * ONE_NEAR,
             total_staked_near_amount: 10 * ONE_NEAR,
             accounts: UnorderedMap::new(StorageKey::Accounts),
             paused: false,
             account_storage_usage: 0,
             beneficiaries: UnorderedMap::new(StorageKey::Beneficiaries),
-            liquidity_pool: LiquidityPool::new(10000 * ONE_NEAR, 300, 30, 7000),
+            liquidity_pool: LiquidityPool::new(LiquidityPoolConfig::default()),
             // Validator Pool
             validator_pool: ValidatorPool::new(),
             epoch_requested_stake_amount: 10 * ONE_NEAR,

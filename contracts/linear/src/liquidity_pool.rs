@@ -8,7 +8,6 @@ use near_sdk::{
 const NEAR_TOKEN_ACCOUNT: &str = "near";
 const LINEAR_TOKEN_ACCOUNT: &str = "linear";
 
-
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct LiquidityPool {
     /// List of tokens in the pool
@@ -20,18 +19,50 @@ pub struct LiquidityPool {
     /// Total number of shares
     pub shares_total_supply: Balance,
 
-    /// The amount of expected near amount to keep fee lower
-    pub expected_near_amount: Balance,
-    /// Max fee basis points
-    pub max_fee: u32,
-    /// Min fee basis points
-    pub min_fee: u32,
-    /// Fee allocated to DAO 
-    pub fee_treasury_basis_points: u32,
+    /// Configuration of the pool
+    pub config: LiquidityPoolConfig,
+
     /// Total swap fee in LiNEAR received by the pool
     pub total_fee_shares: ShareBalance,
 }
 
+#[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct LiquidityPoolConfig {
+    /// The expected near amount used in the fee calculation formula.
+    /// If the NEAR amount in the liquidity pool exceeds the expectation, the
+    /// swap fee will be the `min_fee_bps`
+    pub expected_near_amount: U128,
+    /// Max fee in basis points
+    pub max_fee_bps: u32,
+    /// Min fee in basis points
+    pub min_fee_bps: u32,
+    /// Fee allocated to treasury in basis points
+    pub treasury_fee_bps: u32,
+}
+
+impl LiquidityPoolConfig {
+    pub fn assert_valid(&self) {
+        require!(self.min_fee_bps > 0, ERR_NON_POSITIVE_MIN_FEE);
+        require!(self.max_fee_bps >= self.min_fee_bps, ERR_FEE_MAX_LESS_THAN_MIN);
+        require!(self.max_fee_bps < FULL_BASIS_POINTS, ERR_FEE_EXCEEDS_UP_LIMIT);
+        require!(self.expected_near_amount.0 > 0, ERR_NON_POSITIVE_EXPECTED_NEAR_AMOUNT);
+        require!(self.treasury_fee_bps < FULL_BASIS_POINTS, ERR_FEE_EXCEEDS_UP_LIMIT);
+    }
+}
+
+impl Default for LiquidityPoolConfig {
+    fn default() -> Self {
+        Self {
+            expected_near_amount: U128(10000 * ONE_NEAR),
+            max_fee_bps: 300,
+            min_fee_bps: 30,
+            treasury_fee_bps: 3000
+        }
+    }
+}
+
+/// Context info from the main contract and used in other structs
 pub struct Context {
     pub total_staked_near_amount: Balance,
     pub total_share_amount: ShareBalance
@@ -39,13 +70,9 @@ pub struct Context {
 
 impl LiquidityPool {
     pub fn new(
-        expected_near_amount: Balance,
-        max_fee: u32,
-        min_fee: u32,
-        fee_treasury_basis_points: u32,
+        config: LiquidityPoolConfig,
     ) -> Self {
-        require!(min_fee > 0, ERR_NON_POSITIVE_MIN_FEE);
-        require!(max_fee >= min_fee, ERR_FEE_MAX_LESS_THAN_MIN);
+        config.assert_valid();
 
         // Default token IDs
         let token_account_ids: Vec<AccountId> = Vec::from([
@@ -58,12 +85,18 @@ impl LiquidityPool {
             amounts: vec![0u128; token_account_ids.len()],
             shares: LookupMap::new(StorageKey::Shares),
             shares_total_supply: 0,
-            expected_near_amount,
-            max_fee,
-            min_fee,
-            fee_treasury_basis_points,
+            config,
             total_fee_shares: 0,
         }
+    }
+
+    /// Set the liquidity pool configuration
+    pub fn configure(
+        &mut self,
+        config: LiquidityPoolConfig
+    ) {
+        config.assert_valid();
+        self.config = config;
     }
 
     /// Adds the amounts of tokens to liquidity pool and returns number of shares that this user receives.
@@ -151,7 +184,7 @@ impl LiquidityPool {
             context
         );
         let treasury_fee_stake_shares = (U256::from(swap_fee_stake_shares)
-            * U256::from(self.fee_treasury_basis_points)
+            * U256::from(self.config.treasury_fee_bps)
             / U256::from(FULL_BASIS_POINTS)).as_u128();
 
         // Accumulate the total received fee by the pool in LiNEAR
@@ -330,18 +363,19 @@ impl LiquidityPool {
     /// Swap fee basis points calculated based on swap amount
     pub fn get_current_swap_fee_basis_points(&self, amount_out: u128) -> u32 {
         if self.amounts[0] <= amount_out {
-            return self.max_fee;
+            return self.config.max_fee_bps;
         }
 
+        let expected_near_amount: Balance = self.config.expected_near_amount.into();
         let remaining_amount = self.amounts[0] - amount_out;
-        if remaining_amount >= self.expected_near_amount {
-            return self.min_fee;
+        if remaining_amount >= expected_near_amount {
+            return self.config.min_fee_bps;
         }
 
-        let diff = self.max_fee - self.min_fee;
-        self.max_fee -
+        let diff = self.config.max_fee_bps - self.config.min_fee_bps;
+        self.config.max_fee_bps -
             (U256::from(diff) * U256::from(remaining_amount) 
-                / U256::from(self.expected_near_amount))
+                / U256::from(expected_near_amount))
                 .as_u32()
     }
 
@@ -434,7 +468,7 @@ impl LiquidStakingContract {
         );
 
         // Calculate and distribute fees for DAO treasury
-        let treasury_account_id = TREASURY_ACCOUNT.parse::<AccountId>().unwrap();
+        let treasury_account_id = self.treasury_id.clone();
         let mut treasury_account = self.internal_get_account(&treasury_account_id);
         treasury_account.stake_shares += treasury_fee_stake_shares;
         self.internal_save_account(&treasury_account_id, &treasury_account);

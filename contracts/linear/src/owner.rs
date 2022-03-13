@@ -107,7 +107,7 @@ mod upgrade {
         let current_id = env::current_account_id().as_bytes().to_vec();
         let method_name = "migrate".as_bytes().to_vec();
         unsafe {
-            // Load input into register 0.
+            // Load input (wasm code) into register 0.
             sys::input(0);
             // Create batch action promise for the current contract ID
             let promise_id =

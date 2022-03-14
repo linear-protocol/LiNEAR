@@ -1,6 +1,5 @@
 use crate::*;
 use crate::types::*;
-use crate::events::*;
 use near_sdk::{Promise,log};
 use std::{
     collections::HashMap,
@@ -157,17 +156,13 @@ impl LiquidStakingContract {
         for (account_id, fraction) in hashmap.iter() {
             let reward_near_amount: Balance = fraction.multiply(rewards);
             // mint extra LiNEAR for him
-            let reward_shares = self.internal_mint_shares(&account_id, reward_near_amount);
-            log_linear_minted(
-                &account_id,
-                reward_shares
-            );
+            self.internal_mint_beneficiary_rewards(&account_id, reward_near_amount);
         }
     }
 
     /// Mint new LiNEAR tokens to given account at the current price.
     /// This will DECREASE the LiNEAR price.
-    fn internal_mint_shares(
+    fn internal_mint_beneficiary_rewards(
         &mut self,
         account_id: &AccountId,
         near_amount: Balance
@@ -177,7 +172,7 @@ impl LiquidStakingContract {
         if self.accounts.get(account_id).is_none() {
             self.internal_register_account(account_id);
         }
-        self.internal_ft_deposit(account_id, shares);
+        self.internal_ft_mint(account_id, shares, Some("beneficiary rewards"));
         return shares;
     }
 

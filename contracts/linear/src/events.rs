@@ -1,4 +1,3 @@
-use crate::types::*;
 use near_sdk::{
     AccountId, Balance, log,
     serde_json::{json},
@@ -144,20 +143,6 @@ pub fn log_new_balance(
             "old_balance": U128::from(old_balance),
             "new_balance": U128::from(new_balance),
             "rewards": U128::from(rewards)
-        })
-        .to_string()
-    );
-}
-
-pub fn log_linear_minted(
-    account_id: &AccountId,
-    amount: ShareBalance,
-) {
-    log!(
-        json!({
-            "event": "linear.mint",
-            "account_id": account_id,
-            "amount": U128::from(amount)
         })
         .to_string()
     );

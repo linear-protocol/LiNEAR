@@ -153,8 +153,6 @@ impl ValidatorPool {
         let mut candidate = None ;
         let mut amount_to_stake: Balance = 0;
 
-        // TODO lock validator?
-
         for (_, validator) in self.validators.iter() {
             if validator.pending_release() {
                 continue;
@@ -232,7 +230,7 @@ impl ValidatorPool {
     }
 
     pub fn get_num_epoch_to_unstake(&self, _amount: u128) -> EpochHeight {
-        // TODO: the num of epoches can be doubled or trippled if not enough stake is available
+        // the num of epoches can be doubled or trippled if not enough stake is available
         NUM_EPOCHS_TO_UNLOCK
     }
 }

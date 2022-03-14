@@ -13,6 +13,7 @@ mod utils;
 mod owner;
 mod events;
 mod errors;
+mod legacy;
 mod account;
 mod internal;
 mod stake;

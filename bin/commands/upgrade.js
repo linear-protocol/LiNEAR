@@ -1,5 +1,6 @@
 const { readFileSync } = require("fs");
 const nearAPI = require('near-api-js');
+const { init } = require("../near");
 
 exports.command = 'upgrade <address>';
 exports.desc = 'Upgrade contract';
@@ -18,6 +19,10 @@ exports.builder = yargs => {
       describe: 'New contract wasm file path',
       default: 'res/linear.wasm'
     })
+    .option('signer', {
+      describe: 'signer account ID to call new'
+    })
+    .demandOption(['signer'])
 }
 
 exports.handler = async function (argv) {
@@ -26,18 +31,20 @@ exports.handler = async function (argv) {
   console.log(`Upgrading contract ${address}`);
 
   const near = await init(argv.network);
-  const account = await near.account(address);
+  const account = await near.account(argv.signer);
 
   await account.signAndSendTransaction(
-    address,
-    [
-      nearAPI.transactions.functionCall(
-        'upgrade',
-        code,
-        100000000000000, 
-        "0"
-      )
-    ]
+    {
+      receiverId: address,
+      actions: [
+        nearAPI.transactions.functionCall(
+          'upgrade',
+          code,
+          100000000000000,
+          "0"
+        )
+      ]
+    }
   );
 
   console.log('upgraded!');

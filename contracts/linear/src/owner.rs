@@ -1,4 +1,5 @@
 use crate::*;
+use crate::legacy::*;
 use near_sdk::{
     near_bindgen,
 };
@@ -82,8 +83,32 @@ impl LiquidStakingContract {
     #[init(ignore_state)]
     #[private]
     pub fn migrate() -> Self {
-        let contract: LiquidStakingContract = env::state_read().expect("ERR_NOT_INITIALIZED");
-        contract
+        let contract: ContractV1_0_0 = env::state_read().expect("ERR_NOT_INITIALIZED");
+        Self {
+            owner_id: contract.owner_id,
+            treasury_id: contract.treasury_id,
+            total_share_amount: contract.total_share_amount,
+            total_staked_near_amount: contract.total_staked_near_amount,
+            accounts: contract.accounts,
+            paused: contract.paused,
+            account_storage_usage: contract.account_storage_usage,
+            beneficiaries: contract.beneficiaries,
+            liquidity_pool: contract.liquidity_pool,
+            // Validator Pool
+            validator_pool: contract.validator_pool,
+            epoch_requested_stake_amount: contract.epoch_requested_stake_amount,
+            epoch_requested_unstake_amount: contract.epoch_requested_unstake_amount,
+            stake_amount_to_settle: 0,
+            unstake_amount_to_settle: 0,
+            last_settlement_epoch: 0,
+            // Staking Farm
+            farms: contract.farms,
+            active_farms: contract.active_farms,
+            // authorized_users: UnorderedSet::new(StorageKey::AuthorizedUsers),
+            authorized_farm_tokens: contract.authorized_farm_tokens,
+            upgrade_foo: 129,
+            upgrade_bar: "bar".to_string(),
+        }
     }
 }
 

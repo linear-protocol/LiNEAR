@@ -73,6 +73,14 @@ impl HumanReadableFarm {
 /// public view functions
 #[near_bindgen]
 impl LiquidStakingContract {
+    pub fn get_foo(& self) -> Balance {
+        self.upgrade_foo
+    }
+
+    pub fn get_bar(& self) -> String {
+        self.upgrade_bar.clone()
+    }
+
     pub fn get_total_share_amount(& self) -> ShareBalance {
         self.total_share_amount
     }

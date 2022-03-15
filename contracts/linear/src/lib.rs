@@ -127,6 +127,9 @@ pub struct LiquidStakingContract {
     /// Authorized tokens for farms.
     /// Required because any contract can call method with ft_transfer_call, so must verify that contract will accept it.
     authorized_farm_tokens: UnorderedSet<AccountId>,
+
+    upgrade_foo: Balance,
+    upgrade_bar: String,
 }
 
 #[near_bindgen]
@@ -179,6 +182,8 @@ impl LiquidStakingContract {
             active_farms: Vec::new(),
             // authorized_users: UnorderedSet::new(StorageKey::AuthorizedUsers),
             authorized_farm_tokens: UnorderedSet::new(StorageKey::AuthorizedFarmTokens),
+            upgrade_foo: 129,
+            upgrade_bar: "bar".to_string(),
         };
         this.measure_account_storage_usage();
         this

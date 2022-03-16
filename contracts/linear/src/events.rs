@@ -1,149 +1,175 @@
 use near_sdk::{
-    AccountId, Balance, log,
+    AccountId, log,
+    serde::{Serialize},
     serde_json::{json},
     json_types::U128,
 };
 
-pub fn log_stake_attempt(
-    validator_id: &AccountId,
-    amount: Balance
-) {
-    log!(
-        json!({
-            "event": "stake.attempt",
-            "validator_id": validator_id,
-            "amount": U128::from(amount) 
-        })
-        .to_string()
-    );
+pub (crate) fn emit_event<T: ?Sized + Serialize>(data: &T) {
+    let result = json!(data);
+    let event_json = json!({
+        "standard": "linear-protocol",
+        "version": "1.0.0",
+        "event": result["event"],
+        "data": [result["data"]]
+    })
+    .to_string();
+    log!(format!("EVENT_JSON:{}", event_json));
 }
 
-pub fn log_stake_success(
-    validator_id: &AccountId,
-    amount: Balance
-) {
-    log!(
-        json!({
-            "event": "stake.success",
-            "validator_id": validator_id,
-            "amount": U128::from(amount)
-        })
-        .to_string()
-    );
+#[derive(Serialize, Debug, Clone)]
+#[serde(crate = "near_sdk::serde")]
+#[serde(tag = "event", content = "data")]
+#[serde(rename_all = "snake_case")]
+pub enum Event {
+    // Epoch Actions
+    EpochStakeAttempt { validator_id: AccountId, amount: U128 },
+    EpochStakeSuccess { validator_id: AccountId, amount: U128 },
+    EpochStakeFailed { validator_id: AccountId, amount: U128 },
+    EpochUnstakeAttempt { validator_id: AccountId, amount: U128 },
+    EpochUnstakeSuccess { validator_id: AccountId, amount: U128 },
+    EpochUnstakeFailed { validator_id: AccountId, amount: U128 },
+    EpochWithdrawAttempt { validator_id: AccountId, amount: U128 },
+    EpochWithdrawSuccess { validator_id: AccountId, amount: U128 },
+    EpochWithdrawFailed { validator_id: AccountId, amount: U128 },
+    EpochUpdateRewards {
+        validator_id: AccountId,
+        old_balance: U128,
+        new_balance: U128,
+        rewards: U128
+    }
 }
 
-pub fn log_stake_failed(
-    validator_id: &AccountId,
-    amount: Balance
-) {
-    log!(
-        json!({
-            "event": "stake.failed",
-            "validator_id": validator_id,
-            "amount": U128::from(amount)
-        })
-        .to_string()
-    );
+impl Event {
+    pub fn emit(&self) {
+        emit_event(&self);
+    }
 }
 
-pub fn log_unstake_attempt(
-    validator_id: &AccountId,
-    amount: Balance
-) {
-    log!(
-        json!({
-            "event": "unstake.attempt",
-            "validator_id": validator_id,
-            "amount": U128::from(amount)
-        })
-        .to_string()
-    );
-}
 
-pub fn log_unstake_success(
-    validator_id: &AccountId,
-    amount: Balance
-) {
-    log!(
-        json!({
-            "event": "unstake.success",
-            "validator_id": validator_id,
-            "amount": U128::from(amount)
-        })
-        .to_string()
-    );
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use near_sdk::{test_utils, AccountId};
 
-pub fn log_unstake_failed(
-    validator_id: &AccountId,
-    amount: Balance
-) {
-    log!(
-        json!({
-            "event": "unstake.failed",
-            "validator_id": validator_id,
-            "amount": U128::from(amount)
-        })
-        .to_string()
-    );
-}
+    fn alice() -> AccountId {
+        AccountId::new_unchecked("alice".to_string())
+    }
 
-pub fn log_withdraw_attempt(
-    validator_id: &AccountId,
-    amount: Balance
-) {
-    log!(
-        json!({
-            "event": "withdraw.attempt",
-            "validator_id": validator_id,
-            "amount": U128::from(amount)
-        })
-        .to_string()
-    );
-}
+    #[test]
+    fn epoch_stake_attempt() {
+        let validator_id = alice();
+        let amount = U128(100);
+        Event::EpochStakeAttempt { validator_id, amount }.emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_stake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
 
-pub fn log_withdraw_success(
-    validator_id: &AccountId,
-    amount: Balance
-) {
-    log!(
-        json!({
-            "event": "withdraw.success",
-            "validator_id": validator_id,
-            "amount": U128::from(amount)
-        })
-        .to_string()
-    );
-}
+    #[test]
+    fn epoch_stake_success() {
+        let validator_id = alice();
+        let amount = U128(100);
+        Event::EpochStakeSuccess { validator_id, amount }.emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_stake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
 
-pub fn log_withdraw_failed(
-    validator_id: &AccountId,
-    amount: Balance
-) {
-    log!(
-        json!({
-            "event": "withdraw.failed",
-            "validator_id": validator_id,
-            "amount": U128::from(amount)
-        })
-        .to_string()
-    );
-}
+    #[test]
+    fn epoch_stake_failed() {
+        let validator_id = alice();
+        let amount = U128(100);
+        Event::EpochStakeFailed { validator_id, amount }.emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_stake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
 
-pub fn log_new_balance(
-    validator_id: &AccountId,
-    old_balance: Balance,
-    new_balance: Balance,
-    rewards: Balance
-) {
-    log!(
-        json!({
-            "event": "balance.update",
-            "validator_id": validator_id,
-            "old_balance": U128::from(old_balance),
-            "new_balance": U128::from(new_balance),
-            "rewards": U128::from(rewards)
-        })
-        .to_string()
-    );
+    #[test]
+    fn epoch_unstake_attempt() {
+        let validator_id = alice();
+        let amount = U128(100);
+        Event::EpochUnstakeAttempt { validator_id, amount }.emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_unstake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn epoch_unstake_success() {
+        let validator_id = alice();
+        let amount = U128(100);
+        Event::EpochUnstakeSuccess { validator_id, amount }.emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_unstake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn epoch_unstake_failed() {
+        let validator_id = alice();
+        let amount = U128(100);
+        Event::EpochUnstakeFailed { validator_id, amount }.emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_unstake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn epoch_withdraw_attempt() {
+        let validator_id = alice();
+        let amount = U128(100);
+        Event::EpochWithdrawAttempt { validator_id, amount }.emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_withdraw_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn epoch_withdraw_success() {
+        let validator_id = alice();
+        let amount = U128(100);
+        Event::EpochWithdrawSuccess { validator_id, amount }.emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_withdraw_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn epoch_withdraw_failed() {
+        let validator_id = alice();
+        let amount = U128(100);
+        Event::EpochWithdrawFailed { validator_id, amount }.emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_withdraw_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn epoch_update_rewards() {
+        let validator_id = alice();
+        let old_balance = 100;
+        let new_balance = 120;
+        Event::EpochUpdateRewards { 
+            validator_id,
+            old_balance: U128(old_balance),
+            new_balance: U128(new_balance),
+            rewards: U128(new_balance - old_balance)
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_update_rewards","data":[{"validator_id":"alice","old_balance":"100","new_balance":"120","rewards":"20"}]}"#
+        );
+    }
 }

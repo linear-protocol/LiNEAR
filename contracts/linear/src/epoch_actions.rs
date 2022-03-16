@@ -6,7 +6,7 @@ use near_sdk::{
 use crate::errors::*;
 use crate::types::*;
 use crate::utils::*;
-use crate::events::*;
+use crate::events::{Event};
 
 const MIN_AMOUNT_TO_PERFORM_STAKE: Balance = ONE_NEAR;
 const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR;
@@ -59,7 +59,11 @@ impl LiquidStakingContract {
         // update internal state
         self.stake_amount_to_settle -= amount_to_stake;
 
-        log_stake_attempt(&candidate.account_id, amount_to_stake);
+        Event::EpochStakeAttempt {
+            validator_id: candidate.account_id.clone(),
+            amount: U128(amount_to_stake)
+        }
+        .emit();
 
         // do staking on selected validator
         candidate
@@ -106,7 +110,11 @@ impl LiquidStakingContract {
         // update internal state
         self.unstake_amount_to_settle -= amount_to_unstake;
 
-        log_unstake_attempt(&candidate.account_id, amount_to_unstake);
+        Event::EpochUnstakeAttempt {
+            validator_id: candidate.account_id.clone(),
+            amount: U128(amount_to_unstake)
+        }
+        .emit();
 
         // do unstaking on selected validator
         candidate
@@ -164,10 +172,11 @@ impl LiquidStakingContract {
 
         let amount = validator.unstaked_amount;
 
-        log_withdraw_attempt(
-            &validator_id,
-            amount
-        );
+        Event::EpochWithdrawAttempt {
+            validator_id: validator_id.clone(),
+            amount: U128(amount)
+        }
+        .emit();
 
         validator
             .withdraw(&mut self.validator_pool, amount)
@@ -249,14 +258,22 @@ impl LiquidStakingContract {
                 .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
             validator.on_stake_success(&mut self.validator_pool, amount);
 
-            log_stake_success(&validator_id, amount);
+            Event::EpochStakeSuccess {
+                validator_id: validator_id.clone(),
+                amount: U128(amount)
+            }
+            .emit();
             return;
         }
 
         // stake failed, revert
         self.stake_amount_to_settle += amount;
 
-        log_stake_failed(&validator_id, amount);
+        Event::EpochStakeFailed {
+            validator_id: validator_id.clone(),
+            amount: U128(amount)
+        }
+        .emit();
     }
 
     #[private]
@@ -271,7 +288,11 @@ impl LiquidStakingContract {
 
         if is_promise_success() {
             validator.on_unstake_success(&mut self.validator_pool, amount);
-            log_unstake_success(&validator_id, amount);
+            Event::EpochUnstakeSuccess {
+                validator_id: validator_id.clone(),
+                amount: U128(amount)
+            }
+            .emit();
             return;
         }
 
@@ -282,7 +303,11 @@ impl LiquidStakingContract {
         // 2. revert validator states
         validator.on_unstake_failed(&mut self.validator_pool, amount);
 
-        log_unstake_failed(&validator_id, amount);
+        Event::EpochUnstakeFailed {
+            validator_id: validator_id.clone(),
+            amount: U128(amount)
+        }
+        .emit();
     }
 
     #[private]
@@ -297,12 +322,13 @@ impl LiquidStakingContract {
 
         let new_balance = total_balance.0;
         let rewards = new_balance - validator.total_balance();
-        log_new_balance(
-            &validator_id,
-            validator.total_balance(),
-            new_balance,
-            rewards
-        );
+        Event::EpochUpdateRewards {
+            validator_id: validator_id.clone(),
+            old_balance: U128(validator.total_balance()),
+            new_balance: U128(new_balance),
+            rewards: U128(rewards)
+        }
+        .emit();
 
         validator.on_new_total_balance(&mut self.validator_pool, new_balance);
 
@@ -322,7 +348,11 @@ impl LiquidStakingContract {
         amount: Balance
     ) {
         if is_promise_success() {
-            log_withdraw_success(&validator_id, amount);
+            Event::EpochWithdrawSuccess {
+                validator_id: validator_id.clone(),
+                amount: U128(amount)
+            }
+            .emit();
             return;
         }
 
@@ -333,9 +363,10 @@ impl LiquidStakingContract {
 
         validator.on_withdraw_failed(&mut self.validator_pool, amount);
 
-        log_withdraw_failed(
-            &validator_id,
-            amount
-        );
+        Event::EpochWithdrawFailed {
+            validator_id: validator_id.clone(),
+            amount: U128(amount)
+        }
+        .emit();
     }
 }

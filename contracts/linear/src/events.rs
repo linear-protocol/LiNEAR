@@ -14,7 +14,7 @@ use near_sdk::{
 pub (crate) fn emit_event<T: ?Sized + Serialize>(data: &T) {
     let result = json!(data);
     let event_json = json!({
-        "standard": "linear-protocol",
+        "standard": "linear",
         "version": "1.0.0",
         "event": result["event"],
         "data": [result["data"]]

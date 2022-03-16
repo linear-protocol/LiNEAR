@@ -5,6 +5,14 @@ use near_sdk::{
 
 #[near_bindgen]
 impl LiquidStakingContract {
+    pub fn set_owner(
+        &mut self,
+        new_owner_id: AccountId
+    ) {
+        self.assert_owner();
+        self.owner_id = new_owner_id;
+    }
+
     pub fn set_beneficiary(
         &mut self,
         account_id: AccountId,

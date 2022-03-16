@@ -58,11 +58,45 @@ pub enum Event {
     },
     Unstake {
         account_id: AccountId,
-        increase_amount: U128,
+        increased_amount: U128,
         decreased_stake_shares: U128,
         current_unstaked_balance: U128,
         current_stake_shares: U128,
         available_epoch_height: u64
+    },
+    // Liquidity Pool
+    AddLiquidity {
+        account_id: AccountId,
+        amount: U128,
+        added_shares: U128,
+    },
+    RemoveLiquidity {
+        account_id: AccountId,
+        removed_shares: U128,
+        received_near: U128,
+        received_linear: U128,
+    },
+    InstantUnstake {
+        account_id: AccountId,
+        increased_amount: U128,
+        decreased_stake_shares: U128,
+        current_unstaked_balance: U128,
+        current_stake_shares: U128,
+    },
+    RebalanceLiquidity {
+        account_id: AccountId,
+        increased_amount: U128,
+        decreased_stake_shares: U128,
+    },
+    LiquidityPoolSwapFee {
+        stake_shares_in: U128,
+        requested_amount: U128,
+        received_amount: U128,
+        swap_fee_amount: U128,
+        swap_fee_stake_shares: U128,
+        treasury_fee_stake_shares: U128,
+        pool_fee_stake_shares: U128,
+        total_fee_shares: U128,
     },
 }
 

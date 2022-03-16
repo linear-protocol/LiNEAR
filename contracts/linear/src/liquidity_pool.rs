@@ -1,4 +1,5 @@
 use crate::*;
+use crate::events::Event;
 use near_sdk::{
     near_bindgen, Balance, Promise, log, assert_one_yocto,
     collections::LookupMap
@@ -198,6 +199,18 @@ impl LiquidityPool {
         // Swap LiNEAR into pool, excluding the fees for treasury
         let received_num_shares = stake_shares_in - treasury_fee_stake_shares;
         self.amounts[1] += received_num_shares;
+
+        Event::LiquidityPoolSwapFee {
+            stake_shares_in: U128(stake_shares_in),
+            requested_amount: U128(requested_amount),
+            received_amount: U128(received_amount),
+            swap_fee_amount: U128(swap_fee_amount),
+            swap_fee_stake_shares: U128(swap_fee_stake_shares),
+            treasury_fee_stake_shares: U128(treasury_fee_stake_shares),
+            pool_fee_stake_shares: U128(pool_fee_stake_shares),
+            total_fee_shares: U128(self.total_fee_shares),
+        }
+        .emit();
 
         (received_amount, treasury_fee_stake_shares)
     }
@@ -402,6 +415,12 @@ impl LiquidStakingContract {
             amount,
             added_shares
         );
+        Event::AddLiquidity {
+            account_id,
+            amount: U128(amount),
+            added_shares: U128(added_shares)
+        }
+        .emit();
     }
 
     /// Remove shares from the liquidity pool and return NEAR and LiNEAR.
@@ -429,6 +448,14 @@ impl LiquidStakingContract {
         account.stake_shares += results[1];
         self.internal_save_account(&account_id, &account);
         Promise::new(env::predecessor_account_id()).transfer(results[0]);
+
+        Event::RemoveLiquidity {
+            account_id,
+            removed_shares: U128(removed_shares),
+            received_near: U128(results[0]),
+            received_linear: U128(results[1]),
+        }
+        .emit();
 
         results.iter()
             .map(|amount| amount.clone().into())
@@ -479,12 +506,13 @@ impl LiquidStakingContract {
         // Transfer NEAR to account
         Promise::new(account_id.clone()).transfer(received_amount);
 
-        log!(
-            "@{} instantly unstaked {} LiNEAR, received {} NEAR",
-            &account_id,
-            staked_shares_in,
-            received_amount
-        );
+        Event::InstantUnstake {
+            account_id,
+            increased_amount: U128(received_amount),
+            decreased_stake_shares: U128(staked_shares_in),
+            current_unstaked_balance: U128(account.unstaked),
+            current_stake_shares: U128(account.stake_shares),        }
+        .emit();
 
         received_amount.into()
     }
@@ -500,6 +528,7 @@ impl LiquidStakingContract {
     /// Rebalance NEAR / LiNEAR distribution to make the liqudity pool more efficient
     /// Automatically swap LiNEAR out with newly staked NEAR
     pub(crate) fn rebalance_liquidity(&mut self) {
+        let account_id = env::predecessor_account_id();
         // If no new staking request, skip the rebalance
         if self.epoch_requested_stake_amount <= 0 {
             return;
@@ -515,5 +544,12 @@ impl LiquidStakingContract {
         self.total_staked_near_amount -= increased_amount;
         // Decrease staked shares
         self.total_share_amount -= decreased_staked_shares;
+
+        Event::RebalanceLiquidity {
+            account_id,
+            increased_amount: U128(increased_amount),
+            decreased_stake_shares: U128(decreased_staked_shares),
+        }
+        .emit();
     }
 }

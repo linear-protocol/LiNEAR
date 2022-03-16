@@ -139,7 +139,7 @@ impl LiquidStakingContract {
         );
         Event::Unstake {
             account_id,
-            increase_amount: U128(receive_amount),
+            increased_amount: U128(receive_amount),
             decreased_stake_shares: U128(num_shares),
             current_unstaked_balance: U128(account.unstaked),
             current_stake_shares: U128(account.stake_shares),

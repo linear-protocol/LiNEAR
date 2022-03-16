@@ -6,7 +6,7 @@ use near_sdk::{
 use crate::errors::*;
 use crate::types::*;
 use crate::utils::*;
-use crate::events::{Event};
+use crate::events::Event;
 
 const MIN_AMOUNT_TO_PERFORM_STAKE: Balance = ONE_NEAR;
 const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR;

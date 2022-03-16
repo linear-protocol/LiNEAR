@@ -37,7 +37,33 @@ pub enum Event {
         old_balance: U128,
         new_balance: U128,
         rewards: U128
-    }
+    },
+    // Staking Pool Interface
+    Deposit {
+        account_id: AccountId,
+        amount: U128,
+        current_unstaked_balance: U128,
+    },
+    Withdraw {
+        account_id: AccountId,
+        amount: U128,
+        current_unstaked_balance: U128,
+    },
+    Stake {
+        account_id: AccountId,
+        decreased_amount: U128,
+        increased_stake_shares: U128,
+        current_unstaked_balance: U128,
+        current_stake_shares: U128,
+    },
+    Unstake {
+        account_id: AccountId,
+        increase_amount: U128,
+        decreased_stake_shares: U128,
+        current_unstaked_balance: U128,
+        current_stake_shares: U128,
+        available_epoch_height: u64
+    },
 }
 
 impl Event {

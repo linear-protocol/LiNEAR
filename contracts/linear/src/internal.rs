@@ -1,5 +1,6 @@
 use crate::*;
 use crate::types::*;
+use crate::events::Event;
 use near_sdk::{Promise,log};
 use std::{
     collections::HashMap,
@@ -16,7 +17,12 @@ impl LiquidStakingContract {
         account.unstaked += amount;
         self.internal_save_account(&account_id, &account);
 
-        log!("@{} deposited {}. New unstaked balance is {}", account_id, amount, account.unstaked);
+        Event::Deposit {
+            account_id: account_id.clone(),
+            amount: U128(amount),
+            current_unstaked_balance: U128(account.unstaked),
+        }
+        .emit();
     }
 
     pub(crate) fn internal_withdraw(&mut self, amount: Balance) {
@@ -29,8 +35,12 @@ impl LiquidStakingContract {
         account.unstaked -= amount;
         self.internal_save_account(&account_id, &account);
 
-        log!("@{} withdrawing {}. New unstaked balance is {}", account_id, amount, account.unstaked);
-
+        Event::Withdraw {
+            account_id: account_id.clone(),
+            amount: U128(amount),
+            current_unstaked_balance: U128(account.unstaked),
+        }
+        .emit();
         Promise::new(account_id).transfer(amount);
     }
 
@@ -69,10 +79,14 @@ impl LiquidStakingContract {
         // Increase requested stake amount within the current epoch
         self.epoch_requested_stake_amount += stake_amount;
 
-        log!(
-            "@{} staking {}. Received {} new staking shares. Total {} unstaked balance and {} staking shares",
-            account_id, charge_amount, num_shares, account.unstaked, account.stake_shares
-        );
+        Event::Stake {
+            account_id,
+            decreased_amount: U128(charge_amount),
+            increased_stake_shares: U128(num_shares),
+            current_unstaked_balance: U128(account.unstaked),
+            current_stake_shares: U128(account.stake_shares),
+        }
+        .emit();
         log!(
             "Contract total staked balance is {}. Total number of shares {}",
             self.total_staked_near_amount, self.total_share_amount
@@ -123,6 +137,15 @@ impl LiquidStakingContract {
             "@{} unstaking {}. Spent {} staking shares. Total {} unstaked balance and {} staking shares",
             account_id, receive_amount, num_shares, account.unstaked, account.stake_shares
         );
+        Event::Unstake {
+            account_id,
+            increase_amount: U128(receive_amount),
+            decreased_stake_shares: U128(num_shares),
+            current_unstaked_balance: U128(account.unstaked),
+            current_stake_shares: U128(account.stake_shares),
+            available_epoch_height: account.unstaked_available_epoch_height,
+        }
+        .emit();
         log!(
             "Contract total staked balance is {}. Total number of shares {}",
             self.total_staked_near_amount, self.total_share_amount

@@ -28,7 +28,7 @@ exports.handler = async function (argv) {
   const near = await init(argv.network);
   const signer = await near.account(argv.signer);
 
-  console.log(`Setting owner to ${owner}`);
+  console.log(`Setting treasury to ${account}`);
 
   await signer.functionCall({
     contractId: address,

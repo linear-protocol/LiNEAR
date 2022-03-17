@@ -4,10 +4,14 @@ use near_sdk::{
     near_bindgen, Balance, Promise, log, assert_one_yocto,
     collections::LookupMap
 };
+use near_contract_standards::fungible_token::events::{FtMint, FtBurn};
 
 // Mocked NEAR and LINEAR token used in Liquidity Pool
 const NEAR_TOKEN_ACCOUNT: &str = "near";
 const LINEAR_TOKEN_ACCOUNT: &str = "linear";
+
+// Virtual liquidity pool account for emitting FT events
+const VIRTUAL_POOL_ACCOUNT: &str = "liquidity-pool.linear";
 
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct LiquidityPool {
@@ -111,11 +115,6 @@ impl LiquidityPool {
         self.mint_shares(&account_id, shares);
         // Add NEAR amount
         self.amounts[0] += amount;
-        log!(
-            "Liquidity added {} NEAR, minted {} shares",
-            amount,
-            shares
-        );
     }
 
     /// Removes given number of shares from the pool and returns amounts to the parent.
@@ -245,12 +244,6 @@ impl LiquidityPool {
         self.amounts[0] += increased_amount;
         // Decrease LiNEAR
         self.amounts[1] -= decreased_stake_shares;
-
-        log!(
-            "Liquidity has been rebalanced by adding {} NEAR and removing {} LiNEAR",
-            increased_amount,
-            decreased_stake_shares
-        );
 
         (increased_amount, decreased_stake_shares)
     }
@@ -549,6 +542,12 @@ impl LiquidStakingContract {
             account_id: &account_id,
             increased_amount: &U128(increased_amount),
             burnt_stake_shares: &U128(decreased_stake_shares),
+        }
+        .emit();
+        FtBurn {
+            owner_id: &AccountId::new_unchecked(VIRTUAL_POOL_ACCOUNT.to_string()),
+            amount: &U128(decreased_stake_shares),
+            memo: Some("rebalance liquidity")
         }
         .emit();
     }

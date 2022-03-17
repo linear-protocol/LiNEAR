@@ -18,7 +18,9 @@ impl LiquidStakingContract {
         let account_id = env::predecessor_account_id();
         let force = force.unwrap_or(false);
         if let Some(account) = self.accounts.get(&account_id) {
-            if account.stake_shares == 0 || force {
+            require!(account.unstaked == 0, ERR_UNREGISTER_POSITIVE_UNSTAKED);
+            if account.stake_shares == 0 || force
+            {
                 self.accounts.remove(&account_id);
                 self.total_share_amount -= account.stake_shares;
                 Promise::new(account_id.clone()).transfer(self.storage_balance_bounds().min.0 + 1);

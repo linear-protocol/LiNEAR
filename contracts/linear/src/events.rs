@@ -5,6 +5,8 @@ use near_sdk::{
     json_types::U128,
 };
 
+const EVENT_STANDARD: &str = "linear";
+
 #[derive(Serialize, Debug, Clone)]
 #[serde(crate = "near_sdk::serde")]
 #[serde(tag = "event", content = "data")]
@@ -103,7 +105,7 @@ impl Event<'_> {
 pub (crate) fn emit_event<T: ?Sized + Serialize>(data: &T) {
     let result = json!(data);
     let event_json = json!({
-        "standard": "linear",
+        "standard": EVENT_STANDARD,
         "version": "1.0.0",
         "event": result["event"],
         "data": [result["data"]]

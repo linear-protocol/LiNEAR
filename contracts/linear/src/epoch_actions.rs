@@ -33,6 +33,7 @@ impl LiquidStakingContract {
         self.epoch_cleanup();
         // after cleanup, there might be no need to stake
         if self.stake_amount_to_settle == 0 {
+            log!("no need to stake, amount to settle is zero");
             return false;
         }
 
@@ -41,7 +42,7 @@ impl LiquidStakingContract {
             .get_candidate_to_stake(self.stake_amount_to_settle, self.total_staked_near_amount);
 
         if candidate.is_none() {
-            // TODO no candidate found
+            log!("no candidate found to stake {}", amount_to_stake);
             return false;
         }
         let mut candidate = candidate.unwrap();
@@ -90,6 +91,7 @@ impl LiquidStakingContract {
         self.epoch_cleanup();
         // after cleanup, there might be no need to unstake
         if self.unstake_amount_to_settle == 0 {
+            log!("no need to unstake, amount to settle is zero");
             return false;
         }
 
@@ -97,7 +99,7 @@ impl LiquidStakingContract {
             .validator_pool
             .get_candidate_to_unstake(self.unstake_amount_to_settle, self.total_staked_near_amount);
         if candidate.is_none() {
-            // TODO
+            log!("no candidate found to unstake {}", amount_to_unstake);
             return false;
         }
         let mut candidate = candidate.unwrap();
@@ -257,23 +259,22 @@ impl LiquidStakingContract {
                 .get_validator(&validator_id)
                 .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
             validator.on_stake_success(&mut self.validator_pool, amount);
-
+          
             Event::EpochStakeSuccess {
                 validator_id: &validator_id,
                 amount: &U128(amount),
             }
             .emit();
-            return;
+        } else {
+            // stake failed, revert
+            self.stake_amount_to_settle += amount;
+          
+            Event::EpochStakeFailed {
+                validator_id: &validator_id,
+                amount: &U128(amount),
+            }
+            .emit();
         }
-
-        // stake failed, revert
-        self.stake_amount_to_settle += amount;
-
-        Event::EpochStakeFailed {
-            validator_id: &validator_id,
-            amount: &U128(amount),
-        }
-        .emit();
     }
 
     #[private]
@@ -288,26 +289,26 @@ impl LiquidStakingContract {
 
         if is_promise_success() {
             validator.on_unstake_success(&mut self.validator_pool, amount);
+          
             Event::EpochUnstakeSuccess {
                 validator_id: &validator_id,
                 amount: &U128(amount),
             }
             .emit();
-            return;
+        } else {
+            // unstake failed, revert
+            // 1. revert contract states
+            self.unstake_amount_to_settle += amount;
+
+            // 2. revert validator states
+            validator.on_unstake_failed(&mut self.validator_pool, amount);
+          
+            Event::EpochUnstakeFailed {
+                validator_id: &validator_id,
+                amount: &U128(amount),
+            }
+            .emit();
         }
-
-        // unstake failed, revert
-        // 1. revert contract states
-        self.unstake_amount_to_settle += amount;
-
-        // 2. revert validator states
-        validator.on_unstake_failed(&mut self.validator_pool, amount);
-
-        Event::EpochUnstakeFailed {
-            validator_id: &validator_id,
-            amount: &U128(amount),
-        }
-        .emit();
     }
 
     #[private]
@@ -332,7 +333,6 @@ impl LiquidStakingContract {
 
         validator.on_new_total_balance(&mut self.validator_pool, new_balance);
 
-        // TODO could reward < 0?
         if rewards <= 0 {
             return;
         }

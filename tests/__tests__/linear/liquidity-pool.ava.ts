@@ -121,7 +121,7 @@ const instantUnstake = async (test, {contract, user, amount}) => {
     contract,
     'instant_unstake',
     {
-      staked_shares_in: amount.toString(),
+      stake_shares_in: amount.toString(),
       min_amount_out: amount.sub(delta).toString()
     }
   );

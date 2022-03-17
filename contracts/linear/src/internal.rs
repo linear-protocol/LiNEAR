@@ -2,6 +2,7 @@ use crate::*;
 use crate::types::*;
 use crate::events::Event;
 use near_sdk::{Promise,log};
+use near_contract_standards::fungible_token::events::{FtMint, FtBurn};
 use std::{
     collections::HashMap,
 };
@@ -87,7 +88,12 @@ impl LiquidStakingContract {
             new_stake_shares: &U128(account.stake_shares),
         }
         .emit();
-        self.internal_emit_ft_mint(&account_id, num_shares, Some("stake"));
+        FtMint {
+            owner_id: &account_id,
+            amount: &U128(num_shares),
+            memo: Some("stake")
+        }
+        .emit();
         log!(
             "Contract total staked balance is {}. Total number of shares {}",
             self.total_staked_near_amount, self.total_share_amount
@@ -143,7 +149,12 @@ impl LiquidStakingContract {
             unstaked_available_epoch_height: account.unstaked_available_epoch_height,
         }
         .emit();
-        self.internal_emit_ft_burn(&account_id, num_shares, Some("unstake"));
+        FtBurn {
+            owner_id: &account_id,
+            amount: &U128(num_shares),
+            memo: Some("unstake")
+        }
+        .emit();
         log!(
             "Contract total staked balance is {}. Total number of shares {}",
             self.total_staked_near_amount, self.total_share_amount
@@ -194,7 +205,12 @@ impl LiquidStakingContract {
             self.internal_register_account(account_id);
         }
         self.internal_ft_deposit(account_id, shares);
-        self.internal_emit_ft_mint(account_id, shares, Some("beneficiary rewards"));
+        FtMint {
+            owner_id: account_id,
+            amount: &U128(shares),
+            memo: Some("beneficiary rewards"),
+        }
+        .emit();
         return shares;
     }
 

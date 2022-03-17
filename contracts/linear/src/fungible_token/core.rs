@@ -6,7 +6,7 @@ use near_sdk::{
 };
 use near_contract_standards::fungible_token::core::FungibleTokenCore;
 use near_contract_standards::fungible_token::resolver::FungibleTokenResolver;
-use near_contract_standards::fungible_token::events::{FtTransfer, FtMint, FtBurn};
+use near_contract_standards::fungible_token::events::{FtTransfer};
 
 // allocate enough gas for ft_resolve_transfer() to avoid unexpected failure
 const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(12_000_000_000_000);
@@ -196,38 +196,6 @@ impl LiquidStakingContract {
             new_owner_id: receiver_id,
             amount: &U128(amount),
             memo: memo.as_deref(),
-        }
-        .emit();
-    }
-
-    /// Inner method to emit mint event
-    pub(crate) fn internal_emit_ft_mint(
-        &mut self,
-        owner_id: &AccountId,
-        amount: Balance,
-        memo: Option<&str>,
-    ) {
-        require!(amount > 0, "The amount should be a positive number");
-        FtMint {
-            owner_id,
-            amount: &U128(amount),
-            memo,
-        }
-        .emit();
-    }
-
-    /// Inner method to emit burn event
-    pub(crate) fn internal_emit_ft_burn(
-        &mut self,
-        owner_id: &AccountId,
-        amount: Balance,
-        memo: Option<&str>,
-    ) {
-        require!(amount > 0, "The amount should be a positive number");
-        FtBurn {
-            owner_id,
-            amount: &U128(amount),
-            memo,
         }
         .emit();
     }

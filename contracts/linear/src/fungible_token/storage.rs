@@ -2,6 +2,7 @@ use crate::*;
 use near_contract_standards::storage_management::{
     StorageBalance, StorageBalanceBounds, StorageManagement,
 };
+use near_contract_standards::fungible_token::events::{FtBurn};
 use near_sdk::{assert_one_yocto, env, log, AccountId, Balance, Promise};
 
 /// Temporarily set fixed storage amount to be compatible with standard FT implementation
@@ -19,15 +20,21 @@ impl LiquidStakingContract {
         let force = force.unwrap_or(false);
         if let Some(account) = self.accounts.get(&account_id) {
             require!(account.unstaked == 0, ERR_UNREGISTER_POSITIVE_UNSTAKED);
-            if account.stake_shares == 0 || force
+            let balance = account.stake_shares;
+            if balance == 0 || force
             {
                 self.accounts.remove(&account_id);
-                self.total_share_amount -= account.stake_shares;
-                if account.stake_shares > 0 {
-                    self.internal_emit_ft_burn(&account_id, account.stake_shares, Some("force storage unregister"));
+                self.total_share_amount -= balance;
+                if balance > 0 {
+                    FtBurn {
+                        owner_id: &account_id,
+                        amount: &U128(balance),
+                        memo: Some("force storage unregister")
+                    }
+                    .emit();
                 }
                 Promise::new(account_id.clone()).transfer(self.storage_balance_bounds().min.0 + 1);
-                Some((account_id, account.stake_shares))
+                Some((account_id, balance))
             } else {
                 env::panic_str(
                     "Can't unregister the account with the positive balance without force",

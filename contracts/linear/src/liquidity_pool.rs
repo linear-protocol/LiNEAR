@@ -4,7 +4,7 @@ use near_sdk::{
     near_bindgen, Balance, Promise, log, assert_one_yocto,
     collections::LookupMap
 };
-use near_contract_standards::fungible_token::events::{FtMint, FtBurn};
+use near_contract_standards::fungible_token::events::{FtTransfer, FtBurn};
 
 // Mocked NEAR and LINEAR token used in Liquidity Pool
 const NEAR_TOKEN_ACCOUNT: &str = "near";
@@ -449,6 +449,15 @@ impl LiquidStakingContract {
             received_linear: &U128(results[1]),
         }
         .emit();
+        if results[1] > 0 {
+            FtTransfer {
+                old_owner_id: &AccountId::new_unchecked(VIRTUAL_POOL_ACCOUNT.to_string()),
+                new_owner_id: &account_id,
+                amount: &U128(results[1]),
+                memo: Some("remove liquidity"),
+            }
+            .emit()
+        }
 
         results.iter()
             .map(|amount| amount.clone().into())
@@ -506,6 +515,20 @@ impl LiquidStakingContract {
             new_unstaked_balance: &U128(account.unstaked),
             new_stake_shares: &U128(account.stake_shares),        }
         .emit();
+        FtTransfer::emit_many(&[
+            FtTransfer {
+                old_owner_id: &account_id,
+                new_owner_id: &treasury_account_id,
+                amount: &U128(treasury_fee_stake_shares),
+                memo: Some("instant unstake treasury fee"),
+            },
+            FtTransfer {
+                old_owner_id: &account_id,
+                new_owner_id: &AccountId::new_unchecked(VIRTUAL_POOL_ACCOUNT.to_string()),
+                amount: &U128(stake_shares_in - treasury_fee_stake_shares),
+                memo: Some("instant unstake into pool"),
+            },
+        ]);
 
         received_amount.into()
     }
@@ -538,17 +561,19 @@ impl LiquidStakingContract {
         // Decrease staked shares
         self.total_share_amount -= decreased_stake_shares;
 
-        Event::RebalanceLiquidity {
-            account_id: &account_id,
-            increased_amount: &U128(increased_amount),
-            burnt_stake_shares: &U128(decreased_stake_shares),
+        if decreased_stake_shares > 0 {
+            Event::RebalanceLiquidity {
+                account_id: &account_id,
+                increased_amount: &U128(increased_amount),
+                burnt_stake_shares: &U128(decreased_stake_shares),
+            }
+            .emit();
+            FtBurn {
+                owner_id: &AccountId::new_unchecked(VIRTUAL_POOL_ACCOUNT.to_string()),
+                amount: &U128(decreased_stake_shares),
+                memo: Some("rebalance liquidity")
+            }
+            .emit();
         }
-        .emit();
-        FtBurn {
-            owner_id: &AccountId::new_unchecked(VIRTUAL_POOL_ACCOUNT.to_string()),
-            amount: &U128(decreased_stake_shares),
-            memo: Some("rebalance liquidity")
-        }
-        .emit();
     }
 }

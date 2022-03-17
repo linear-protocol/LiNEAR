@@ -33,6 +33,7 @@ impl LiquidStakingContract {
         self.epoch_cleanup();
         // after cleanup, there might be no need to stake
         if self.stake_amount_to_settle == 0 {
+            log!("no need to stake, amount to settle is zero");
             return false;
         }
 
@@ -41,7 +42,7 @@ impl LiquidStakingContract {
             .get_candidate_to_stake(self.stake_amount_to_settle, self.total_staked_near_amount);
 
         if candidate.is_none() {
-            // TODO no candidate found
+            log!("no candidate found to stake {}", amount_to_stake);
             return false;
         }
         let mut candidate = candidate.unwrap();
@@ -86,6 +87,7 @@ impl LiquidStakingContract {
         self.epoch_cleanup();
         // after cleanup, there might be no need to unstake
         if self.unstake_amount_to_settle == 0 {
+            log!("no need to unstake, amount to settle is zero");
             return false;
         }
 
@@ -93,7 +95,7 @@ impl LiquidStakingContract {
             .validator_pool
             .get_candidate_to_unstake(self.unstake_amount_to_settle, self.total_staked_near_amount);
         if candidate.is_none() {
-            // TODO
+            log!("no candidate found to unstake {}", amount_to_unstake);
             return false;
         }
         let mut candidate = candidate.unwrap();
@@ -250,13 +252,12 @@ impl LiquidStakingContract {
             validator.on_stake_success(&mut self.validator_pool, amount);
 
             log_stake_success(&validator_id, amount);
-            return;
+        } else {
+            // stake failed, revert
+            self.stake_amount_to_settle += amount;
+
+            log_stake_failed(&validator_id, amount);
         }
-
-        // stake failed, revert
-        self.stake_amount_to_settle += amount;
-
-        log_stake_failed(&validator_id, amount);
     }
 
     #[private]
@@ -271,18 +272,18 @@ impl LiquidStakingContract {
 
         if is_promise_success() {
             validator.on_unstake_success(&mut self.validator_pool, amount);
+
             log_unstake_success(&validator_id, amount);
-            return;
+        } else {
+            // unstake failed, revert
+            // 1. revert contract states
+            self.unstake_amount_to_settle += amount;
+
+            // 2. revert validator states
+            validator.on_unstake_failed(&mut self.validator_pool, amount);
+
+            log_unstake_failed(&validator_id, amount);
         }
-
-        // unstake failed, revert
-        // 1. revert contract states
-        self.unstake_amount_to_settle += amount;
-
-        // 2. revert validator states
-        validator.on_unstake_failed(&mut self.validator_pool, amount);
-
-        log_unstake_failed(&validator_id, amount);
     }
 
     #[private]
@@ -306,7 +307,6 @@ impl LiquidStakingContract {
 
         validator.on_new_total_balance(&mut self.validator_pool, new_balance);
 
-        // TODO could reward < 0?
         if rewards <= 0 {
             return;
         }

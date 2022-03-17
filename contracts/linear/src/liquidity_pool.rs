@@ -220,20 +220,20 @@ impl LiquidityPool {
         requested_amount: Balance,
         context: &Context
     ) -> (Balance, ShareBalance) {
-        let staked_shares = self.amounts[1];
+        let stake_shares = self.amounts[1];
         // If no requested amounts or no LiNEAR available, don't rebalance
-        if requested_amount <= 0 || staked_shares <= 0 {
+        if requested_amount <= 0 || stake_shares <= 0 {
             return (0, 0);
         }
         // Calculate increased NEAR amount, and decreased LiNEAR amount
-        let staked_shares_value = staked_amount_from_num_shares_rounded_down(
-            staked_shares,
+        let stake_shares_value = staked_amount_from_num_shares_rounded_down(
+            stake_shares,
             &context
         );
-        let (increased_amount, decreased_stake_shares) = if requested_amount >= staked_shares_value {
+        let (increased_amount, decreased_stake_shares) = if requested_amount >= stake_shares_value {
             (
-                staked_shares_value,
-                staked_shares
+                stake_shares_value,
+                stake_shares
             )
         } else {
             (
@@ -463,33 +463,33 @@ impl LiquidStakingContract {
     }
 
     /// Instant Unstake: swap LiNEAR to NEAR via the Liquidity Pool
-    /// Notice that total staked NEAR amount and total staked shares won't change here
+    /// Notice that total staked NEAR amount and total stake shares won't change here
     pub fn instant_unstake(
         &mut self,
-        staked_shares_in: U128,     // LiNEAR amount sent by the account
+        stake_shares_in: U128,     // LiNEAR amount sent by the account
         min_amount_out: U128        // Minimum NEAR amount should be returned
     ) -> U128 {
-        let staked_shares_in: ShareBalance = staked_shares_in.into();
-        require!(staked_shares_in > 0, ERR_NON_POSITIVE_UNSTAKING_AMOUNT);
+        let stake_shares_in: ShareBalance = stake_shares_in.into();
+        require!(stake_shares_in > 0, ERR_NON_POSITIVE_UNSTAKING_AMOUNT);
         let min_amount_out: Balance = min_amount_out.into();
         require!(min_amount_out > 0, ERR_NON_POSITIVE_MIN_RECEIVED_AMOUNT);
 
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);
-        require!(account.stake_shares >= staked_shares_in, ERR_NO_ENOUGH_STAKED_BALANCE);
+        require!(account.stake_shares >= stake_shares_in, ERR_NO_ENOUGH_STAKED_BALANCE);
 
         // Distribute rewards from all the farms for the given user.
         self.internal_distribute_all_rewards(&mut account);
 
         // Calculating the amount of tokens the account will receive by unstaking the corresponding
         // number of "stake" shares, rounding up.
-        let requested_amount = self.staked_amount_from_num_shares_rounded_up(staked_shares_in);
+        let requested_amount = self.staked_amount_from_num_shares_rounded_up(stake_shares_in);
         require!(requested_amount > 0, ERR_NON_POSITIVE_CALCULATED_STAKED_AMOUNT);
 
         // Swap NEAR out from liquidity pool
         let (received_amount, treasury_fee_stake_shares) = self.liquidity_pool.swap(
             requested_amount,
-            staked_shares_in,
+            stake_shares_in,
             min_amount_out,
             &self.internal_get_context()
         );
@@ -500,8 +500,8 @@ impl LiquidStakingContract {
         treasury_account.stake_shares += treasury_fee_stake_shares;
         self.internal_save_account(&treasury_account_id, &treasury_account);
 
-        // Update account staked shares
-        account.stake_shares -= staked_shares_in;
+        // Update account stake shares
+        account.stake_shares -= stake_shares_in;
         self.internal_save_account(&account_id, &account);
         // Transfer NEAR to account
         Promise::new(account_id.clone()).transfer(received_amount);
@@ -533,8 +533,8 @@ impl LiquidStakingContract {
         if self.epoch_requested_stake_amount <= 0 {
             return;
         }
-        // Rebalance in the pool and return actual rebalanced amount and staked shares
-        let (increased_amount, decreased_staked_shares) = self.liquidity_pool.rebalance(
+        // Rebalance in the pool and return actual rebalanced amount and stake shares
+        let (increased_amount, decreased_stake_shares) = self.liquidity_pool.rebalance(
             self.epoch_requested_stake_amount,
             &self.internal_get_context()
         );
@@ -548,7 +548,7 @@ impl LiquidStakingContract {
         Event::RebalanceLiquidity {
             account_id,
             increased_amount: U128(increased_amount),
-            burnt_stake_shares: U128(decreased_staked_shares),
+            burnt_stake_shares: U128(decreased_stake_shares),
         }
         .emit();
     }

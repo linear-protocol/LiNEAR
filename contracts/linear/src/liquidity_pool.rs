@@ -10,7 +10,8 @@ use near_contract_standards::fungible_token::events::{FtTransfer, FtBurn};
 const NEAR_TOKEN_ACCOUNT: &str = "near";
 const LINEAR_TOKEN_ACCOUNT: &str = "linear";
 
-// Virtual liquidity pool account for emitting FT events
+/// Virtual liquidity pool account for emitting FT events. The account
+/// doesn't really exist on chain and is only used for event logging
 const VIRTUAL_POOL_ACCOUNT: &str = "liquidity-pool.linear";
 
 #[derive(BorshSerialize, BorshDeserialize)]

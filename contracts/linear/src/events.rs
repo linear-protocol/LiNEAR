@@ -332,7 +332,7 @@ mod tests {
         let swapped_stake_shares = &U128(100);
         let new_unstaked_balance = &U128(111);
         let new_stake_shares = &U128(99);
-        let fee = &U128(3);
+        let fee_amount = &U128(3);
         Event::InstantUnstake {
             account_id,
             unstaked_amount,

@@ -5,24 +5,6 @@ use near_sdk::{
     json_types::U128,
 };
 
-// Emit event that follows NEP-297 standard: https://nomicon.io/Standards/EventsFormat
-// Arguments
-// * `standard`: name of standard, e.g. nep171
-// * `version`: e.g. 1.0.0
-// * `event`: type of the event, e.g. nft_mint
-// * `data`: associate event data. Strictly typed for each set {standard, version, event} inside corresponding NEP
-pub (crate) fn emit_event<T: ?Sized + Serialize>(data: &T) {
-    let result = json!(data);
-    let event_json = json!({
-        "standard": "linear",
-        "version": "1.0.0",
-        "event": result["event"],
-        "data": [result["data"]]
-    })
-    .to_string();
-    log!(format!("EVENT_JSON:{}", event_json));
-}
-
 #[derive(Serialize, Debug, Clone)]
 #[serde(crate = "near_sdk::serde")]
 #[serde(tag = "event", content = "data")]
@@ -48,29 +30,36 @@ pub enum Event {
     Deposit {
         account_id: AccountId,
         amount: U128,
-        current_unstaked_balance: U128,
+        new_unstaked_balance: U128,
     },
     Withdraw {
         account_id: AccountId,
         amount: U128,
-        current_unstaked_balance: U128,
+        new_unstaked_balance: U128,
     },
     Stake {
         account_id: AccountId,
-        decreased_amount: U128,
-        increased_stake_shares: U128,
-        current_unstaked_balance: U128,
-        current_stake_shares: U128,
+        staked_amount: U128,
+        minted_stake_shares: U128,
+        new_unstaked_balance: U128,
+        new_stake_shares: U128,
     },
     Unstake {
         account_id: AccountId,
-        increased_amount: U128,
-        decreased_stake_shares: U128,
-        current_unstaked_balance: U128,
-        current_stake_shares: U128,
-        available_epoch_height: u64
+        unstaked_amount: U128,
+        burnt_stake_shares: U128,
+        new_unstaked_balance: U128,
+        new_stake_shares: U128,
+        unstaked_available_epoch_height: u64
     },
     // Liquidity Pool
+    InstantUnstake {
+        account_id: AccountId,
+        unstaked_amount: U128,
+        burnt_stake_shares: U128,
+        new_unstaked_balance: U128,
+        new_stake_shares: U128,
+    },
     AddLiquidity {
         account_id: AccountId,
         amount: U128,
@@ -82,17 +71,10 @@ pub enum Event {
         received_near: U128,
         received_linear: U128,
     },
-    InstantUnstake {
-        account_id: AccountId,
-        increased_amount: U128,
-        decreased_stake_shares: U128,
-        current_unstaked_balance: U128,
-        current_stake_shares: U128,
-    },
     RebalanceLiquidity {
         account_id: AccountId,
         increased_amount: U128,
-        decreased_stake_shares: U128,
+        burnt_stake_shares: U128,
     },
     LiquidityPoolSwapFee {
         stake_shares_in: U128,
@@ -112,6 +94,24 @@ impl Event {
     }
 }
 
+// Emit event that follows NEP-297 standard: https://nomicon.io/Standards/EventsFormat
+// Arguments
+// * `standard`: name of standard, e.g. nep171
+// * `version`: e.g. 1.0.0
+// * `event`: type of the event, e.g. nft_mint
+// * `data`: associate event data. Strictly typed for each set {standard, version, event} inside corresponding NEP
+pub (crate) fn emit_event<T: ?Sized + Serialize>(data: &T) {
+    let result = json!(data);
+    let event_json = json!({
+        "standard": "linear",
+        "version": "1.0.0",
+        "event": result["event"],
+        "data": [result["data"]]
+    })
+    .to_string();
+    log!(format!("EVENT_JSON:{}", event_json));
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -129,7 +129,7 @@ mod tests {
         Event::EpochStakeAttempt { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_stake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_stake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -140,7 +140,7 @@ mod tests {
         Event::EpochStakeSuccess { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_stake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_stake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -151,7 +151,7 @@ mod tests {
         Event::EpochStakeFailed { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_stake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_stake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -162,7 +162,7 @@ mod tests {
         Event::EpochUnstakeAttempt { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_unstake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_unstake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -173,7 +173,7 @@ mod tests {
         Event::EpochUnstakeSuccess { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_unstake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_unstake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -184,7 +184,7 @@ mod tests {
         Event::EpochUnstakeFailed { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_unstake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_unstake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -195,7 +195,7 @@ mod tests {
         Event::EpochWithdrawAttempt { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_withdraw_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_withdraw_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -206,7 +206,7 @@ mod tests {
         Event::EpochWithdrawSuccess { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_withdraw_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_withdraw_success","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -217,7 +217,7 @@ mod tests {
         Event::EpochWithdrawFailed { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_withdraw_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_withdraw_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -235,7 +235,107 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear-protocol","version":"1.0.0","event":"epoch_update_rewards","data":[{"validator_id":"alice","old_balance":"100","new_balance":"120","rewards":"20"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_update_rewards","data":[{"validator_id":"alice","old_balance":"100","new_balance":"120","rewards":"20"}]}"#
+        );
+    }
+
+    #[test]
+    fn deposit() {
+        let account_id = alice();
+        let amount = U128(100);
+        let new_unstaked_balance = U128(200);
+        Event::Deposit {
+            account_id,
+            amount,
+            new_unstaked_balance
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"deposit","data":[{"account_id":"alice","amount":"100","new_unstaked_balance":"200"}]}"#
+        );
+    }
+
+    #[test]
+    fn withdraw() {
+        let account_id = alice();
+        let amount = U128(100);
+        let new_unstaked_balance = U128(50);
+        Event::Withdraw {
+            account_id,
+            amount,
+            new_unstaked_balance
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"withdraw","data":[{"account_id":"alice","amount":"100","new_unstaked_balance":"50"}]}"#
+        );
+    }
+
+
+    #[test]
+    fn stake() {
+        let account_id = alice();
+        let staked_amount = U128(100);
+        let minted_stake_shares = U128(99);
+        let new_unstaked_balance = U128(10);
+        let new_stake_shares = U128(199);
+        Event::Stake {
+            account_id,
+            staked_amount,
+            minted_stake_shares,
+            new_unstaked_balance,
+            new_stake_shares
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"stake","data":[{"account_id":"alice","staked_amount":"100","minted_stake_shares":"99","new_unstaked_balance":"10","new_stake_shares":"199"}]}"#
+        );
+    }
+
+    #[test]
+    fn unstake() {
+        let account_id = alice();
+        let unstaked_amount = U128(101);
+        let burnt_stake_shares = U128(100);
+        let new_unstaked_balance = U128(111);
+        let new_stake_shares = U128(99);
+        let unstaked_available_epoch_height = 932;
+        Event::Unstake {
+            account_id,
+            unstaked_amount,
+            burnt_stake_shares,
+            new_unstaked_balance,
+            new_stake_shares,
+            unstaked_available_epoch_height
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"unstake","data":[{"account_id":"alice","unstaked_amount":"101","burnt_stake_shares":"100","new_unstaked_balance":"111","new_stake_shares":"99","unstaked_available_epoch_height":932}]}"#
+        );
+    }
+
+    #[test]
+    fn instant_unstake() {
+        let account_id = alice();
+        let unstaked_amount = U128(97);
+        let burnt_stake_shares = U128(100);
+        let new_unstaked_balance = U128(111);
+        let new_stake_shares = U128(99);
+        Event::InstantUnstake {
+            account_id,
+            unstaked_amount,
+            burnt_stake_shares,
+            new_unstaked_balance,
+            new_stake_shares
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"instant_unstake","data":[{"account_id":"alice","unstaked_amount":"97","burnt_stake_shares":"100","new_unstaked_balance":"111","new_stake_shares":"99"}]}"#
         );
     }
 }

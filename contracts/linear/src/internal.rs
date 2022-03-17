@@ -20,7 +20,7 @@ impl LiquidStakingContract {
         Event::Deposit {
             account_id: account_id.clone(),
             amount: U128(amount),
-            current_unstaked_balance: U128(account.unstaked),
+            new_unstaked_balance: U128(account.unstaked),
         }
         .emit();
     }
@@ -38,7 +38,7 @@ impl LiquidStakingContract {
         Event::Withdraw {
             account_id: account_id.clone(),
             amount: U128(amount),
-            current_unstaked_balance: U128(account.unstaked),
+            new_unstaked_balance: U128(account.unstaked),
         }
         .emit();
         Promise::new(account_id).transfer(amount);
@@ -81,10 +81,10 @@ impl LiquidStakingContract {
 
         Event::Stake {
             account_id,
-            decreased_amount: U128(charge_amount),
-            increased_stake_shares: U128(num_shares),
-            current_unstaked_balance: U128(account.unstaked),
-            current_stake_shares: U128(account.stake_shares),
+            staked_amount: U128(charge_amount),
+            minted_stake_shares: U128(num_shares),
+            new_unstaked_balance: U128(account.unstaked),
+            new_stake_shares: U128(account.stake_shares),
         }
         .emit();
         log!(
@@ -139,11 +139,11 @@ impl LiquidStakingContract {
         );
         Event::Unstake {
             account_id,
-            increased_amount: U128(receive_amount),
-            decreased_stake_shares: U128(num_shares),
-            current_unstaked_balance: U128(account.unstaked),
-            current_stake_shares: U128(account.stake_shares),
-            available_epoch_height: account.unstaked_available_epoch_height,
+            unstaked_amount: U128(receive_amount),
+            burnt_stake_shares: U128(num_shares),
+            new_unstaked_balance: U128(account.unstaked),
+            new_stake_shares: U128(account.stake_shares),
+            unstaked_available_epoch_height: account.unstaked_available_epoch_height,
         }
         .emit();
         log!(

@@ -508,10 +508,10 @@ impl LiquidStakingContract {
 
         Event::InstantUnstake {
             account_id,
-            increased_amount: U128(received_amount),
-            decreased_stake_shares: U128(staked_shares_in),
-            current_unstaked_balance: U128(account.unstaked),
-            current_stake_shares: U128(account.stake_shares),        }
+            unstaked_amount: U128(received_amount),
+            burnt_stake_shares: U128(staked_shares_in),
+            new_unstaked_balance: U128(account.unstaked),
+            new_stake_shares: U128(account.stake_shares),        }
         .emit();
 
         received_amount.into()
@@ -548,7 +548,7 @@ impl LiquidStakingContract {
         Event::RebalanceLiquidity {
             account_id,
             increased_amount: U128(increased_amount),
-            decreased_stake_shares: U128(decreased_staked_shares),
+            burnt_stake_shares: U128(decreased_staked_shares),
         }
         .emit();
     }

@@ -157,6 +157,7 @@ impl LiquidityPool {
     /// Swap NEAR token into LiNEAR and calculate the fees.
     pub fn swap(
         &mut self,
+        account_id: &AccountId,
         requested_amount: Balance,      // NEAR
         stake_shares_in: ShareBalance,  // LiNEAR
         min_amount_out: Balance,
@@ -201,11 +202,12 @@ impl LiquidityPool {
         self.amounts[1] += received_num_shares;
 
         Event::LiquidityPoolSwapFee {
+            account_id,
             stake_shares_in: &U128(stake_shares_in),
             requested_amount: &U128(requested_amount),
             received_amount: &U128(received_amount),
-            swap_fee_amount: &U128(swap_fee_amount),
-            swap_fee_stake_shares: &U128(swap_fee_stake_shares),
+            fee_amount: &U128(swap_fee_amount),
+            fee_stake_shares: &U128(swap_fee_stake_shares),
             treasury_fee_stake_shares: &U128(treasury_fee_stake_shares),
             pool_fee_stake_shares: &U128(pool_fee_stake_shares),
             total_fee_shares: &U128(self.total_fee_shares),
@@ -491,6 +493,7 @@ impl LiquidStakingContract {
 
         // Swap NEAR out from liquidity pool
         let (received_amount, treasury_fee_stake_shares) = self.liquidity_pool.swap(
+            &account_id,
             requested_amount,
             stake_shares_in,
             min_amount_out,

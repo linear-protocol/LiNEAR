@@ -61,10 +61,10 @@ pub enum Event<'a> {
         unstaked_amount: &'a U128,
         /// The swapped in stake shares
         swapped_stake_shares: &'a U128,
-        /// The fee of instant unstake in NEAR
-        fee: &'a U128,
         new_unstaked_balance: &'a U128,
         new_stake_shares: &'a U128,
+        /// The fee of instant unstake in NEAR
+        fee: &'a U128,
     },
     AddLiquidity {
         account_id: &'a AccountId,
@@ -83,11 +83,12 @@ pub enum Event<'a> {
         burnt_stake_shares: &'a U128,
     },
     LiquidityPoolSwapFee {
+        account_id: &'a AccountId,
         stake_shares_in: &'a U128,
         requested_amount: &'a U128,
         received_amount: &'a U128,
-        swap_fee_amount: &'a U128,
-        swap_fee_stake_shares: &'a U128,
+        fee_amount: &'a U128,
+        fee_stake_shares: &'a U128,
         treasury_fee_stake_shares: &'a U128,
         pool_fee_stake_shares: &'a U128,
         total_fee_shares: &'a U128,
@@ -329,21 +330,21 @@ mod tests {
         let account_id = &alice();
         let unstaked_amount = &U128(98);
         let swapped_stake_shares = &U128(100);
-        let fee = &U128(3);
         let new_unstaked_balance = &U128(111);
         let new_stake_shares = &U128(99);
+        let fee = &U128(3);
         Event::InstantUnstake {
             account_id,
             unstaked_amount,
             swapped_stake_shares,
-            fee,
             new_unstaked_balance,
             new_stake_shares,
+            fee,
         }
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"instant_unstake","data":[{"account_id":"alice","unstaked_amount":"98","swapped_stake_shares":"100","fee":"3","new_unstaked_balance":"111","new_stake_shares":"99"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"instant_unstake","data":[{"account_id":"alice","unstaked_amount":"98","swapped_stake_shares":"100","new_unstaked_balance":"111","new_stake_shares":"99","fee":"3"}]}"#
         );
     }
 
@@ -402,20 +403,22 @@ mod tests {
 
     #[test]
     fn liquidity_pool_swap_fee() {
+        let account_id = &alice();
         let stake_shares_in = &U128(100);
         let requested_amount = &U128(100);
         let received_amount = &U128(97);
-        let swap_fee_amount = &U128(3);
-        let swap_fee_stake_shares = &U128(3);
+        let fee_amount = &U128(3);
+        let fee_stake_shares = &U128(3);
         let treasury_fee_stake_shares = &U128(1);
         let pool_fee_stake_shares = &U128(2);
         let total_fee_shares = &U128(1022);
         Event::LiquidityPoolSwapFee {
+            account_id,
             stake_shares_in,
             requested_amount,
             received_amount,
-            swap_fee_amount,
-            swap_fee_stake_shares,
+            fee_amount,
+            fee_stake_shares,
             treasury_fee_stake_shares,
             pool_fee_stake_shares,
             total_fee_shares,
@@ -423,7 +426,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"liquidity_pool_swap_fee","data":[{"stake_shares_in":"100","requested_amount":"100","received_amount":"97","swap_fee_amount":"3","swap_fee_stake_shares":"3","treasury_fee_stake_shares":"1","pool_fee_stake_shares":"2","total_fee_shares":"1022"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"liquidity_pool_swap_fee","data":[{"account_id":"alice","stake_shares_in":"100","requested_amount":"100","received_amount":"97","fee_amount":"3","fee_stake_shares":"3","treasury_fee_stake_shares":"1","pool_fee_stake_shares":"2","total_fee_shares":"1022"}]}"#
         );
     }
 }

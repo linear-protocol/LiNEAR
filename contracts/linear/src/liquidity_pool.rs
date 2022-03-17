@@ -516,7 +516,7 @@ impl LiquidStakingContract {
             account_id: &account_id,
             unstaked_amount: &U128(received_amount),
             swapped_stake_shares: &U128(stake_shares_in),
-            fee: &U128(requested_amount - received_amount),
+            fee_amount: &U128(requested_amount - received_amount),
             new_unstaked_balance: &U128(account.unstaked),
             new_stake_shares: &U128(account.stake_shares),        }
         .emit();

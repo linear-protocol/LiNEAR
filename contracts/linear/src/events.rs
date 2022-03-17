@@ -59,12 +59,12 @@ pub enum Event<'a> {
         account_id: &'a AccountId,
         /// The actually received NEAR excluding fees
         unstaked_amount: &'a U128,
-        /// The swapped in stake shares
+        /// The swapped-in stake shares
         swapped_stake_shares: &'a U128,
         new_unstaked_balance: &'a U128,
         new_stake_shares: &'a U128,
         /// The fee of instant unstake in NEAR
-        fee: &'a U128,
+        fee_amount: &'a U128,
     },
     AddLiquidity {
         account_id: &'a AccountId,
@@ -339,12 +339,12 @@ mod tests {
             swapped_stake_shares,
             new_unstaked_balance,
             new_stake_shares,
-            fee,
+            fee_amount,
         }
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"instant_unstake","data":[{"account_id":"alice","unstaked_amount":"98","swapped_stake_shares":"100","new_unstaked_balance":"111","new_stake_shares":"99","fee":"3"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"instant_unstake","data":[{"account_id":"alice","unstaked_amount":"98","swapped_stake_shares":"100","new_unstaked_balance":"111","new_stake_shares":"99","fee_amount":"3"}]}"#
         );
     }
 

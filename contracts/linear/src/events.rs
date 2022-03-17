@@ -56,7 +56,7 @@ pub enum Event {
     InstantUnstake {
         account_id: AccountId,
         unstaked_amount: U128,
-        burnt_stake_shares: U128,
+        swapped_stake_shares: U128,
         new_unstaked_balance: U128,
         new_stake_shares: U128,
     },
@@ -322,20 +322,20 @@ mod tests {
     fn instant_unstake() {
         let account_id = alice();
         let unstaked_amount = U128(97);
-        let burnt_stake_shares = U128(100);
+        let swapped_stake_shares = U128(100);
         let new_unstaked_balance = U128(111);
         let new_stake_shares = U128(99);
         Event::InstantUnstake {
             account_id,
             unstaked_amount,
-            burnt_stake_shares,
+            swapped_stake_shares,
             new_unstaked_balance,
             new_stake_shares
         }
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"instant_unstake","data":[{"account_id":"alice","unstaked_amount":"97","burnt_stake_shares":"100","new_unstaked_balance":"111","new_stake_shares":"99"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"instant_unstake","data":[{"account_id":"alice","unstaked_amount":"97","swapped_stake_shares":"100","new_unstaked_balance":"111","new_stake_shares":"99"}]}"#
         );
     }
 }

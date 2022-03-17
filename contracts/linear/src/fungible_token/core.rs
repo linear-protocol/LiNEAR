@@ -6,7 +6,7 @@ use near_sdk::{
 };
 use near_contract_standards::fungible_token::core::FungibleTokenCore;
 use near_contract_standards::fungible_token::resolver::FungibleTokenResolver;
-use near_contract_standards::fungible_token::events::{FtTransfer, FtMint};
+use near_contract_standards::fungible_token::events::{FtTransfer, FtMint, FtBurn};
 
 // allocate enough gas for ft_resolve_transfer() to avoid unexpected failure
 const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(12_000_000_000_000);
@@ -211,6 +211,24 @@ impl LiquidStakingContract {
         self.internal_ft_deposit(owner_id, amount);
 
         FtMint {
+            owner_id,
+            amount: &U128(amount),
+            memo,
+        }
+        .emit();
+    }
+
+    /// Inner method to mint LINEAR
+    pub(crate) fn internal_ft_burn(
+        &mut self,
+        owner_id: &AccountId,
+        amount: Balance,
+        memo: Option<&str>,
+    ) {
+        assert!(amount > 0, "The amount should be a positive number");
+        self.internal_ft_withdraw(owner_id, amount);
+
+        FtBurn {
             owner_id,
             amount: &U128(amount),
             memo,

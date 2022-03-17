@@ -411,7 +411,7 @@ impl LiquidStakingContract {
         Event::AddLiquidity {
             account_id: &account_id,
             amount: &U128(amount),
-            added_shares: &U128(added_shares)
+            added_shares: &U128(added_shares),
         }
         .emit();
     }

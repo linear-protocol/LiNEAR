@@ -61,7 +61,7 @@ impl LiquidStakingContract {
 
         Event::EpochStakeAttempt {
             validator_id: &candidate.account_id,
-            amount: &U128(amount_to_stake)
+            amount: &U128(amount_to_stake),
         }
         .emit();
 
@@ -112,7 +112,7 @@ impl LiquidStakingContract {
 
         Event::EpochUnstakeAttempt {
             validator_id: &candidate.account_id,
-            amount: &U128(amount_to_unstake)
+            amount: &U128(amount_to_unstake),
         }
         .emit();
 
@@ -174,7 +174,7 @@ impl LiquidStakingContract {
 
         Event::EpochWithdrawAttempt {
             validator_id: &validator_id,
-            amount: &U128(amount)
+            amount: &U128(amount),
         }
         .emit();
 
@@ -260,7 +260,7 @@ impl LiquidStakingContract {
 
             Event::EpochStakeSuccess {
                 validator_id: &validator_id,
-                amount: &U128(amount)
+                amount: &U128(amount),
             }
             .emit();
             return;
@@ -271,7 +271,7 @@ impl LiquidStakingContract {
 
         Event::EpochStakeFailed {
             validator_id: &validator_id,
-            amount: &U128(amount)
+            amount: &U128(amount),
         }
         .emit();
     }
@@ -290,7 +290,7 @@ impl LiquidStakingContract {
             validator.on_unstake_success(&mut self.validator_pool, amount);
             Event::EpochUnstakeSuccess {
                 validator_id: &validator_id,
-                amount: &U128(amount)
+                amount: &U128(amount),
             }
             .emit();
             return;
@@ -305,7 +305,7 @@ impl LiquidStakingContract {
 
         Event::EpochUnstakeFailed {
             validator_id: &validator_id,
-            amount: &U128(amount)
+            amount: &U128(amount),
         }
         .emit();
     }
@@ -326,7 +326,7 @@ impl LiquidStakingContract {
             validator_id: &validator_id,
             old_balance: &U128(validator.total_balance()),
             new_balance: &U128(new_balance),
-            rewards: &U128(rewards)
+            rewards: &U128(rewards),
         }
         .emit();
 
@@ -350,7 +350,7 @@ impl LiquidStakingContract {
         if is_promise_success() {
             Event::EpochWithdrawSuccess {
                 validator_id: &validator_id,
-                amount: &U128(amount)
+                amount: &U128(amount),
             }
             .emit();
             return;
@@ -365,7 +365,7 @@ impl LiquidStakingContract {
 
         Event::EpochWithdrawFailed {
             validator_id: &validator_id,
-            amount: &U128(amount)
+            amount: &U128(amount),
         }
         .emit();
     }

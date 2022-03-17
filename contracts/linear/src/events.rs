@@ -230,7 +230,7 @@ mod tests {
             validator_id,
             old_balance: &U128(old_balance),
             new_balance: &U128(new_balance),
-            rewards: &U128(new_balance - old_balance)
+            rewards: &U128(new_balance - old_balance),
         }
         .emit();
         assert_eq!(
@@ -247,7 +247,7 @@ mod tests {
         Event::Deposit {
             account_id,
             amount,
-            new_unstaked_balance
+            new_unstaked_balance,
         }
         .emit();
         assert_eq!(
@@ -264,7 +264,7 @@ mod tests {
         Event::Withdraw {
             account_id,
             amount,
-            new_unstaked_balance
+            new_unstaked_balance,
         }
         .emit();
         assert_eq!(
@@ -286,7 +286,7 @@ mod tests {
             staked_amount,
             minted_stake_shares,
             new_unstaked_balance,
-            new_stake_shares
+            new_stake_shares,
         }
         .emit();
         assert_eq!(
@@ -309,7 +309,7 @@ mod tests {
             burnt_stake_shares,
             new_unstaked_balance,
             new_stake_shares,
-            unstaked_available_epoch_height
+            unstaked_available_epoch_height,
         }
         .emit();
         assert_eq!(
@@ -330,7 +330,7 @@ mod tests {
             unstaked_amount,
             swapped_stake_shares,
             new_unstaked_balance,
-            new_stake_shares
+            new_stake_shares,
         }
         .emit();
         assert_eq!(

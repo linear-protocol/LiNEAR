@@ -559,7 +559,7 @@ impl LiquidStakingContract {
         // Decrease staked amount, which now has been moved into liquidity pool
         self.epoch_requested_stake_amount -= increased_amount;
         self.total_staked_near_amount -= increased_amount;
-        // Decrease staked shares
+        // Decrease stake shares
         self.total_share_amount -= decreased_stake_shares;
 
         if decreased_stake_shares > 0 {

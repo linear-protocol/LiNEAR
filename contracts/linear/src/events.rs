@@ -57,12 +57,12 @@ pub enum Event<'a> {
     // Liquidity Pool
     InstantUnstake {
         account_id: &'a AccountId,
-        /// The swapped in stake shares
-        swapped_stake_shares: &'a U128,
-        /// The amount of NEAR that should be returned if no fees
-        requested_amount: &'a U128,
         /// The actually received NEAR excluding fees
         unstaked_amount: &'a U128,
+        /// The swapped in stake shares
+        swapped_stake_shares: &'a U128,
+        /// The fee of instant unstake in NEAR
+        fee: &'a U128,
         new_unstaked_balance: &'a U128,
         new_stake_shares: &'a U128,
     },
@@ -327,23 +327,23 @@ mod tests {
     #[test]
     fn instant_unstake() {
         let account_id = &alice();
-        let swapped_stake_shares = &U128(100);
-        let requested_amount = &U128(101);
         let unstaked_amount = &U128(98);
+        let swapped_stake_shares = &U128(100);
+        let fee = &U128(3);
         let new_unstaked_balance = &U128(111);
         let new_stake_shares = &U128(99);
         Event::InstantUnstake {
             account_id,
-            swapped_stake_shares,
-            requested_amount,
             unstaked_amount,
+            swapped_stake_shares,
+            fee,
             new_unstaked_balance,
             new_stake_shares,
         }
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"instant_unstake","data":[{"account_id":"alice","swapped_stake_shares":"100","requested_amount":"101","unstaked_amount":"98","new_unstaked_balance":"111","new_stake_shares":"99"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"instant_unstake","data":[{"account_id":"alice","unstaked_amount":"98","swapped_stake_shares":"100","fee":"3","new_unstaked_balance":"111","new_stake_shares":"99"}]}"#
         );
     }
 

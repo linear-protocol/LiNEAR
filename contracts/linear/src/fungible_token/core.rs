@@ -182,11 +182,11 @@ impl LiquidStakingContract {
         amount: Balance,
         memo: Option<String>,
     ) {
-        assert_ne!(
-            sender_id, receiver_id,
+        require!(
+            sender_id != receiver_id,
             "Sender and receiver should be different"
         );
-        assert!(amount > 0, "The amount should be a positive number");
+        require!(amount > 0, "The amount should be a positive number");
 
         self.internal_ft_withdraw(sender_id, amount);
         self.internal_ft_deposit(receiver_id, amount);
@@ -200,16 +200,14 @@ impl LiquidStakingContract {
         .emit();
     }
 
-    /// Inner method to mint LINEAR
-    pub(crate) fn internal_ft_mint(
+    /// Inner method to emit mint event
+    pub(crate) fn internal_emit_ft_mint(
         &mut self,
         owner_id: &AccountId,
         amount: Balance,
         memo: Option<&str>,
     ) {
-        assert!(amount > 0, "The amount should be a positive number");
-        self.internal_ft_deposit(owner_id, amount);
-
+        require!(amount > 0, "The amount should be a positive number");
         FtMint {
             owner_id,
             amount: &U128(amount),
@@ -218,16 +216,14 @@ impl LiquidStakingContract {
         .emit();
     }
 
-    /// Inner method to mint LINEAR
-    pub(crate) fn internal_ft_burn(
+    /// Inner method to emit burn event
+    pub(crate) fn internal_emit_ft_burn(
         &mut self,
         owner_id: &AccountId,
         amount: Balance,
         memo: Option<&str>,
     ) {
-        assert!(amount > 0, "The amount should be a positive number");
-        self.internal_ft_withdraw(owner_id, amount);
-
+        require!(amount > 0, "The amount should be a positive number");
         FtBurn {
             owner_id,
             amount: &U128(amount),

@@ -18,9 +18,9 @@ impl LiquidStakingContract {
         self.internal_save_account(&account_id, &account);
 
         Event::Deposit {
-            account_id: account_id.clone(),
-            amount: U128(amount),
-            new_unstaked_balance: U128(account.unstaked),
+            account_id: &account_id,
+            amount: &U128(amount),
+            new_unstaked_balance: &U128(account.unstaked),
         }
         .emit();
     }
@@ -36,9 +36,9 @@ impl LiquidStakingContract {
         self.internal_save_account(&account_id, &account);
 
         Event::Withdraw {
-            account_id: account_id.clone(),
-            amount: U128(amount),
-            new_unstaked_balance: U128(account.unstaked),
+            account_id: &account_id,
+            amount: &U128(amount),
+            new_unstaked_balance: &U128(account.unstaked),
         }
         .emit();
         Promise::new(account_id).transfer(amount);
@@ -80,13 +80,14 @@ impl LiquidStakingContract {
         self.epoch_requested_stake_amount += stake_amount;
 
         Event::Stake {
-            account_id,
-            staked_amount: U128(charge_amount),
-            minted_stake_shares: U128(num_shares),
-            new_unstaked_balance: U128(account.unstaked),
-            new_stake_shares: U128(account.stake_shares),
+            account_id: &account_id,
+            staked_amount: &U128(charge_amount),
+            minted_stake_shares: &U128(num_shares),
+            new_unstaked_balance: &U128(account.unstaked),
+            new_stake_shares: &U128(account.stake_shares),
         }
         .emit();
+        self.internal_emit_ft_mint(&account_id, num_shares, Some("stake"));
         log!(
             "Contract total staked balance is {}. Total number of shares {}",
             self.total_staked_near_amount, self.total_share_amount
@@ -133,19 +134,16 @@ impl LiquidStakingContract {
         // Increase requested unstake amount within the current epoch
         self.epoch_requested_unstake_amount += unstake_amount;
 
-        log!(
-            "@{} unstaking {}. Spent {} staking shares. Total {} unstaked balance and {} staking shares",
-            account_id, receive_amount, num_shares, account.unstaked, account.stake_shares
-        );
         Event::Unstake {
-            account_id,
-            unstaked_amount: U128(receive_amount),
-            burnt_stake_shares: U128(num_shares),
-            new_unstaked_balance: U128(account.unstaked),
-            new_stake_shares: U128(account.stake_shares),
+            account_id: &account_id,
+            unstaked_amount: &U128(receive_amount),
+            burnt_stake_shares: &U128(num_shares),
+            new_unstaked_balance: &U128(account.unstaked),
+            new_stake_shares: &U128(account.stake_shares),
             unstaked_available_epoch_height: account.unstaked_available_epoch_height,
         }
         .emit();
+        self.internal_emit_ft_burn(&account_id, num_shares, Some("unstake"));
         log!(
             "Contract total staked balance is {}. Total number of shares {}",
             self.total_staked_near_amount, self.total_share_amount
@@ -195,7 +193,8 @@ impl LiquidStakingContract {
         if self.accounts.get(account_id).is_none() {
             self.internal_register_account(account_id);
         }
-        self.internal_ft_mint(account_id, shares, Some("beneficiary rewards"));
+        self.internal_ft_deposit(account_id, shares);
+        self.internal_emit_ft_mint(account_id, shares, Some("beneficiary rewards"));
         return shares;
     }
 

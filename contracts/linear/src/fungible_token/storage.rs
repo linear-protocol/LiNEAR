@@ -23,6 +23,9 @@ impl LiquidStakingContract {
             {
                 self.accounts.remove(&account_id);
                 self.total_share_amount -= account.stake_shares;
+                if account.stake_shares > 0 {
+                    self.internal_emit_ft_burn(&account_id, account.stake_shares, Some("force storage unregister"));
+                }
                 Promise::new(account_id.clone()).transfer(self.storage_balance_bounds().min.0 + 1);
                 Some((account_id, account.stake_shares))
             } else {

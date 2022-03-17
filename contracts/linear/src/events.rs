@@ -9,86 +9,86 @@ use near_sdk::{
 #[serde(crate = "near_sdk::serde")]
 #[serde(tag = "event", content = "data")]
 #[serde(rename_all = "snake_case")]
-pub enum Event {
+pub enum Event<'a> {
     // Epoch Actions
-    EpochStakeAttempt { validator_id: AccountId, amount: U128 },
-    EpochStakeSuccess { validator_id: AccountId, amount: U128 },
-    EpochStakeFailed { validator_id: AccountId, amount: U128 },
-    EpochUnstakeAttempt { validator_id: AccountId, amount: U128 },
-    EpochUnstakeSuccess { validator_id: AccountId, amount: U128 },
-    EpochUnstakeFailed { validator_id: AccountId, amount: U128 },
-    EpochWithdrawAttempt { validator_id: AccountId, amount: U128 },
-    EpochWithdrawSuccess { validator_id: AccountId, amount: U128 },
-    EpochWithdrawFailed { validator_id: AccountId, amount: U128 },
+    EpochStakeAttempt { validator_id: &'a AccountId, amount: &'a U128 },
+    EpochStakeSuccess { validator_id: &'a AccountId, amount: &'a U128 },
+    EpochStakeFailed { validator_id: &'a AccountId, amount: &'a U128 },
+    EpochUnstakeAttempt { validator_id: &'a AccountId, amount: &'a U128 },
+    EpochUnstakeSuccess { validator_id: &'a AccountId, amount: &'a U128 },
+    EpochUnstakeFailed { validator_id: &'a AccountId, amount: &'a U128 },
+    EpochWithdrawAttempt { validator_id: &'a AccountId, amount: &'a U128 },
+    EpochWithdrawSuccess { validator_id: &'a AccountId, amount: &'a U128 },
+    EpochWithdrawFailed { validator_id: &'a AccountId, amount: &'a U128 },
     EpochUpdateRewards {
-        validator_id: AccountId,
-        old_balance: U128,
-        new_balance: U128,
-        rewards: U128
+        validator_id: &'a AccountId,
+        old_balance: &'a U128,
+        new_balance: &'a U128,
+        rewards: &'a U128
     },
     // Staking Pool Interface
     Deposit {
-        account_id: AccountId,
-        amount: U128,
-        new_unstaked_balance: U128,
+        account_id: &'a AccountId,
+        amount: &'a U128,
+        new_unstaked_balance: &'a U128,
     },
     Withdraw {
-        account_id: AccountId,
-        amount: U128,
-        new_unstaked_balance: U128,
+        account_id: &'a AccountId,
+        amount: &'a U128,
+        new_unstaked_balance: &'a U128,
     },
     Stake {
-        account_id: AccountId,
-        staked_amount: U128,
-        minted_stake_shares: U128,
-        new_unstaked_balance: U128,
-        new_stake_shares: U128,
+        account_id: &'a AccountId,
+        staked_amount: &'a U128,
+        minted_stake_shares: &'a U128,
+        new_unstaked_balance: &'a U128,
+        new_stake_shares: &'a U128,
     },
     Unstake {
-        account_id: AccountId,
-        unstaked_amount: U128,
-        burnt_stake_shares: U128,
-        new_unstaked_balance: U128,
-        new_stake_shares: U128,
+        account_id: &'a AccountId,
+        unstaked_amount: &'a U128,
+        burnt_stake_shares: &'a U128,
+        new_unstaked_balance: &'a U128,
+        new_stake_shares: &'a U128,
         unstaked_available_epoch_height: u64
     },
     // Liquidity Pool
     InstantUnstake {
-        account_id: AccountId,
-        unstaked_amount: U128,
-        swapped_stake_shares: U128,
-        new_unstaked_balance: U128,
-        new_stake_shares: U128,
+        account_id: &'a AccountId,
+        unstaked_amount: &'a U128,
+        swapped_stake_shares: &'a U128,
+        new_unstaked_balance: &'a U128,
+        new_stake_shares: &'a U128,
     },
     AddLiquidity {
-        account_id: AccountId,
-        amount: U128,
-        added_shares: U128,
+        account_id: &'a AccountId,
+        amount: &'a U128,
+        added_shares: &'a U128,
     },
     RemoveLiquidity {
-        account_id: AccountId,
-        removed_shares: U128,
-        received_near: U128,
-        received_linear: U128,
+        account_id: &'a AccountId,
+        removed_shares: &'a U128,
+        received_near: &'a U128,
+        received_linear: &'a U128,
     },
     RebalanceLiquidity {
-        account_id: AccountId,
-        increased_amount: U128,
-        burnt_stake_shares: U128,
+        account_id: &'a AccountId,
+        increased_amount: &'a U128,
+        burnt_stake_shares: &'a U128,
     },
     LiquidityPoolSwapFee {
-        stake_shares_in: U128,
-        requested_amount: U128,
-        received_amount: U128,
-        swap_fee_amount: U128,
-        swap_fee_stake_shares: U128,
-        treasury_fee_stake_shares: U128,
-        pool_fee_stake_shares: U128,
-        total_fee_shares: U128,
+        stake_shares_in: &'a U128,
+        requested_amount: &'a U128,
+        received_amount: &'a U128,
+        swap_fee_amount: &'a U128,
+        swap_fee_stake_shares: &'a U128,
+        treasury_fee_stake_shares: &'a U128,
+        pool_fee_stake_shares: &'a U128,
+        total_fee_shares: &'a U128,
     },
 }
 
-impl Event {
+impl Event<'_> {
     pub fn emit(&self) {
         emit_event(&self);
     }
@@ -124,8 +124,8 @@ mod tests {
 
     #[test]
     fn epoch_stake_attempt() {
-        let validator_id = alice();
-        let amount = U128(100);
+        let validator_id = &alice();
+        let amount = &U128(100);
         Event::EpochStakeAttempt { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
@@ -135,8 +135,8 @@ mod tests {
 
     #[test]
     fn epoch_stake_success() {
-        let validator_id = alice();
-        let amount = U128(100);
+        let validator_id = &alice();
+        let amount = &U128(100);
         Event::EpochStakeSuccess { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
@@ -146,8 +146,8 @@ mod tests {
 
     #[test]
     fn epoch_stake_failed() {
-        let validator_id = alice();
-        let amount = U128(100);
+        let validator_id = &alice();
+        let amount = &U128(100);
         Event::EpochStakeFailed { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
@@ -157,8 +157,8 @@ mod tests {
 
     #[test]
     fn epoch_unstake_attempt() {
-        let validator_id = alice();
-        let amount = U128(100);
+        let validator_id = &alice();
+        let amount = &U128(100);
         Event::EpochUnstakeAttempt { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
@@ -168,8 +168,8 @@ mod tests {
 
     #[test]
     fn epoch_unstake_success() {
-        let validator_id = alice();
-        let amount = U128(100);
+        let validator_id = &alice();
+        let amount = &U128(100);
         Event::EpochUnstakeSuccess { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
@@ -179,8 +179,8 @@ mod tests {
 
     #[test]
     fn epoch_unstake_failed() {
-        let validator_id = alice();
-        let amount = U128(100);
+        let validator_id = &alice();
+        let amount = &U128(100);
         Event::EpochUnstakeFailed { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
@@ -190,8 +190,8 @@ mod tests {
 
     #[test]
     fn epoch_withdraw_attempt() {
-        let validator_id = alice();
-        let amount = U128(100);
+        let validator_id = &alice();
+        let amount = &U128(100);
         Event::EpochWithdrawAttempt { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
@@ -201,8 +201,8 @@ mod tests {
 
     #[test]
     fn epoch_withdraw_success() {
-        let validator_id = alice();
-        let amount = U128(100);
+        let validator_id = &alice();
+        let amount = &U128(100);
         Event::EpochWithdrawSuccess { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
@@ -212,8 +212,8 @@ mod tests {
 
     #[test]
     fn epoch_withdraw_failed() {
-        let validator_id = alice();
-        let amount = U128(100);
+        let validator_id = &alice();
+        let amount = &U128(100);
         Event::EpochWithdrawFailed { validator_id, amount }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
@@ -223,14 +223,14 @@ mod tests {
 
     #[test]
     fn epoch_update_rewards() {
-        let validator_id = alice();
+        let validator_id = &alice();
         let old_balance = 100;
         let new_balance = 120;
         Event::EpochUpdateRewards { 
             validator_id,
-            old_balance: U128(old_balance),
-            new_balance: U128(new_balance),
-            rewards: U128(new_balance - old_balance)
+            old_balance: &U128(old_balance),
+            new_balance: &U128(new_balance),
+            rewards: &U128(new_balance - old_balance)
         }
         .emit();
         assert_eq!(
@@ -241,9 +241,9 @@ mod tests {
 
     #[test]
     fn deposit() {
-        let account_id = alice();
-        let amount = U128(100);
-        let new_unstaked_balance = U128(200);
+        let account_id = &alice();
+        let amount = &U128(100);
+        let new_unstaked_balance = &U128(200);
         Event::Deposit {
             account_id,
             amount,
@@ -258,9 +258,9 @@ mod tests {
 
     #[test]
     fn withdraw() {
-        let account_id = alice();
-        let amount = U128(100);
-        let new_unstaked_balance = U128(50);
+        let account_id = &alice();
+        let amount = &U128(100);
+        let new_unstaked_balance = &U128(50);
         Event::Withdraw {
             account_id,
             amount,
@@ -276,11 +276,11 @@ mod tests {
 
     #[test]
     fn stake() {
-        let account_id = alice();
-        let staked_amount = U128(100);
-        let minted_stake_shares = U128(99);
-        let new_unstaked_balance = U128(10);
-        let new_stake_shares = U128(199);
+        let account_id = &alice();
+        let staked_amount = &U128(100);
+        let minted_stake_shares = &U128(99);
+        let new_unstaked_balance = &U128(10);
+        let new_stake_shares = &U128(199);
         Event::Stake {
             account_id,
             staked_amount,
@@ -297,11 +297,11 @@ mod tests {
 
     #[test]
     fn unstake() {
-        let account_id = alice();
-        let unstaked_amount = U128(101);
-        let burnt_stake_shares = U128(100);
-        let new_unstaked_balance = U128(111);
-        let new_stake_shares = U128(99);
+        let account_id = &alice();
+        let unstaked_amount = &U128(101);
+        let burnt_stake_shares = &U128(100);
+        let new_unstaked_balance = &U128(111);
+        let new_stake_shares = &U128(99);
         let unstaked_available_epoch_height = 932;
         Event::Unstake {
             account_id,
@@ -320,11 +320,11 @@ mod tests {
 
     #[test]
     fn instant_unstake() {
-        let account_id = alice();
-        let unstaked_amount = U128(97);
-        let swapped_stake_shares = U128(100);
-        let new_unstaked_balance = U128(111);
-        let new_stake_shares = U128(99);
+        let account_id = &alice();
+        let unstaked_amount = &U128(97);
+        let swapped_stake_shares = &U128(100);
+        let new_unstaked_balance = &U128(111);
+        let new_stake_shares = &U128(99);
         Event::InstantUnstake {
             account_id,
             unstaked_amount,

@@ -60,8 +60,8 @@ impl LiquidStakingContract {
         self.stake_amount_to_settle -= amount_to_stake;
 
         Event::EpochStakeAttempt {
-            validator_id: candidate.account_id.clone(),
-            amount: U128(amount_to_stake)
+            validator_id: &candidate.account_id,
+            amount: &U128(amount_to_stake)
         }
         .emit();
 
@@ -111,8 +111,8 @@ impl LiquidStakingContract {
         self.unstake_amount_to_settle -= amount_to_unstake;
 
         Event::EpochUnstakeAttempt {
-            validator_id: candidate.account_id.clone(),
-            amount: U128(amount_to_unstake)
+            validator_id: &candidate.account_id,
+            amount: &U128(amount_to_unstake)
         }
         .emit();
 
@@ -173,8 +173,8 @@ impl LiquidStakingContract {
         let amount = validator.unstaked_amount;
 
         Event::EpochWithdrawAttempt {
-            validator_id: validator_id.clone(),
-            amount: U128(amount)
+            validator_id: &validator_id,
+            amount: &U128(amount)
         }
         .emit();
 
@@ -259,8 +259,8 @@ impl LiquidStakingContract {
             validator.on_stake_success(&mut self.validator_pool, amount);
 
             Event::EpochStakeSuccess {
-                validator_id: validator_id.clone(),
-                amount: U128(amount)
+                validator_id: &validator_id,
+                amount: &U128(amount)
             }
             .emit();
             return;
@@ -270,8 +270,8 @@ impl LiquidStakingContract {
         self.stake_amount_to_settle += amount;
 
         Event::EpochStakeFailed {
-            validator_id: validator_id.clone(),
-            amount: U128(amount)
+            validator_id: &validator_id,
+            amount: &U128(amount)
         }
         .emit();
     }
@@ -289,8 +289,8 @@ impl LiquidStakingContract {
         if is_promise_success() {
             validator.on_unstake_success(&mut self.validator_pool, amount);
             Event::EpochUnstakeSuccess {
-                validator_id: validator_id.clone(),
-                amount: U128(amount)
+                validator_id: &validator_id,
+                amount: &U128(amount)
             }
             .emit();
             return;
@@ -304,8 +304,8 @@ impl LiquidStakingContract {
         validator.on_unstake_failed(&mut self.validator_pool, amount);
 
         Event::EpochUnstakeFailed {
-            validator_id: validator_id.clone(),
-            amount: U128(amount)
+            validator_id: &validator_id,
+            amount: &U128(amount)
         }
         .emit();
     }
@@ -323,10 +323,10 @@ impl LiquidStakingContract {
         let new_balance = total_balance.0;
         let rewards = new_balance - validator.total_balance();
         Event::EpochUpdateRewards {
-            validator_id: validator_id.clone(),
-            old_balance: U128(validator.total_balance()),
-            new_balance: U128(new_balance),
-            rewards: U128(rewards)
+            validator_id: &validator_id,
+            old_balance: &U128(validator.total_balance()),
+            new_balance: &U128(new_balance),
+            rewards: &U128(rewards)
         }
         .emit();
 
@@ -349,8 +349,8 @@ impl LiquidStakingContract {
     ) {
         if is_promise_success() {
             Event::EpochWithdrawSuccess {
-                validator_id: validator_id.clone(),
-                amount: U128(amount)
+                validator_id: &validator_id,
+                amount: &U128(amount)
             }
             .emit();
             return;
@@ -364,8 +364,8 @@ impl LiquidStakingContract {
         validator.on_withdraw_failed(&mut self.validator_pool, amount);
 
         Event::EpochWithdrawFailed {
-            validator_id: validator_id.clone(),
-            amount: U128(amount)
+            validator_id: &validator_id,
+            amount: &U128(amount)
         }
         .emit();
     }

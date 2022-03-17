@@ -201,14 +201,14 @@ impl LiquidityPool {
         self.amounts[1] += received_num_shares;
 
         Event::LiquidityPoolSwapFee {
-            stake_shares_in: U128(stake_shares_in),
-            requested_amount: U128(requested_amount),
-            received_amount: U128(received_amount),
-            swap_fee_amount: U128(swap_fee_amount),
-            swap_fee_stake_shares: U128(swap_fee_stake_shares),
-            treasury_fee_stake_shares: U128(treasury_fee_stake_shares),
-            pool_fee_stake_shares: U128(pool_fee_stake_shares),
-            total_fee_shares: U128(self.total_fee_shares),
+            stake_shares_in: &U128(stake_shares_in),
+            requested_amount: &U128(requested_amount),
+            received_amount: &U128(received_amount),
+            swap_fee_amount: &U128(swap_fee_amount),
+            swap_fee_stake_shares: &U128(swap_fee_stake_shares),
+            treasury_fee_stake_shares: &U128(treasury_fee_stake_shares),
+            pool_fee_stake_shares: &U128(pool_fee_stake_shares),
+            total_fee_shares: &U128(self.total_fee_shares),
         }
         .emit();
 
@@ -416,9 +416,9 @@ impl LiquidStakingContract {
             added_shares
         );
         Event::AddLiquidity {
-            account_id,
-            amount: U128(amount),
-            added_shares: U128(added_shares)
+            account_id: &account_id,
+            amount: &U128(amount),
+            added_shares: &U128(added_shares)
         }
         .emit();
     }
@@ -450,10 +450,10 @@ impl LiquidStakingContract {
         Promise::new(env::predecessor_account_id()).transfer(results[0]);
 
         Event::RemoveLiquidity {
-            account_id,
-            removed_shares: U128(removed_shares),
-            received_near: U128(results[0]),
-            received_linear: U128(results[1]),
+            account_id: &account_id,
+            removed_shares: &U128(removed_shares),
+            received_near: &U128(results[0]),
+            received_linear: &U128(results[1]),
         }
         .emit();
 
@@ -507,11 +507,11 @@ impl LiquidStakingContract {
         Promise::new(account_id.clone()).transfer(received_amount);
 
         Event::InstantUnstake {
-            account_id,
-            unstaked_amount: U128(received_amount),
-            swapped_stake_shares: U128(stake_shares_in),
-            new_unstaked_balance: U128(account.unstaked),
-            new_stake_shares: U128(account.stake_shares),        }
+            account_id: &account_id,
+            unstaked_amount: &U128(received_amount),
+            swapped_stake_shares: &U128(stake_shares_in),
+            new_unstaked_balance: &U128(account.unstaked),
+            new_stake_shares: &U128(account.stake_shares),        }
         .emit();
 
         received_amount.into()
@@ -546,9 +546,9 @@ impl LiquidStakingContract {
         self.total_share_amount -= decreased_stake_shares;
 
         Event::RebalanceLiquidity {
-            account_id,
-            increased_amount: U128(increased_amount),
-            burnt_stake_shares: U128(decreased_stake_shares),
+            account_id: &account_id,
+            increased_amount: &U128(increased_amount),
+            burnt_stake_shares: &U128(decreased_stake_shares),
         }
         .emit();
     }

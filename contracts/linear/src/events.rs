@@ -63,11 +63,11 @@ pub enum Event<'a> {
     AddLiquidity {
         account_id: &'a AccountId,
         amount: &'a U128,
-        added_shares: &'a U128,
+        minted_shares: &'a U128,
     },
     RemoveLiquidity {
         account_id: &'a AccountId,
-        removed_shares: &'a U128,
+        burnt_shares: &'a U128,
         received_near: &'a U128,
         received_linear: &'a U128,
     },
@@ -336,6 +336,86 @@ mod tests {
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"instant_unstake","data":[{"account_id":"alice","unstaked_amount":"97","swapped_stake_shares":"100","new_unstaked_balance":"111","new_stake_shares":"99"}]}"#
+        );
+    }
+
+    #[test]
+    fn add_liquidity() {
+        let account_id = &alice();
+        let amount = &U128(100);
+        let minted_shares = &U128(98);
+        Event::AddLiquidity {
+            account_id,
+            amount,
+            minted_shares
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"add_liquidity","data":[{"account_id":"alice","amount":"100","minted_shares":"98"}]}"#
+        );
+    }
+
+    #[test]
+    fn remove_liquidity() {
+        let account_id = &alice();
+        let burnt_shares = &U128(98);
+        let received_near = &U128(90);
+        let received_linear = &U128(9);
+        Event::RemoveLiquidity {
+            account_id,
+            burnt_shares,
+            received_near,
+            received_linear
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"remove_liquidity","data":[{"account_id":"alice","burnt_shares":"98","received_near":"90","received_linear":"9"}]}"#
+        );
+    }
+
+    #[test]
+    fn rebalance_liquidity() {
+        let account_id = &alice();
+        let increased_amount = &U128(100);
+        let burnt_stake_shares = &U128(99);
+        Event::RebalanceLiquidity {
+            account_id,
+            increased_amount,
+            burnt_stake_shares,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"rebalance_liquidity","data":[{"account_id":"alice","increased_amount":"100","burnt_stake_shares":"99"}]}"#
+        );
+    }
+
+    #[test]
+    fn liquidity_pool_swap_fee() {
+        let stake_shares_in = &U128(100);
+        let requested_amount = &U128(100);
+        let received_amount = &U128(97);
+        let swap_fee_amount = &U128(3);
+        let swap_fee_stake_shares = &U128(3);
+        let treasury_fee_stake_shares = &U128(1);
+        let pool_fee_stake_shares = &U128(2);
+        let total_fee_shares = &U128(1022);
+        Event::LiquidityPoolSwapFee {
+            stake_shares_in,
+            requested_amount,
+            received_amount,
+            swap_fee_amount,
+            swap_fee_stake_shares,
+            treasury_fee_stake_shares,
+            pool_fee_stake_shares,
+            total_fee_shares,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"liquidity_pool_swap_fee","data":[{"stake_shares_in":"100","requested_amount":"100","received_amount":"97","swap_fee_amount":"3","swap_fee_stake_shares":"3","treasury_fee_stake_shares":"1","pool_fee_stake_shares":"2","total_fee_shares":"1022"}]}"#
         );
     }
 }

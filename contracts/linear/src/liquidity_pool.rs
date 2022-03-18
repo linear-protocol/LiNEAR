@@ -1,12 +1,15 @@
 use crate::*;
+use crate::events::Event;
 use near_sdk::{
     near_bindgen, Balance, Promise, log, assert_one_yocto,
     collections::LookupMap
 };
+use near_contract_standards::fungible_token::events::{FtTransfer, FtBurn};
 
 // Mocked NEAR and LINEAR token used in Liquidity Pool
 const NEAR_TOKEN_ACCOUNT: &str = "near";
 const LINEAR_TOKEN_ACCOUNT: &str = "linear";
+
 
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct LiquidityPool {
@@ -110,11 +113,6 @@ impl LiquidityPool {
         self.mint_shares(&account_id, shares);
         // Add NEAR amount
         self.amounts[0] += amount;
-        log!(
-            "Liquidity added {} NEAR, minted {} shares",
-            amount,
-            shares
-        );
     }
 
     /// Removes given number of shares from the pool and returns amounts to the parent.
@@ -156,6 +154,7 @@ impl LiquidityPool {
     /// Swap NEAR token into LiNEAR and calculate the fees.
     pub fn swap(
         &mut self,
+        account_id: &AccountId,
         requested_amount: Balance,      // NEAR
         stake_shares_in: ShareBalance,  // LiNEAR
         min_amount_out: Balance,
@@ -199,6 +198,19 @@ impl LiquidityPool {
         let received_num_shares = stake_shares_in - treasury_fee_stake_shares;
         self.amounts[1] += received_num_shares;
 
+        Event::LiquidityPoolSwapFee {
+            account_id,
+            stake_shares_in: &U128(stake_shares_in),
+            requested_amount: &U128(requested_amount),
+            received_amount: &U128(received_amount),
+            fee_amount: &U128(swap_fee_amount),
+            fee_stake_shares: &U128(swap_fee_stake_shares),
+            treasury_fee_stake_shares: &U128(treasury_fee_stake_shares),
+            pool_fee_stake_shares: &U128(pool_fee_stake_shares),
+            total_fee_shares: &U128(self.total_fee_shares),
+        }
+        .emit();
+
         (received_amount, treasury_fee_stake_shares)
     }
 
@@ -232,12 +244,6 @@ impl LiquidityPool {
         self.amounts[0] += increased_amount;
         // Decrease LiNEAR
         self.amounts[1] -= decreased_stake_shares;
-
-        log!(
-            "Liquidity has been rebalanced by adding {} NEAR and removing {} LiNEAR",
-            increased_amount,
-            decreased_stake_shares
-        );
 
         (increased_amount, decreased_stake_shares)
     }
@@ -402,6 +408,12 @@ impl LiquidStakingContract {
             amount,
             added_shares
         );
+        Event::AddLiquidity {
+            account_id: &account_id,
+            amount: &U128(amount),
+            minted_shares: &U128(added_shares),
+        }
+        .emit();
     }
 
     /// Remove shares from the liquidity pool and return NEAR and LiNEAR.
@@ -429,6 +441,23 @@ impl LiquidStakingContract {
         account.stake_shares += results[1];
         self.internal_save_account(&account_id, &account);
         Promise::new(env::predecessor_account_id()).transfer(results[0]);
+
+        Event::RemoveLiquidity {
+            account_id: &account_id,
+            burnt_shares: &U128(removed_shares),
+            received_near: &U128(results[0]),
+            received_linear: &U128(results[1]),
+        }
+        .emit();
+        if results[1] > 0 {
+            FtTransfer {
+                old_owner_id: &env::current_account_id(),
+                new_owner_id: &account_id,
+                amount: &U128(results[1]),
+                memo: Some("remove liquidity"),
+            }
+            .emit()
+        }
 
         results.iter()
             .map(|amount| amount.clone().into())
@@ -461,6 +490,7 @@ impl LiquidStakingContract {
 
         // Swap NEAR out from liquidity pool
         let (received_amount, treasury_fee_stake_shares) = self.liquidity_pool.swap(
+            &account_id,
             requested_amount,
             stake_shares_in,
             min_amount_out,
@@ -479,12 +509,28 @@ impl LiquidStakingContract {
         // Transfer NEAR to account
         Promise::new(account_id.clone()).transfer(received_amount);
 
-        log!(
-            "@{} instantly unstaked {} LiNEAR, received {} NEAR",
-            &account_id,
-            stake_shares_in,
-            received_amount
-        );
+        Event::InstantUnstake {
+            account_id: &account_id,
+            unstaked_amount: &U128(received_amount),
+            swapped_stake_shares: &U128(stake_shares_in),
+            fee_amount: &U128(requested_amount - received_amount),
+            new_unstaked_balance: &U128(account.unstaked),
+            new_stake_shares: &U128(account.stake_shares),        }
+        .emit();
+        FtTransfer::emit_many(&[
+            FtTransfer {
+                old_owner_id: &account_id,
+                new_owner_id: &treasury_account_id,
+                amount: &U128(treasury_fee_stake_shares),
+                memo: Some("instant unstake treasury fee"),
+            },
+            FtTransfer {
+                old_owner_id: &account_id,
+                new_owner_id: &env::current_account_id(),
+                amount: &U128(stake_shares_in - treasury_fee_stake_shares),
+                memo: Some("instant unstake swapped into pool"),
+            },
+        ]);
 
         received_amount.into()
     }
@@ -500,6 +546,7 @@ impl LiquidStakingContract {
     /// Rebalance NEAR / LiNEAR distribution to make the liqudity pool more efficient
     /// Automatically swap LiNEAR out with newly staked NEAR
     pub(crate) fn rebalance_liquidity(&mut self) {
+        let account_id = env::predecessor_account_id();
         // If no new staking request, skip the rebalance
         if self.epoch_requested_stake_amount <= 0 {
             return;
@@ -515,5 +562,20 @@ impl LiquidStakingContract {
         self.total_staked_near_amount -= increased_amount;
         // Decrease stake shares
         self.total_share_amount -= decreased_stake_shares;
+
+        if decreased_stake_shares > 0 {
+            Event::RebalanceLiquidity {
+                account_id: &account_id,
+                increased_amount: &U128(increased_amount),
+                burnt_stake_shares: &U128(decreased_stake_shares),
+            }
+            .emit();
+            FtBurn {
+                owner_id: &env::current_account_id(),
+                amount: &U128(decreased_stake_shares),
+                memo: Some("rebalance liquidity")
+            }
+            .emit();
+        }
     }
 }

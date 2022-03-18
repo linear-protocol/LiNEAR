@@ -1,7 +1,8 @@
 use crate::*;
 use crate::types::*;
-use crate::events::*;
+use crate::events::Event;
 use near_sdk::{Promise,log};
+use near_contract_standards::fungible_token::events::{FtMint, FtBurn};
 use std::{
     collections::HashMap,
 };
@@ -17,7 +18,12 @@ impl LiquidStakingContract {
         account.unstaked += amount;
         self.internal_save_account(&account_id, &account);
 
-        log!("@{} deposited {}. New unstaked balance is {}", account_id, amount, account.unstaked);
+        Event::Deposit {
+            account_id: &account_id,
+            amount: &U128(amount),
+            new_unstaked_balance: &U128(account.unstaked),
+        }
+        .emit();
     }
 
     pub(crate) fn internal_withdraw(&mut self, amount: Balance) {
@@ -30,8 +36,12 @@ impl LiquidStakingContract {
         account.unstaked -= amount;
         self.internal_save_account(&account_id, &account);
 
-        log!("@{} withdrawing {}. New unstaked balance is {}", account_id, amount, account.unstaked);
-
+        Event::Withdraw {
+            account_id: &account_id,
+            amount: &U128(amount),
+            new_unstaked_balance: &U128(account.unstaked),
+        }
+        .emit();
         Promise::new(account_id).transfer(amount);
     }
 
@@ -70,10 +80,20 @@ impl LiquidStakingContract {
         // Increase requested stake amount within the current epoch
         self.epoch_requested_stake_amount += stake_amount;
 
-        log!(
-            "@{} staking {}. Received {} new staking shares. Total {} unstaked balance and {} staking shares",
-            account_id, charge_amount, num_shares, account.unstaked, account.stake_shares
-        );
+        Event::Stake {
+            account_id: &account_id,
+            staked_amount: &U128(charge_amount),
+            minted_stake_shares: &U128(num_shares),
+            new_unstaked_balance: &U128(account.unstaked),
+            new_stake_shares: &U128(account.stake_shares),
+        }
+        .emit();
+        FtMint {
+            owner_id: &account_id,
+            amount: &U128(num_shares),
+            memo: Some("stake")
+        }
+        .emit();
         log!(
             "Contract total staked balance is {}. Total number of shares {}",
             self.total_staked_near_amount, self.total_share_amount
@@ -120,10 +140,21 @@ impl LiquidStakingContract {
         // Increase requested unstake amount within the current epoch
         self.epoch_requested_unstake_amount += unstake_amount;
 
-        log!(
-            "@{} unstaking {}. Spent {} staking shares. Total {} unstaked balance and {} staking shares",
-            account_id, receive_amount, num_shares, account.unstaked, account.stake_shares
-        );
+        Event::Unstake {
+            account_id: &account_id,
+            unstaked_amount: &U128(receive_amount),
+            burnt_stake_shares: &U128(num_shares),
+            new_unstaked_balance: &U128(account.unstaked),
+            new_stake_shares: &U128(account.stake_shares),
+            unstaked_available_epoch_height: account.unstaked_available_epoch_height,
+        }
+        .emit();
+        FtBurn {
+            owner_id: &account_id,
+            amount: &U128(num_shares),
+            memo: Some("unstake")
+        }
+        .emit();
         log!(
             "Contract total staked balance is {}. Total number of shares {}",
             self.total_staked_near_amount, self.total_share_amount
@@ -157,17 +188,13 @@ impl LiquidStakingContract {
         for (account_id, fraction) in hashmap.iter() {
             let reward_near_amount: Balance = fraction.multiply(rewards);
             // mint extra LiNEAR for him
-            let reward_shares = self.internal_mint_shares(&account_id, reward_near_amount);
-            log_linear_minted(
-                &account_id,
-                reward_shares
-            );
+            self.internal_mint_beneficiary_rewards(&account_id, reward_near_amount);
         }
     }
 
     /// Mint new LiNEAR tokens to given account at the current price.
     /// This will DECREASE the LiNEAR price.
-    fn internal_mint_shares(
+    fn internal_mint_beneficiary_rewards(
         &mut self,
         account_id: &AccountId,
         near_amount: Balance
@@ -178,6 +205,12 @@ impl LiquidStakingContract {
             self.internal_register_account(account_id);
         }
         self.internal_ft_deposit(account_id, shares);
+        FtMint {
+            owner_id: account_id,
+            amount: &U128(shares),
+            memo: Some("beneficiary rewards"),
+        }
+        .emit();
         return shares;
     }
 

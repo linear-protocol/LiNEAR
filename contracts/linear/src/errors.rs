@@ -8,6 +8,7 @@ pub const ERR_NOT_OWNER: &str = "Only owner can perform this action";
 
 // account
 pub const ERR_NO_ACCOUNT: &str = "Account not found";
+pub const ERR_UNREGISTER_POSITIVE_UNSTAKED: &str = "Cannot delete the account because the unstaked amount is not empty. Withdraw your balance first.";
 
 // fraction
 pub const ERR_FRACTION_BAD_DENOMINATOR: &str = "Denominator cannot be zero";

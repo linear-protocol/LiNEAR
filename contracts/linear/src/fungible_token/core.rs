@@ -6,7 +6,7 @@ use near_sdk::{
 };
 use near_contract_standards::fungible_token::core::FungibleTokenCore;
 use near_contract_standards::fungible_token::resolver::FungibleTokenResolver;
-use near_contract_standards::fungible_token::events::FtTransfer;
+use near_contract_standards::fungible_token::events::{FtTransfer};
 
 // allocate enough gas for ft_resolve_transfer() to avoid unexpected failure
 const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(12_000_000_000_000);
@@ -182,11 +182,11 @@ impl LiquidStakingContract {
         amount: Balance,
         memo: Option<String>,
     ) {
-        assert_ne!(
-            sender_id, receiver_id,
+        require!(
+            sender_id != receiver_id,
             "Sender and receiver should be different"
         );
-        assert!(amount > 0, "The amount should be a positive number");
+        require!(amount > 0, "The amount should be a positive number");
 
         self.internal_ft_withdraw(sender_id, amount);
         self.internal_ft_deposit(receiver_id, amount);

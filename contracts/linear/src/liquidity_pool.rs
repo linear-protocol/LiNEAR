@@ -10,9 +10,6 @@ use near_contract_standards::fungible_token::events::{FtTransfer, FtBurn};
 const NEAR_TOKEN_ACCOUNT: &str = "near";
 const LINEAR_TOKEN_ACCOUNT: &str = "linear";
 
-/// Virtual liquidity pool account for emitting FT events. The account
-/// doesn't really exist on chain and is only used for event logging
-const VIRTUAL_POOL_ACCOUNT: &str = "liquidity-pool.linear";
 
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct LiquidityPool {
@@ -454,7 +451,7 @@ impl LiquidStakingContract {
         .emit();
         if results[1] > 0 {
             FtTransfer {
-                old_owner_id: &AccountId::new_unchecked(VIRTUAL_POOL_ACCOUNT.to_string()),
+                old_owner_id: &env::current_account_id(),
                 new_owner_id: &account_id,
                 amount: &U128(results[1]),
                 memo: Some("remove liquidity"),
@@ -529,9 +526,9 @@ impl LiquidStakingContract {
             },
             FtTransfer {
                 old_owner_id: &account_id,
-                new_owner_id: &AccountId::new_unchecked(VIRTUAL_POOL_ACCOUNT.to_string()),
+                new_owner_id: &env::current_account_id(),
                 amount: &U128(stake_shares_in - treasury_fee_stake_shares),
-                memo: Some("instant unstake into pool"),
+                memo: Some("instant unstake swapped into pool"),
             },
         ]);
 
@@ -574,7 +571,7 @@ impl LiquidStakingContract {
             }
             .emit();
             FtBurn {
-                owner_id: &AccountId::new_unchecked(VIRTUAL_POOL_ACCOUNT.to_string()),
+                owner_id: &env::current_account_id(),
                 amount: &U128(decreased_stake_shares),
                 memo: Some("rebalance liquidity")
             }

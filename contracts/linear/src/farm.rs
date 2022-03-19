@@ -171,7 +171,7 @@ impl LiquidStakingContract {
         }
     }
 
-    fn internal_distribute_reward(
+    fn internal_distribute_farm_reward(
         &mut self,
         account: &mut Account,
         farm_id: u64,
@@ -190,12 +190,12 @@ impl LiquidStakingContract {
     }
 
     /// Distribute all rewards for the given user.
-    pub(crate) fn internal_distribute_all_rewards(&mut self, mut account: &mut Account) {
+    pub(crate) fn internal_distribute_all_farm_rewards(&mut self, mut account: &mut Account) {
         let old_active_farms = self.active_farms.clone();
         self.active_farms = vec![];
         for farm_id in old_active_farms.into_iter() {
             if let Some(mut farm) = self.farms.get(farm_id) {
-                self.internal_distribute_reward(&mut account, farm_id, &mut farm);
+                self.internal_distribute_farm_reward(&mut account, farm_id, &mut farm);
                 self.farms.replace(farm_id, &farm);
                 // Only include active farm
                 if farm.is_active() {
@@ -223,7 +223,7 @@ impl LiquidStakingContract {
         send_account_id: &AccountId,
     ) -> Promise {
         let mut account = self.internal_get_account(&claim_account_id);
-        self.internal_distribute_all_rewards(&mut account);
+        self.internal_distribute_all_farm_rewards(&mut account);
         let amount = account.amounts.remove(&token_id).unwrap_or(0);
         require!(amount > 0, ERR_NO_FARM_REWARDS);
         log!(

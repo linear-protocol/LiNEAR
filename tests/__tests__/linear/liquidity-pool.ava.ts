@@ -39,15 +39,18 @@ const getTotalStakedNEAR = async (contract) => {
 
 const getPoolValue = async (contract) => {
   const summary = await getSummary(contract);
-  const { lp_near_amount, ft_price, lp_staked_share } = summary;
-  const price = NEAR.from(ft_price).div(NEAR.parse('1'));
+  const { lp_near_amount, lp_staked_share } = summary;
   return NEAR.from(lp_near_amount).add(
-    NEAR.from(lp_staked_share).mul(price)
+    await stakeSharesValues(contract, NEAR.from(lp_staked_share))
   );
 }
 
-const ftPrice = async(contract) => {
-  return NEAR.from(await contract.view('ft_price', {})).div(NEAR.parse('1'));
+const getPoolAccountValue = async (contract, account) => {
+  return NEAR.from((await contract.view('get_account', { account_id: account }) as any).liquidity_pool_share_value);
+}
+
+const stakeSharesValues = async (contract, stake_shares) => {
+  return stake_shares.mul(NEAR.from(await contract.view('ft_price', {}))).div(NEAR.parse('1'));
 }
 
 const stake = async(test, {contract, user, amount}) => {
@@ -61,6 +64,7 @@ const stake = async(test, {contract, user, amount}) => {
 
 const addLiquidity = async(test, {contract, user, amount}) => {
   const previousPoolValue = await getPoolValue(contract);
+  const prevAccountPoolValue = await getPoolAccountValue(contract, user);
   await user.call(
     contract,
     'add_liquidity',
@@ -68,9 +72,10 @@ const addLiquidity = async(test, {contract, user, amount}) => {
     { attachedDeposit: amount },
   );
   const updatedPoolValue = await getPoolValue(contract);
+  const updatedAccountPoolValue = await getPoolAccountValue(contract, user);
   test.is(
-    (await contract.view('get_account', { account_id: user }) as any).liquidity_pool_share_value,
-    amount.toString()
+    prevAccountPoolValue.add(amount).toString(),
+    updatedAccountPoolValue.toString()
   );
   test.is(
     previousPoolValue.add(amount).toString(),
@@ -78,7 +83,7 @@ const addLiquidity = async(test, {contract, user, amount}) => {
   );
 }
 
-const removeLiqudity = async (test, {contract, user, amount}) => {
+const removeLiquidity = async (test, {contract, user, amount}) => {
   const previousPoolValue = await getPoolValue(contract);
   const balance = await getBalance(user);
   const result = await callWithMetrics(
@@ -92,11 +97,11 @@ const removeLiqudity = async (test, {contract, user, amount}) => {
 
   const receivedAmount = NEAR.from(result.successValue[0]);
   const receivedStakedShare = NEAR.from(result.successValue[1]);
-  const price = await ftPrice(contract);
+  const receivedStakedShareValue = await stakeSharesValues(contract, receivedStakedShare);
   noMoreThanOneYoctoDiff(
     test,
     amount,
-    receivedAmount.add(receivedStakedShare.mul(price))
+    receivedAmount.add(receivedStakedShareValue)
   );
   noMoreThanOneYoctoDiff(
     test,
@@ -115,18 +120,19 @@ const removeLiqudity = async (test, {contract, user, amount}) => {
 const instantUnstake = async (test, {contract, user, amount}) => {
   const delta = NEAR.parse('0.5');
   const summary = await getSummary(contract);
+  const nearAmount = await stakeSharesValues(contract, amount);
   const totalAmount = NEAR.from((summary as any).lp_near_amount);
-  let fee = estimateSwapFee(totalAmount, amount);
+  let fee = estimateSwapFee(totalAmount, nearAmount);
   const receivedAmount: string = await user.call(
     contract,
     'instant_unstake',
     {
       stake_shares_in: amount.toString(),
-      min_amount_out: amount.sub(delta).toString()
+      min_amount_out: nearAmount.sub(delta).toString()
     }
   );
   test.is(
-    amount.sub(fee).toString(),
+    nearAmount.sub(fee).toString(),
     NEAR.from(receivedAmount).toString()
   );
 }
@@ -204,14 +210,14 @@ workspace.test('remove liquidity', async (test, { contract, alice, bob }) => {
   });
 
   // Bob removes liquidity from pool for the 1st time
-  await removeLiqudity(test, {
+  await removeLiquidity(test, {
     contract,
     user: bob,
     amount: NEAR.parse('10')
   });
 
   // Bob removes liquidity from pool for the 2nd time
-  await removeLiqudity(test, {
+  await removeLiquidity(test, {
     contract,
     user: bob,
     amount: NEAR.parse('5')
@@ -271,7 +277,7 @@ workspace.test('issue: remove liquidity precision loss', async (test, { contract
   });
 
   // Bob removes liquidity, here may introduce precision loss
-  await removeLiqudity(test, {
+  await removeLiquidity(test, {
     contract,
     user: bob,
     amount: NEAR.parse('20')
@@ -285,7 +291,7 @@ workspace.test('issue: remove liquidity precision loss', async (test, { contract
   });
 
   // Bob removes liquidity, here may introduce precision loss
-  await removeLiqudity(test, {
+  await removeLiquidity(test, {
     contract,
     user: bob,
     amount: NEAR.parse('15')
@@ -470,5 +476,67 @@ workspace.test('liquidity pool misconfiguration', async (test, { contract, owner
     ),
     ERR_NON_POSITIVE_EXPECTED_NEAR_AMOUNT
   );
+});
 
+workspace.test('remove liquidity if LiNEAR price > 1.0', async (test, { contract, owner, alice, bob }) => {
+
+  // Alice deposits and stakes to avoid empty stake shares
+  await stake(test, {
+    contract,
+    user: alice,
+    amount: NEAR.parse('40')
+  });
+
+  // Add 0.5N epoch rewards, pirce becomes 1.01
+  await owner.call(
+    contract,
+    "add_epoch_rewards",
+    { amount: NEAR.parse("0.5") }
+  );
+  test.is(
+    await contract.view("ft_price"),
+    NEAR.parse("1.01").toString()
+  );
+
+  // Bob adds liquidity
+  await addLiquidity(test, {
+    contract,
+    user: bob,
+    amount: NEAR.parse('50')
+  });
+
+  // Alice unstake
+  await instantUnstake(test, {
+    contract,
+    user: alice,
+    amount: NEAR.parse('12')
+  });
+
+  // Alice adds liquidity
+  await addLiquidity(test, {
+    contract,
+    user: alice,
+    amount: NEAR.parse('50')
+  });
+
+  // Alice removes liquidity
+  await removeLiquidity(test, {
+    contract,
+    user: alice,
+    amount: NEAR.parse('5')
+  });
+
+  // Bob adds liquidity
+  await addLiquidity(test, {
+    contract,
+    user: bob,
+    amount: NEAR.parse('10')
+  });
+
+  // Bob removes liquidity
+  await removeLiquidity(test, {
+    contract,
+    user: bob,
+    amount: NEAR.parse('10')
+  });
 });

@@ -3,6 +3,17 @@ use near_sdk::{
 };
 use crate::*;
 
+#[derive(BorshStorageKey, BorshSerialize)]
+pub(crate) enum StorageKey {
+    Accounts,
+    Shares,
+    Beneficiaries,
+    Validators,
+    Farms,
+    // AuthorizedUsers,
+    AuthorizedFarmTokens
+}
+
 #[cfg(not(feature = "test"))]
 pub fn get_epoch_height() -> EpochHeight {
     env::epoch_height()
@@ -21,18 +32,29 @@ pub fn get_epoch_height() -> EpochHeight {
     }
 }
 
-/// Epoch height helper methods only available for testing
+
 #[near_bindgen]
 impl LiquidStakingContract {
+    /// Set epoch height helper method, only available for testing
     #[cfg(feature = "test")]
     pub fn set_epoch_height(&mut self, epoch: EpochHeight) {
         let test_epoch_height_key: &[u8] = "_test_epoch_".as_bytes();
         env::storage_write(test_epoch_height_key, &epoch.try_to_vec().unwrap_or_default());
     }
 
+    /// Read epoch height helper method, only available for testing
     #[cfg(feature = "test")]
     pub fn read_epoch_height(&self) -> EpochHeight {
         get_epoch_height()
+    }
+
+    /// Add epoch rewards method, only available for testing
+    #[cfg(feature = "test")]
+    pub fn add_epoch_rewards(&mut self, amount: U128) {
+        self.assert_owner();
+        let amount: Balance = amount.into();
+        require!(amount > 0, "Added rewards amount must be positive");
+        self.total_staked_near_amount += amount;
     }
 }
 
@@ -58,15 +80,4 @@ pub (crate) fn staked_amount_from_num_shares_rounded_down(num_shares: ShareBalan
     (U256::from(context.total_staked_near_amount) * U256::from(num_shares)
         / U256::from(context.total_share_amount))
     .as_u128()
-}
-
-#[derive(BorshStorageKey, BorshSerialize)]
-pub(crate) enum StorageKey {
-    Accounts,
-    Shares,
-    Beneficiaries,
-    Validators,
-    Farms,
-    // AuthorizedUsers,
-    AuthorizedFarmTokens
 }

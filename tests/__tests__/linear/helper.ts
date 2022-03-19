@@ -106,7 +106,8 @@ export async function numbersEqual(test: any, a: NEAR, b: NEAR, diff = 0.000001)
 export async function noMoreThanOneYoctoDiff(test: any, a: NEAR, b: NEAR) {
   test.is(
     a.sub(b).abs().lte(NEAR.from("1")),
-    true
+    true,
+    `The actual value ${a.toString()} doesn't match with expected value ${b.toString()}`
   )
 }
 

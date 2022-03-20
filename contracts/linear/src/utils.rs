@@ -1,17 +1,39 @@
 use near_sdk::{
-    env, EpochHeight, near_bindgen, BorshStorageKey
+    env, EpochHeight, near_bindgen
 };
 use crate::*;
 
-#[derive(BorshStorageKey, BorshSerialize)]
-pub(crate) enum StorageKey {
-    Accounts,
-    Shares,
-    Beneficiaries,
-    Validators,
-    Farms,
-    // AuthorizedUsers,
-    AuthorizedFarmTokens
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
+pub struct Fraction {
+    pub numerator: u32,
+    pub denominator: u32,
+}
+
+impl Fraction {
+    pub fn new(numerator: u32, denominator: u32) -> Self {
+        let f = Self {
+            numerator,
+            denominator,
+        };
+        f.assert_valid();
+        return f;
+    }
+
+    pub fn assert_valid(&self) {
+        require!(
+            self.denominator != 0,
+            ERR_FRACTION_BAD_DENOMINATOR
+        );
+        require!(
+            self.numerator <= self.denominator,
+            ERR_FRACTION_BAD_NUMERATOR
+        );
+    }
+
+    pub fn multiply(&self, value: u128) -> u128 {
+        (U256::from(self.numerator) * U256::from(value) / U256::from(self.denominator)).as_u128()
+    }
 }
 
 #[cfg(not(feature = "test"))]

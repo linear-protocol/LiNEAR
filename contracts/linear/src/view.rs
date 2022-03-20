@@ -77,6 +77,7 @@ impl LiquidStakingContract {
         self.total_share_amount
     }
 
+    // [Review]: duplicate with staking pool view method: `get_total_staked_balance()`
     pub fn get_total_staked_near_amount(& self) -> Balance {
         self.total_staked_near_amount
     }

@@ -125,7 +125,7 @@ impl LiquidityPool {
         require!(
             prev_shares_amount >= shares,
             format!(
-                "{}. remove {} liquidity shares, but only has {} ",
+                "{}. remove {} liquidity shares, but only has {}",
                 ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE,
                 shares,
                 prev_shares_amount

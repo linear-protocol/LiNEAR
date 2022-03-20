@@ -576,6 +576,8 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
     contract,
     user: carol,
     amount: NEAR.parse('10'),
-    loss: '3'  // the loss is higher since all shares are removed
+    // The loss is higher since rounded up is not possible which will exceeds the
+    // account's total shares
+    loss: '3' // yoctoN
   });
 });

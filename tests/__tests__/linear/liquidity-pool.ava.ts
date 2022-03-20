@@ -10,16 +10,27 @@ import {
 
 // helper functions
 
-// Liquidity pool swap fee constants
-const MAX_FEE = new BN(300); // 10,000
-const MIN_FEE = new BN(30);  // 10,000
-const TARGET_NEAR_AMOUNT = NEAR.parse('10000');
+let config = null;
+const getConfig = async (contract) => {
+  if (!config) {
+    config = await contract.view("get_liquidity_pool_config", {}) as any;
+    config = {
+      ...config,
+      max_fee_bps: new BN(Number(config.max_fee_bps)),
+      min_fee_bps: new BN(Number(config.min_fee_bps)),
+      expected_near_amount: NEAR.from(config.expected_near_amount),
+    }
+  }
+  return config;
+}
+
 // Estimate swap fee
-const estimateSwapFee = (totalAmount: NEAR, amount: NEAR) => {
-  let diff = MAX_FEE.sub(MIN_FEE);
+const estimateSwapFee = async (contract: any, totalAmount: NEAR, amount: NEAR) => {
+  let { expected_near_amount, max_fee_bps, min_fee_bps } = await getConfig(contract);
+  let diff = max_fee_bps.sub(min_fee_bps);
   return amount.mul(
-    MAX_FEE.sub(
-      diff.mul(totalAmount.sub(amount)).div(TARGET_NEAR_AMOUNT)
+    max_fee_bps.sub(
+      diff.mul(totalAmount.sub(amount)).div(expected_near_amount)
     )
   ).div(new BN(10000));
 }
@@ -116,7 +127,7 @@ const instantUnstake = async (test, {contract, user, amount}) => {
   const delta = NEAR.parse('0.5');
   const summary = await getSummary(contract);
   const totalAmount = NEAR.from((summary as any).lp_near_amount);
-  let fee = estimateSwapFee(totalAmount, amount);
+  let fee = await estimateSwapFee(contract, totalAmount, amount);
   const receivedAmount: string = await user.call(
     contract,
     'instant_unstake',

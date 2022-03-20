@@ -124,7 +124,12 @@ impl LiquidityPool {
         let prev_shares_amount = self.shares.get(&account_id).expect(ERR_ACCOUNT_NO_SHARE);
         require!(
             prev_shares_amount >= shares,
-            ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE
+            format!(
+                "{}. remove {} liquidity shares, but only has {} ",
+                ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE,
+                shares,
+                prev_shares_amount
+            )
         );
 
         let mut result = vec![];

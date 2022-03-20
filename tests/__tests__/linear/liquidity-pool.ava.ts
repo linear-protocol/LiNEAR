@@ -8,6 +8,9 @@ import {
   ONE_YOCTO
 } from './helper';
 
+// Errors
+const ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT = "The amount of value to be removed from liquidity pool should be positive";
+
 // helper functions
 
 // Liquidity pool swap fee constants
@@ -211,6 +214,17 @@ workspace.test('instant unstake', async (test, { contract, alice, bob }) => {
 });
 
 workspace.test('remove liquidity', async (test, { contract, alice, bob }) => {
+  // Bob removes 0 liquidity
+  await assertFailure(
+    test,
+    removeLiquidity(test, {
+      contract,
+      user: bob,
+      amount: NEAR.parse('0')
+    }),
+    ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT
+  );
+
   // Alice deposits and stakes to avoid empty stake shares
   await stake(test, {
     contract,
@@ -238,6 +252,17 @@ workspace.test('remove liquidity', async (test, { contract, alice, bob }) => {
     user: bob,
     amount: NEAR.parse('5')
   });
+
+  // Bob removes 0 liquidity
+  await assertFailure(
+    test,
+    removeLiquidity(test, {
+      contract,
+      user: bob,
+      amount: NEAR.parse('0')
+    }),
+    ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT
+  );
 });
 
 workspace.test('issue: add liquidity precision loss', async (test, { contract, alice, bob }) => {
@@ -564,14 +589,14 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
     { amount: NEAR.parse('100') }
   );
 
-  // Bob adds liquidity
+  // Carol adds liquidity
   await addLiquidity(test, {
     contract,
     user: carol,
     amount: NEAR.parse('10')
   });
 
-  // Bob removes liquidity
+  // Carol removes liquidity
   await removeLiquidity(test, {
     contract,
     user: carol,

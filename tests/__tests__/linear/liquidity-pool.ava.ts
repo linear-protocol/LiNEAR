@@ -54,7 +54,7 @@ const getPoolAccountValue = async (contract, account) => {
   return NEAR.from((await contract.view('get_account', { account_id: account }) as any).liquidity_pool_share_value);
 }
 
-const stakeSharesValues = async (contract, stake_shares) => {
+const stakeSharesValues = async (contract, stake_shares: NEAR) => {
   return stake_shares.mul(NEAR.from(await contract.view('ft_price', {}))).div(NEAR.parse('1'));
 }
 
@@ -64,6 +64,14 @@ const stake = async(test, {contract, user, amount}) => {
     'deposit_and_stake',
     {},
     { attachedDeposit: amount },
+  );
+}
+
+const unstake = async(test, {contract, user, amount}) => {
+  await user.call(
+    contract,
+    'unstake',
+    { amount },
   );
 }
 
@@ -88,7 +96,7 @@ const addLiquidity = async(test, {contract, user, amount}) => {
   );
 }
 
-const removeLiquidity = async (test, {contract, user, amount}) => {
+const removeLiquidity = async (test, {contract, user, amount, loss = "1"}) => {
   const previousPoolValue = await getPoolValue(contract);
   const balance = await getBalance(user);
   const result = await callWithMetrics(
@@ -107,11 +115,13 @@ const removeLiquidity = async (test, {contract, user, amount}) => {
     test,
     receivedAmount.add(receivedStakedShareValue),
     amount,
+    loss
   );
   noMoreThanOneYoctoDiff(
     test,
     updatedPoolValue,
     previousPoolValue.sub(amount),
+    loss
   );
   // Fuzzy match due to balance accuracy issue
   numbersEqual(
@@ -136,9 +146,10 @@ const instantUnstake = async (test, {contract, user, amount}) => {
         .mul(new BN(9900)).div(new BN(10000)).toString()
     }
   );
-  test.is(
-    NEAR.from(receivedAmount).toString(),
-    nearAmount.sub(fee).toString(),
+  noMoreThanOneYoctoDiff(
+    test,
+    NEAR.from(receivedAmount),
+    nearAmount.sub(fee),
   );
 }
 
@@ -483,7 +494,8 @@ workspace.test('liquidity pool misconfiguration', async (test, { contract, owner
   );
 });
 
-workspace.test('large amount liquidity pool actions when LiNEAR price > 1.0', async (test, { contract, owner, alice, bob }) => {
+workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 1.0, liquidity > 10K)',
+  async (test, { contract, owner, alice, bob, carol }) => {
 
   // Alice deposits and stakes to avoid empty stake shares
   await stake(test, {
@@ -495,12 +507,12 @@ workspace.test('large amount liquidity pool actions when LiNEAR price > 1.0', as
   // Add 0.5N epoch rewards, pirce becomes 1.01
   await owner.call(
     contract,
-    "add_epoch_rewards",
-    { amount: NEAR.parse("0.5") }
+    'add_epoch_rewards',
+    { amount: NEAR.parse('0.5') }
   );
   test.is(
-    await contract.view("ft_price"),
-    NEAR.parse("1.01").toString()
+    await contract.view('ft_price'),
+    NEAR.parse('1.01').toString()
   );
 
   // Bob adds liquidity
@@ -514,10 +526,17 @@ workspace.test('large amount liquidity pool actions when LiNEAR price > 1.0', as
   await stake(test, {
     contract,
     user: alice,
-    amount: NEAR.parse('2000')
+    amount: NEAR.parse('5000')
   });
 
-  // Alice unstake
+  // Alice delayed unstake
+  await unstake(test, {
+    contract,
+    user: alice,
+    amount: NEAR.parse('1250')
+  });
+
+  // Alice instant unstake
   await instantUnstake(test, {
     contract,
     user: alice,
@@ -541,28 +560,22 @@ workspace.test('large amount liquidity pool actions when LiNEAR price > 1.0', as
   // Add 100N epoch rewards
   await owner.call(
     contract,
-    "add_epoch_rewards",
-    { amount: NEAR.parse("100") }
+    'add_epoch_rewards',
+    { amount: NEAR.parse('100') }
   );
-
-  // Alice unstake
-  await instantUnstake(test, {
-    contract,
-    user: alice,
-    amount: NEAR.parse('30')
-  });
 
   // Bob adds liquidity
   await addLiquidity(test, {
     contract,
-    user: bob,
+    user: carol,
     amount: NEAR.parse('10')
   });
 
   // Bob removes liquidity
   await removeLiquidity(test, {
     contract,
-    user: bob,
-    amount: NEAR.parse('10')
+    user: carol,
+    amount: NEAR.parse('10'),
+    loss: '3'  // the loss is higher since all shares are removed
   });
 });

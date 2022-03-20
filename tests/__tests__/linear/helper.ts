@@ -13,10 +13,11 @@ export function initWorkSpace() {
     const owner = await root.createAccount('linear_owner', { initialBalance: NEAR.parse("1000000").toString() });
     const alice = await root.createAccount('alice', { initialBalance: NEAR.parse("1000000").toString() });
     const bob = await root.createAccount('bob', { initialBalance: NEAR.parse("1000000").toString() });
+    const carol = await root.createAccount('carol', { initialBalance: NEAR.parse("1000000").toString() });
 
     const contract = await deployLinear(root, owner.accountId);
 
-    return { contract, owner, alice, bob };
+    return { contract, owner, alice, bob, carol };
   });
 }
 
@@ -104,9 +105,9 @@ export async function numbersEqual(test: any, a: NEAR, b: NEAR, diff = 0.000001)
 }
 
 // Match considering precision loss
-export async function noMoreThanOneYoctoDiff(test: any, a: NEAR, b: NEAR) {
+export async function noMoreThanOneYoctoDiff(test: any, a: NEAR, b: NEAR, loss = "1") {
   test.is(
-    a.sub(b).abs().lte(NEAR.from("1")),
+    a.sub(b).abs().lte(NEAR.from(loss)),
     true,
     `The actual value ${a.toString()} doesn't match with expected value ${b.toString()}`
   )

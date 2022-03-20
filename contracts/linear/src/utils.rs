@@ -81,3 +81,9 @@ pub (crate) fn staked_amount_from_num_shares_rounded_down(num_shares: ShareBalan
         / U256::from(context.total_share_amount))
     .as_u128()
 }
+
+/// The absolute diff between left and right is not greater than epsilon.
+/// This is useful when user submit requests that approximaitely equal to the acount's NEAR/LiNEAR balance
+pub (crate) fn abs_diff_eq(left: u128, right: u128, epsilon: u128 ) -> bool {
+    return left <= right + epsilon && right <= left + epsilon
+}

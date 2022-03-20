@@ -137,7 +137,6 @@ impl LiquidityPool {
             let amount = (U256::from(self.amounts[i]) * U256::from(shares)
                 / U256::from(self.shares_total_supply))
             .as_u128();
-            // require!(amount >= min_amounts[i], "ERR_MIN_AMOUNT");
             self.amounts[i] -= amount;
             result.push(amount);
         }
@@ -431,10 +430,17 @@ impl LiquidStakingContract {
         let amount: Balance = amount.into();
 
         // Calculate liquidity pool shares from NEAR amount
-        let removed_shares = self.liquidity_pool.get_shares_from_value_rounded_up(
+        let mut removed_shares = self.liquidity_pool.get_shares_from_value_rounded_up(
             amount,
             &self.internal_get_context()
         );
+        // In case the removed shares is approximiately equal to account's shares,
+        // remove all the shares. This is specifically helpful when user remove liquidity
+        // with `amount` close to the account's total value
+        let account_lp_shares = self.liquidity_pool.get_account_shares(&account_id);
+        if abs_diff_eq(removed_shares, account_lp_shares, ONE_MICRO_NEAR) {
+            removed_shares = account_lp_shares;
+        }
         // Remove shares from liquidity pool
         let results = self.liquidity_pool.remove_liquidity(
             &account_id,

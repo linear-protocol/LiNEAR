@@ -428,6 +428,7 @@ impl LiquidStakingContract {
 
         let account_id = env::predecessor_account_id();
         let amount: Balance = amount.into();
+        require!(amount > 0, ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT);
 
         // Calculate liquidity pool shares from NEAR amount
         let mut removed_shares = self.liquidity_pool.get_shares_from_value_rounded_up(

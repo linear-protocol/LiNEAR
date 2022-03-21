@@ -1,9 +1,9 @@
 use near_contract_standards::fungible_token::core_impl::ext_fungible_token;
 use near_sdk::{
-    assert_one_yocto, env, near_bindgen, log,
-    is_promise_success, promise_result_as_success, 
-    Timestamp, AccountId, Balance, Gas, Promise,
+    assert_one_yocto,
     borsh::{BorshDeserialize, BorshSerialize},
+    env, is_promise_success, log, near_bindgen, promise_result_as_success, AccountId, Balance, Gas,
+    Promise, Timestamp,
 };
 
 use crate::*;
@@ -74,8 +74,14 @@ impl LiquidStakingContract {
         start_date: Timestamp,
         end_date: Timestamp,
     ) {
-        require!(start_date >= env::block_timestamp(), ERR_FARM_START_TOO_EARLY);
-        require!(end_date > start_date + SESSION_INTERVAL, ERR_FARM_END_TOO_EARLY);
+        require!(
+            start_date >= env::block_timestamp(),
+            ERR_FARM_START_TOO_EARLY
+        );
+        require!(
+            end_date > start_date + SESSION_INTERVAL,
+            ERR_FARM_END_TOO_EARLY
+        );
         require!(amount > 0, ERR_NON_POSITIVE_FARM_AMOUNT);
         require!(
             amount / ((end_date - start_date) / SESSION_INTERVAL) as u128 > 0,
@@ -148,10 +154,9 @@ impl LiquidStakingContract {
         farm_id: u64,
         farm: &mut Farm,
     ) -> (U256, Balance) {
-        if let Some(distribution) = self.internal_calculate_distribution(
-            &farm,
-            self.total_share_amount,
-        ) {
+        if let Some(distribution) =
+            self.internal_calculate_distribution(&farm, self.total_share_amount)
+        {
             if distribution.reward_round != farm.last_distribution.reward_round {
                 farm.last_distribution = distribution.clone();
             }
@@ -185,7 +190,9 @@ impl LiquidStakingContract {
         *account.amounts.entry(farm.token_id.clone()).or_default() += claim_amount;
         log!(
             "Record {} {} reward from farm #{}",
-            claim_amount, farm.token_id, farm_id
+            claim_amount,
+            farm.token_id,
+            farm_id
         );
     }
 
@@ -228,7 +235,10 @@ impl LiquidStakingContract {
         require!(amount > 0, ERR_NO_FARM_REWARDS);
         log!(
             "{} receives {} of {} from {}",
-            send_account_id, amount, token_id, claim_account_id
+            send_account_id,
+            amount,
+            token_id,
+            claim_account_id
         );
         self.internal_save_account(&claim_account_id, &account);
         ext_fungible_token::ft_transfer(
@@ -281,10 +291,7 @@ impl LiquidStakingContract {
         if !is_promise_success() {
             // This reverts the changes from the claim function.
             self.internal_user_token_deposit(&sender_id, &token_id, amount.0);
-            log!(
-                "Returned {} {} to {}",
-                amount.0, token_id, sender_id
-            );
+            log!("Returned {} {} to {}", amount.0, token_id, sender_id);
         }
     }
 

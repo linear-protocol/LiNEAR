@@ -1,10 +1,10 @@
-use std::collections::HashMap;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
+    json_types::U128,
     serde::{Deserialize, Serialize},
-    json_types::{U128},
-    Balance, EpochHeight, AccountId,
+    AccountId, Balance, EpochHeight,
 };
+use std::collections::HashMap;
 
 use crate::types::*;
 

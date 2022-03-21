@@ -1,7 +1,7 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::json_types::{U128};
-use near_sdk::collections::{LookupMap};
-use near_sdk::{ env, near_bindgen, AccountId, PanicOnDefault, Promise, require };
+use near_sdk::collections::LookupMap;
+use near_sdk::json_types::U128;
+use near_sdk::{env, near_bindgen, require, AccountId, PanicOnDefault, Promise};
 
 /// Staking pool interface
 trait StakingPool {
@@ -63,7 +63,7 @@ impl StakingPool for MockStakingPool {
     fn get_account_total_balance(&self, account_id: AccountId) -> U128 {
         require!(!self.panic, "Test Panic!");
         U128::from(
-            self.internal_get_unstaked_deposit(&account_id) + self.internal_get_staked(&account_id)
+            self.internal_get_unstaked_deposit(&account_id) + self.internal_get_staked(&account_id),
         )
     }
 
@@ -148,7 +148,7 @@ impl MockStakingPool {
 
         self.deposits.insert(&account_id, &new_deposit);
     }
-    
+
     fn internal_stake(&mut self, amount: u128) {
         let account_id = env::predecessor_account_id();
         let unstaked_deposit = self.internal_get_unstaked_deposit(&account_id);
@@ -167,7 +167,7 @@ impl MockStakingPool {
         assert!(staked >= amount);
 
         let unstaked_deposit = self.internal_get_unstaked_deposit(&account_id);
-        let new_deposit  = unstaked_deposit + amount;
+        let new_deposit = unstaked_deposit + amount;
         let new_staked = staked - amount;
 
         self.deposits.insert(&account_id, &new_deposit);
@@ -184,11 +184,11 @@ impl MockStakingPool {
         Promise::new(account_id.clone()).transfer(amount);
     }
 
-    fn internal_get_unstaked_deposit(& self, account_id: &AccountId) -> u128 {
+    fn internal_get_unstaked_deposit(&self, account_id: &AccountId) -> u128 {
         self.deposits.get(account_id).unwrap_or_default()
     }
 
-    fn internal_get_staked(& self, account_id: &AccountId) -> u128 {
+    fn internal_get_staked(&self, account_id: &AccountId) -> u128 {
         self.staked.get(&account_id).unwrap_or_default()
     }
 }

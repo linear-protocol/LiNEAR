@@ -1,8 +1,8 @@
 use crate::*;
+use near_contract_standards::fungible_token::events::FtBurn;
 use near_contract_standards::storage_management::{
     StorageBalance, StorageBalanceBounds, StorageManagement,
 };
-use near_contract_standards::fungible_token::events::{FtBurn};
 use near_sdk::{assert_one_yocto, env, log, AccountId, Balance, Promise};
 
 /// Temporarily set fixed storage amount to be compatible with standard FT implementation
@@ -21,15 +21,14 @@ impl LiquidStakingContract {
         if let Some(account) = self.accounts.get(&account_id) {
             require!(account.unstaked == 0, ERR_UNREGISTER_POSITIVE_UNSTAKED);
             let balance = account.stake_shares;
-            if balance == 0 || force
-            {
+            if balance == 0 || force {
                 self.accounts.remove(&account_id);
                 self.total_share_amount -= balance;
                 if balance > 0 {
                     FtBurn {
                         owner_id: &account_id,
                         amount: &U128(balance),
-                        memo: Some("force storage unregister")
+                        memo: Some("force storage unregister"),
                     }
                     .emit();
                 }
@@ -46,16 +45,26 @@ impl LiquidStakingContract {
         }
     }
 
-    pub(crate) fn internal_storage_balance_of(&self, account_id: &AccountId) -> Option<StorageBalance> {
+    pub(crate) fn internal_storage_balance_of(
+        &self,
+        account_id: &AccountId,
+    ) -> Option<StorageBalance> {
         if let Some(_) = self.accounts.get(account_id) {
-            Some(StorageBalance { total: self.storage_balance_bounds().min, available: 0.into() })
+            Some(StorageBalance {
+                total: self.storage_balance_bounds().min,
+                available: 0.into(),
+            })
         } else {
             None
         }
     }
 
     pub(crate) fn internal_register_account(&mut self, account_id: &AccountId) {
-        if self.accounts.insert(account_id, &Account::default()).is_some() {
+        if self
+            .accounts
+            .insert(account_id, &Account::default())
+            .is_some()
+        {
             env::panic_str("The account is already registered");
         }
     }

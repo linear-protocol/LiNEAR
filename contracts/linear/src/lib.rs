@@ -1,36 +1,37 @@
 use near_sdk::{
-    borsh::{self, BorshDeserialize, BorshSerialize,},
-    serde::{Deserialize, Serialize,},
-    json_types::{U128},
-    collections::{UnorderedMap, Vector, UnorderedSet},
-    env, near_bindgen, ext_contract, require,
-    AccountId, Balance, PanicOnDefault, EpochHeight, PublicKey, StorageUsage, BorshStorageKey
+    borsh::{self, BorshDeserialize, BorshSerialize},
+    collections::{UnorderedMap, UnorderedSet, Vector},
+    env, ext_contract,
+    json_types::U128,
+    near_bindgen, require,
+    serde::{Deserialize, Serialize},
+    AccountId, Balance, BorshStorageKey, EpochHeight, PanicOnDefault, PublicKey, StorageUsage,
 };
 
-mod view;
+mod account;
+mod epoch_actions;
+mod errors;
+mod events;
+mod farm;
+mod fungible_token;
+mod internal;
+mod legacy;
+mod liquidity_pool;
+mod owner;
+mod stake;
 mod types;
 mod utils;
-mod owner;
-mod events;
-mod errors;
-mod legacy;
-mod account;
-mod internal;
-mod stake;
 mod validator_pool;
-mod epoch_actions;
-mod fungible_token;
-mod liquidity_pool;
-mod farm;
+mod view;
 
-use crate::types::*;
-use crate::utils::*;
-use crate::errors::*;
 use crate::account::*;
-use crate::validator_pool::*;
+use crate::errors::*;
+use crate::farm::Farm;
 use crate::fungible_token::*;
 use crate::liquidity_pool::*;
-use crate::farm::{Farm};
+use crate::types::*;
+use crate::utils::*;
+use crate::validator_pool::*;
 
 #[derive(BorshStorageKey, BorshSerialize)]
 pub(crate) enum StorageKey {
@@ -40,7 +41,7 @@ pub(crate) enum StorageKey {
     Validators,
     Farms,
     // AuthorizedUsers,
-    AuthorizedFarmTokens
+    AuthorizedFarmTokens,
 }
 
 #[near_bindgen]
@@ -53,8 +54,8 @@ pub struct LiquidStakingContract {
     /// Total amount of LiNEAR that was minted (minus burned).
     total_share_amount: ShareBalance,
     /// Total amount of NEAR that was staked by users to this contract.         
-    /// 
-    /// This is effectively 1) amount of NEAR that was deposited to this contract but hasn't yet been staked on any validators 
+    ///
+    /// This is effectively 1) amount of NEAR that was deposited to this contract but hasn't yet been staked on any validators
     /// plus 2) amount of NEAR that has already been staked on validators.    
     /// Note that the amount of NEAR that is pending release or is already released by hasn't been withdrawn is not considered.
     total_staked_near_amount: Balance,
@@ -72,12 +73,11 @@ pub struct LiquidStakingContract {
 
     /// Beneficiaries for staking rewards.
     beneficiaries: UnorderedMap<AccountId, Fraction>,
-  
+
     /// The single-direction liquidity pool that enables instant unstake
     liquidity_pool: LiquidityPool,
-  
-    // --- Validator Pool ---
 
+    // --- Validator Pool ---
     /// The validator pool that manage the actions against validators
     validator_pool: ValidatorPool,
     /// Amount of NEAR that is requested to stake by all users during the last epoch
@@ -93,7 +93,6 @@ pub struct LiquidStakingContract {
     last_settlement_epoch: EpochHeight,
 
     // --- Staking Farm ---
-
     /// Farm tokens.
     farms: Vector<Farm>,
     /// Active farms: indicies into `farms`.
@@ -115,9 +114,7 @@ impl LiquidStakingContract {
     /// always maintain staking shares that can't be unstaked or withdrawn.
     /// It prevents inflating the price of the share too much.
     #[init]
-    pub fn new(
-        owner_id: AccountId,
-    ) -> Self {
+    pub fn new(owner_id: AccountId) -> Self {
         require!(!env::state_exists(), ERR_ALREADY_INITIALZED);
         require!(
             env::account_locked_balance() == 0,
@@ -178,7 +175,7 @@ impl LiquidStakingContract {
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod tests {
     use near_sdk::test_utils::{accounts, VMContextBuilder};
-    use near_sdk::{testing_env};
+    use near_sdk::testing_env;
 
     use super::*;
 

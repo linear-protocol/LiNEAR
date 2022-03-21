@@ -1,6 +1,6 @@
 use near_sdk::{
-    Balance, EpochHeight, Gas,
     borsh::{self, BorshDeserialize, BorshSerialize},
+    Balance, EpochHeight, Gas,
 };
 use uint::construct_uint;
 
@@ -26,7 +26,6 @@ pub const MAX_NUM_ACTIVE_FARMS: usize = 10;
 /// Zero address is implicit address that doesn't have a key for it.
 /// Used for burning tokens.
 // pub const ZERO_ADDRESS: &str = "0000000000000000000000000000000000000000000000000000000000000000";
-
 
 /// -- GAS
 

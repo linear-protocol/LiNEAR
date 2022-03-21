@@ -32,12 +32,12 @@ const estimateSwapFee = async (contract: any, totalAmount: NEAR, amount: NEAR) =
   let { expected_near_amount, max_fee_bps, min_fee_bps } = await getConfig(contract);
   let diff = max_fee_bps.sub(min_fee_bps);
   const remainingLiquidity = totalAmount.sub(amount);
-  if (remainingLiquidity.gt(TARGET_NEAR_AMOUNT)) {
-    return amount.mul(max_fee_bps).div(new BN(10000));
+  if (remainingLiquidity.gt(expected_near_amount)) {
+    return amount.mul(min_fee_bps).div(new BN(10000));
   } else {
     return amount.mul(
       max_fee_bps.sub(
-        diff.mul(totalAmount.sub(amount)).div(expected_near_amount)
+        diff.mul(remainingLiquidity).div(expected_near_amount)
       )
     ).div(new BN(10000));
   }
@@ -150,7 +150,7 @@ const instantUnstake = async (test, {contract, user, amount}) => {
   const summary = await getSummary(contract);
   const nearAmount = await stakeSharesValues(contract, amount);
   const totalAmount = NEAR.from((summary as any).lp_near_amount);
-  let fee = await estimateSwapFee(contract, totalAmount, amount);
+  let fee = await estimateSwapFee(contract, totalAmount, nearAmount);
   const receivedAmount: string = await user.call(
     contract,
     'instant_unstake',

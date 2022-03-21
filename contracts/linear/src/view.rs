@@ -1,7 +1,7 @@
 use crate::*;
 use near_sdk::{
+    json_types::{U128, U64},
     near_bindgen, AccountId,
-    json_types::{U128, U64}
 };
 use std::collections::HashMap;
 
@@ -31,7 +31,7 @@ pub struct Summary {
 
     /// Number of nodes in validator pool
     pub validators_num: u64,
-  
+
     /// Active farms that affect stakers.
     /// Can calculate rate of return of this pool with farming by:
     /// `farm_reward_per_day = farms.iter().map(farms.amount / (farm.end_date - farm.start_date) / DAY_IN_NS * PRICES[farm.token_id]).sum()`
@@ -40,7 +40,6 @@ pub struct Summary {
     /// `reward_rate = total_reward_per_day / (this.total_staked_near_amount * NEAR_PRICE)`
     pub farms: Vec<HumanReadableFarm>,
 }
-
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(crate = "near_sdk::serde")]
@@ -69,36 +68,41 @@ impl HumanReadableFarm {
     }
 }
 
-
 /// public view functions
 #[near_bindgen]
 impl LiquidStakingContract {
-    pub fn get_total_share_amount(& self) -> ShareBalance {
+    pub fn get_total_share_amount(&self) -> ShareBalance {
         self.total_share_amount
     }
 
+<<<<<<< refactor/review
     // [Review]: duplicate with staking pool view method: `get_total_staked_balance()`
     pub fn get_total_staked_near_amount(& self) -> Balance {
+=======
+    pub fn get_total_staked_near_amount(&self) -> Balance {
+>>>>>>> main
         self.total_staked_near_amount
     }
 
-    pub fn get_beneficiaries(& self) -> HashMap<AccountId, Fraction> {
+    pub fn get_beneficiaries(&self) -> HashMap<AccountId, Fraction> {
         self.internal_get_beneficiaries()
     }
-  
+
     pub fn get_summary(&self) -> Summary {
-      Summary {
-          total_share_amount: self.total_share_amount.into(),
-          total_staked_near_amount: self.total_staked_near_amount.into(),
-          ft_price: self.ft_price(),
-          lp_target_amount: self.liquidity_pool.config.expected_near_amount,
-          lp_near_amount: self.liquidity_pool.amounts[0].into(),
-          lp_staked_share: self.liquidity_pool.amounts[1].into(),
-          lp_swap_fee_basis_points: self.liquidity_pool.get_current_swap_fee_basis_points(10 * ONE_NEAR),
-          lp_total_fee_shares: self.liquidity_pool.total_fee_shares.into(),
-          validators_num: self.validator_pool.count(),
-          farms: self.get_active_farms(),
-      }
+        Summary {
+            total_share_amount: self.total_share_amount.into(),
+            total_staked_near_amount: self.total_staked_near_amount.into(),
+            ft_price: self.ft_price(),
+            lp_target_amount: self.liquidity_pool.config.expected_near_amount,
+            lp_near_amount: self.liquidity_pool.amounts[0].into(),
+            lp_staked_share: self.liquidity_pool.amounts[1].into(),
+            lp_swap_fee_basis_points: self
+                .liquidity_pool
+                .get_current_swap_fee_basis_points(10 * ONE_NEAR),
+            lp_total_fee_shares: self.liquidity_pool.total_fee_shares.into(),
+            validators_num: self.validator_pool.count(),
+            farms: self.get_active_farms(),
+        }
     }
 
     // --- Staking Pool view methods ---
@@ -158,8 +162,13 @@ impl LiquidStakingContract {
             unstaked_available_epoch_height: account.unstaked_available_epoch_height,
             can_withdraw: account.unstaked_available_epoch_height <= get_epoch_height(),
             liquidity_pool_share: self.liquidity_pool.get_account_shares(&account_id).into(),
-            liquidity_pool_share_value: self.liquidity_pool.get_account_value(&account_id, &self.internal_get_context()).into(),
-            liquidity_pool_share_ratio_in_basis_points: self.liquidity_pool.get_account_shares_ratio_in_basis_points(&account_id),
+            liquidity_pool_share_value: self
+                .liquidity_pool
+                .get_account_value(&account_id, &self.internal_get_context())
+                .into(),
+            liquidity_pool_share_ratio_in_basis_points: self
+                .liquidity_pool
+                .get_account_shares_ratio_in_basis_points(&account_id),
         }
     }
 
@@ -177,6 +186,12 @@ impl LiquidStakingContract {
             .collect()
     }
 
+    // --- Liquidity Pool view methods ---
+
+    /// Return liquidity pool configuration
+    pub fn get_liquidity_pool_config(&self) -> LiquidityPoolConfig {
+        return self.liquidity_pool.config.clone();
+    }
 
     // --- Staking Farm view methods ---
 

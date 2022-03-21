@@ -1,12 +1,11 @@
 use crate::*;
-use near_sdk::json_types::{U128};
-use near_sdk::{
-    assert_one_yocto, env, near_bindgen, AccountId, Balance, Gas, 
-    PromiseOrValue, PromiseResult
-};
 use near_contract_standards::fungible_token::core::FungibleTokenCore;
+use near_contract_standards::fungible_token::events::FtTransfer;
 use near_contract_standards::fungible_token::resolver::FungibleTokenResolver;
-use near_contract_standards::fungible_token::events::{FtTransfer};
+use near_sdk::json_types::U128;
+use near_sdk::{
+    assert_one_yocto, env, near_bindgen, AccountId, Balance, Gas, PromiseOrValue, PromiseResult,
+};
 
 // allocate enough gas for ft_resolve_transfer() to avoid unexpected failure
 const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(12_000_000_000_000);

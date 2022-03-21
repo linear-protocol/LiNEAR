@@ -1,9 +1,4 @@
-use near_sdk::{
-    AccountId, log,
-    serde::{Serialize},
-    serde_json::{json},
-    json_types::U128,
-};
+use near_sdk::{json_types::U128, log, serde::Serialize, serde_json::json, AccountId};
 
 const EVENT_STANDARD: &str = "linear";
 const EVENT_STANDARD_VERSION: &str = "1.0.0";
@@ -14,20 +9,47 @@ const EVENT_STANDARD_VERSION: &str = "1.0.0";
 #[serde(rename_all = "snake_case")]
 pub enum Event<'a> {
     // Epoch Actions
-    EpochStakeAttempt { validator_id: &'a AccountId, amount: &'a U128 },
-    EpochStakeSuccess { validator_id: &'a AccountId, amount: &'a U128 },
-    EpochStakeFailed { validator_id: &'a AccountId, amount: &'a U128 },
-    EpochUnstakeAttempt { validator_id: &'a AccountId, amount: &'a U128 },
-    EpochUnstakeSuccess { validator_id: &'a AccountId, amount: &'a U128 },
-    EpochUnstakeFailed { validator_id: &'a AccountId, amount: &'a U128 },
-    EpochWithdrawAttempt { validator_id: &'a AccountId, amount: &'a U128 },
-    EpochWithdrawSuccess { validator_id: &'a AccountId, amount: &'a U128 },
-    EpochWithdrawFailed { validator_id: &'a AccountId, amount: &'a U128 },
+    EpochStakeAttempt {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    EpochStakeSuccess {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    EpochStakeFailed {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    EpochUnstakeAttempt {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    EpochUnstakeSuccess {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    EpochUnstakeFailed {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    EpochWithdrawAttempt {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    EpochWithdrawSuccess {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    EpochWithdrawFailed {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
     EpochUpdateRewards {
         validator_id: &'a AccountId,
         old_balance: &'a U128,
         new_balance: &'a U128,
-        rewards: &'a U128
+        rewards: &'a U128,
     },
     // Staking Pool Interface
     Deposit {
@@ -53,7 +75,7 @@ pub enum Event<'a> {
         burnt_stake_shares: &'a U128,
         new_unstaked_balance: &'a U128,
         new_stake_shares: &'a U128,
-        unstaked_available_epoch_height: u64
+        unstaked_available_epoch_height: u64,
     },
     // Liquidity Pool
     InstantUnstake {
@@ -108,7 +130,7 @@ impl Event<'_> {
 // * `version`: e.g. 1.0.0
 // * `event`: type of the event, e.g. nft_mint
 // * `data`: associate event data. Strictly typed for each set {standard, version, event} inside corresponding NEP
-pub (crate) fn emit_event<T: ?Sized + Serialize>(data: &T) {
+pub(crate) fn emit_event<T: ?Sized + Serialize>(data: &T) {
     let result = json!(data);
     let event_json = json!({
         "standard": EVENT_STANDARD,
@@ -119,7 +141,6 @@ pub (crate) fn emit_event<T: ?Sized + Serialize>(data: &T) {
     .to_string();
     log!(format!("EVENT_JSON:{}", event_json));
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -134,7 +155,11 @@ mod tests {
     fn epoch_stake_attempt() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::EpochStakeAttempt { validator_id, amount }.emit();
+        Event::EpochStakeAttempt {
+            validator_id,
+            amount,
+        }
+        .emit();
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_stake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
@@ -145,7 +170,11 @@ mod tests {
     fn epoch_stake_success() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::EpochStakeSuccess { validator_id, amount }.emit();
+        Event::EpochStakeSuccess {
+            validator_id,
+            amount,
+        }
+        .emit();
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_stake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
@@ -156,7 +185,11 @@ mod tests {
     fn epoch_stake_failed() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::EpochStakeFailed { validator_id, amount }.emit();
+        Event::EpochStakeFailed {
+            validator_id,
+            amount,
+        }
+        .emit();
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_stake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
@@ -167,7 +200,11 @@ mod tests {
     fn epoch_unstake_attempt() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::EpochUnstakeAttempt { validator_id, amount }.emit();
+        Event::EpochUnstakeAttempt {
+            validator_id,
+            amount,
+        }
+        .emit();
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_unstake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
@@ -178,7 +215,11 @@ mod tests {
     fn epoch_unstake_success() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::EpochUnstakeSuccess { validator_id, amount }.emit();
+        Event::EpochUnstakeSuccess {
+            validator_id,
+            amount,
+        }
+        .emit();
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_unstake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
@@ -189,7 +230,11 @@ mod tests {
     fn epoch_unstake_failed() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::EpochUnstakeFailed { validator_id, amount }.emit();
+        Event::EpochUnstakeFailed {
+            validator_id,
+            amount,
+        }
+        .emit();
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_unstake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
@@ -200,7 +245,11 @@ mod tests {
     fn epoch_withdraw_attempt() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::EpochWithdrawAttempt { validator_id, amount }.emit();
+        Event::EpochWithdrawAttempt {
+            validator_id,
+            amount,
+        }
+        .emit();
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_withdraw_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
@@ -211,7 +260,11 @@ mod tests {
     fn epoch_withdraw_success() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::EpochWithdrawSuccess { validator_id, amount }.emit();
+        Event::EpochWithdrawSuccess {
+            validator_id,
+            amount,
+        }
+        .emit();
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_withdraw_success","data":[{"validator_id":"alice","amount":"100"}]}"#
@@ -222,7 +275,11 @@ mod tests {
     fn epoch_withdraw_failed() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::EpochWithdrawFailed { validator_id, amount }.emit();
+        Event::EpochWithdrawFailed {
+            validator_id,
+            amount,
+        }
+        .emit();
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_withdraw_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
@@ -234,7 +291,7 @@ mod tests {
         let validator_id = &alice();
         let old_balance = 100;
         let new_balance = 120;
-        Event::EpochUpdateRewards { 
+        Event::EpochUpdateRewards {
             validator_id,
             old_balance: &U128(old_balance),
             new_balance: &U128(new_balance),
@@ -280,7 +337,6 @@ mod tests {
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"withdraw","data":[{"account_id":"alice","amount":"100","new_unstaked_balance":"50"}]}"#
         );
     }
-
 
     #[test]
     fn stake() {
@@ -357,7 +413,7 @@ mod tests {
         Event::AddLiquidity {
             account_id,
             amount,
-            minted_shares
+            minted_shares,
         }
         .emit();
         assert_eq!(
@@ -376,7 +432,7 @@ mod tests {
             account_id,
             burnt_shares,
             received_near,
-            received_linear
+            received_linear,
         }
         .emit();
         assert_eq!(

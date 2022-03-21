@@ -1,11 +1,9 @@
-use crate::*;
-use crate::types::*;
 use crate::events::Event;
-use near_sdk::{Promise,log};
-use near_contract_standards::fungible_token::events::{FtMint, FtBurn};
-use std::{
-    collections::HashMap,
-};
+use crate::types::*;
+use crate::*;
+use near_contract_standards::fungible_token::events::{FtBurn, FtMint};
+use near_sdk::{log, Promise};
+use std::collections::HashMap;
 
 impl LiquidStakingContract {
     /********************/
@@ -31,8 +29,14 @@ impl LiquidStakingContract {
 
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);
-        require!(account.unstaked >= amount, ERR_NO_ENOUGH_UNSTAKED_BALANCE_TO_WITHDRAW);
-        require!(account.unstaked_available_epoch_height <= get_epoch_height(), ERR_UNSTAKED_BALANCE_NOT_AVAILABLE);
+        require!(
+            account.unstaked >= amount,
+            ERR_NO_ENOUGH_UNSTAKED_BALANCE_TO_WITHDRAW
+        );
+        require!(
+            account.unstaked_available_epoch_height <= get_epoch_height(),
+            ERR_UNSTAKED_BALANCE_NOT_AVAILABLE
+        );
         account.unstaked -= amount;
         self.internal_save_account(&account_id, &account);
 
@@ -64,7 +68,10 @@ impl LiquidStakingContract {
         let charge_amount = self.staked_amount_from_num_shares_rounded_down(num_shares);
         require!(charge_amount > 0, ERR_NON_POSITIVE_CALCULATED_STAKED_AMOUNT);
 
-        require!(account.unstaked >= charge_amount, ERR_NO_ENOUGH_UNSTAKED_BALANCE);
+        require!(
+            account.unstaked >= charge_amount,
+            ERR_NO_ENOUGH_UNSTAKED_BALANCE
+        );
         account.unstaked -= charge_amount;
         account.stake_shares += num_shares;
         self.internal_save_account(&account_id, &account);
@@ -91,12 +98,13 @@ impl LiquidStakingContract {
         FtMint {
             owner_id: &account_id,
             amount: &U128(num_shares),
-            memo: Some("stake")
+            memo: Some("stake"),
         }
         .emit();
         log!(
             "Contract total staked balance is {}. Total number of shares {}",
-            self.total_staked_near_amount, self.total_share_amount
+            self.total_staked_near_amount,
+            self.total_share_amount
         );
 
         // Rebalance the liquidity pool if needed
@@ -112,21 +120,31 @@ impl LiquidStakingContract {
         // Distribute rewards from all the farms for the given user.
         self.internal_distribute_all_farm_rewards(&mut account);
 
-        require!(self.total_staked_near_amount > 0, ERR_CONTRACT_NO_STAKED_BALANCE);
+        require!(
+            self.total_staked_near_amount > 0,
+            ERR_CONTRACT_NO_STAKED_BALANCE
+        );
         // Calculate the number of shares required to unstake the given amount.
         // NOTE: The number of shares the account will pay is rounded up.
         let num_shares = self.num_shares_from_staked_amount_rounded_up(amount);
         require!(num_shares > 0, ERR_NON_POSITIVE_CALCULATED_UNSTAKING_SHARE);
-        require!(account.stake_shares >= num_shares, ERR_NO_ENOUGH_STAKED_BALANCE);
+        require!(
+            account.stake_shares >= num_shares,
+            ERR_NO_ENOUGH_STAKED_BALANCE
+        );
 
         // Calculating the amount of tokens the account will receive by unstaking the corresponding
         // number of "stake" shares, rounding up.
         let receive_amount = self.staked_amount_from_num_shares_rounded_up(num_shares);
-        require!(receive_amount > 0, ERR_NON_POSITIVE_CALCULATED_STAKED_AMOUNT);
+        require!(
+            receive_amount > 0,
+            ERR_NON_POSITIVE_CALCULATED_STAKED_AMOUNT
+        );
 
         account.stake_shares -= num_shares;
         account.unstaked += receive_amount;
-        account.unstaked_available_epoch_height = get_epoch_height() + self.validator_pool.get_num_epoch_to_unstake(amount);
+        account.unstaked_available_epoch_height =
+            get_epoch_height() + self.validator_pool.get_num_epoch_to_unstake(amount);
         self.internal_save_account(&account_id, &account);
 
         // The amount tokens that will be unstaked from the total to guarantee the "stake" share
@@ -152,12 +170,13 @@ impl LiquidStakingContract {
         FtBurn {
             owner_id: &account_id,
             amount: &U128(num_shares),
-            memo: Some("unstake")
+            memo: Some("unstake"),
         }
         .emit();
         log!(
             "Contract total staked balance is {}. Total number of shares {}",
-            self.total_staked_near_amount, self.total_share_amount
+            self.total_staked_near_amount,
+            self.total_share_amount
         );
     }
 
@@ -169,7 +188,7 @@ impl LiquidStakingContract {
         );
     }
 
-    pub(crate) fn internal_get_beneficiaries(& self) -> HashMap<AccountId, Fraction> {
+    pub(crate) fn internal_get_beneficiaries(&self) -> HashMap<AccountId, Fraction> {
         let mut result: HashMap<AccountId, Fraction> = HashMap::new();
         for (account_id, fraction) in self.beneficiaries.iter() {
             result.insert(account_id, fraction);
@@ -180,10 +199,7 @@ impl LiquidStakingContract {
 
     /// When there are rewards, a part of them will be
     /// given to operator/treasury by minting new LiNEAR tokens.
-    pub(crate) fn internal_distribute_staking_rewards(
-        &mut self,
-        rewards: Balance
-    ) {
+    pub(crate) fn internal_distribute_staking_rewards(&mut self, rewards: Balance) {
         let hashmap: HashMap<AccountId, Fraction> = self.internal_get_beneficiaries();
         for (account_id, fraction) in hashmap.iter() {
             let reward_near_amount: Balance = fraction.multiply(rewards);
@@ -197,7 +213,7 @@ impl LiquidStakingContract {
     fn internal_mint_beneficiary_rewards(
         &mut self,
         account_id: &AccountId,
-        near_amount: Balance
+        near_amount: Balance,
     ) -> ShareBalance {
         let shares = self.num_shares_from_staked_amount_rounded_down(near_amount);
         // mint to account
@@ -227,7 +243,10 @@ impl LiquidStakingContract {
         &self,
         amount: Balance,
     ) -> ShareBalance {
-        require!(self.total_staked_near_amount > 0, ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE);
+        require!(
+            self.total_staked_near_amount > 0,
+            ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE
+        );
         (U256::from(self.total_share_amount) * U256::from(amount)
             / U256::from(self.total_staked_near_amount))
         .as_u128()
@@ -237,11 +256,11 @@ impl LiquidStakingContract {
     /// amount.
     ///
     /// Rounding up division of `a / b` is done using `(a + b - 1) / b`.
-    pub(crate) fn num_shares_from_staked_amount_rounded_up(
-        &self,
-        amount: Balance,
-    ) -> ShareBalance {
-        require!(self.total_staked_near_amount> 0, ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE);
+    pub(crate) fn num_shares_from_staked_amount_rounded_up(&self, amount: Balance) -> ShareBalance {
+        require!(
+            self.total_staked_near_amount > 0,
+            ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE
+        );
         ((U256::from(self.total_share_amount) * U256::from(amount)
             + U256::from(self.total_staked_near_amount - 1))
             / U256::from(self.total_staked_near_amount))
@@ -253,7 +272,10 @@ impl LiquidStakingContract {
         &self,
         num_shares: ShareBalance,
     ) -> Balance {
-        require!(self.total_share_amount > 0, ERR_NON_POSITIVE_TOTAL_STAKE_SHARES);
+        require!(
+            self.total_share_amount > 0,
+            ERR_NON_POSITIVE_TOTAL_STAKE_SHARES
+        );
         (U256::from(self.total_staked_near_amount) * U256::from(num_shares)
             / U256::from(self.total_share_amount))
         .as_u128()
@@ -266,7 +288,10 @@ impl LiquidStakingContract {
         &self,
         num_shares: ShareBalance,
     ) -> Balance {
-        require!(self.total_share_amount > 0, ERR_NON_POSITIVE_TOTAL_STAKE_SHARES);
+        require!(
+            self.total_share_amount > 0,
+            ERR_NON_POSITIVE_TOTAL_STAKE_SHARES
+        );
         ((U256::from(self.total_staked_near_amount) * U256::from(num_shares)
             + U256::from(self.total_share_amount - 1))
             / U256::from(self.total_share_amount))

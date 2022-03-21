@@ -1,12 +1,10 @@
 use crate::*;
-use near_sdk::{
-    near_bindgen, Balance, log, is_promise_success,
-};
+use near_sdk::{is_promise_success, log, near_bindgen, Balance};
 
 use crate::errors::*;
+use crate::events::Event;
 use crate::types::*;
 use crate::utils::*;
-use crate::events::Event;
 
 const MIN_AMOUNT_TO_PERFORM_STAKE: Balance = ONE_NEAR;
 const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR;
@@ -23,11 +21,7 @@ impl LiquidStakingContract {
         let min_gas = GAS_EPOCH_STAKE + GAS_EXT_DEPOSIT_AND_STAKE + GAS_CB_VALIDATOR_STAKED;
         require!(
             env::prepaid_gas() >= min_gas,
-            format!(
-                "{}. require at least {:?}", 
-                ERR_NO_ENOUGH_GAS, 
-                min_gas
-            )
+            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
         );
 
         self.epoch_cleanup();
@@ -67,15 +61,15 @@ impl LiquidStakingContract {
         .emit();
 
         // do staking on selected validator
-        candidate
-            .deposit_and_stake(amount_to_stake)
-            .then(ext_self_action_cb::validator_staked_callback(
+        candidate.deposit_and_stake(amount_to_stake).then(
+            ext_self_action_cb::validator_staked_callback(
                 candidate.account_id.clone(),
                 amount_to_stake,
                 env::current_account_id(),
                 NO_DEPOSIT,
-                GAS_CB_VALIDATOR_STAKED
-            ));
+                GAS_CB_VALIDATOR_STAKED,
+            ),
+        );
 
         return true;
     }
@@ -126,23 +120,21 @@ impl LiquidStakingContract {
                 amount_to_unstake,
                 env::current_account_id(),
                 NO_DEPOSIT,
-                GAS_CB_VALIDATOR_UNSTAKED
+                GAS_CB_VALIDATOR_UNSTAKED,
             ));
 
         return true;
     }
 
-    pub fn epoch_update_rewards(
-        &mut self,
-        validator_id: AccountId,
-    ) {
+    pub fn epoch_update_rewards(&mut self, validator_id: AccountId) {
         let min_gas = GAS_EPOCH_UPDATE_REWARDS + GAS_EXT_GET_BALANCE + GAS_CB_VALIDATOR_GET_BALANCE;
         require!(
             env::prepaid_gas() >= min_gas,
             format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
         );
 
-        let validator = self.validator_pool
+        let validator = self
+            .validator_pool
             .get_validator(&validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST);
 
@@ -156,7 +148,7 @@ impl LiquidStakingContract {
                 validator.account_id,
                 env::current_account_id(),
                 NO_DEPOSIT,
-                GAS_CB_VALIDATOR_GET_BALANCE
+                GAS_CB_VALIDATOR_GET_BALANCE,
             ));
     }
 
@@ -168,7 +160,8 @@ impl LiquidStakingContract {
             format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
         );
 
-        let mut validator = self.validator_pool
+        let mut validator = self
+            .validator_pool
             .get_validator(&validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST);
 
@@ -180,19 +173,19 @@ impl LiquidStakingContract {
         }
         .emit();
 
-        validator
-            .withdraw(&mut self.validator_pool, amount)
-            .then(ext_self_action_cb::validator_withdraw_callback(
+        validator.withdraw(&mut self.validator_pool, amount).then(
+            ext_self_action_cb::validator_withdraw_callback(
                 validator.account_id.clone(),
                 amount,
                 env::current_account_id(),
                 NO_DEPOSIT,
-                GAS_CB_VALIDATOR_WITHDRAW
-            ));
+                GAS_CB_VALIDATOR_WITHDRAW,
+            ),
+        );
     }
 
     /// Cleaning up stake requirements and unstake requirements,
-    /// since some stake requirements could be eliminated if 
+    /// since some stake requirements could be eliminated if
     /// there are more unstake requirements, and vice versa.
     fn epoch_cleanup(&mut self) {
         if self.last_settlement_epoch == get_epoch_height() {
@@ -220,28 +213,13 @@ impl LiquidStakingContract {
 
 #[ext_contract(ext_self_action_cb)]
 trait EpochActionCallbacks {
-    fn validator_staked_callback(
-        &mut self,
-        validator_id: AccountId,
-        amount: Balance
-    );
+    fn validator_staked_callback(&mut self, validator_id: AccountId, amount: Balance);
 
-    fn validator_unstaked_callback(
-        &mut self,
-        validator_id: AccountId,
-        amount: Balance
-    );
+    fn validator_unstaked_callback(&mut self, validator_id: AccountId, amount: Balance);
 
-    fn validator_get_balance_callback(
-        &mut self,
-        validator_id: AccountId
-    );
+    fn validator_get_balance_callback(&mut self, validator_id: AccountId);
 
-    fn validator_withdraw_callback(
-        &mut self,
-        validator_id: AccountId,
-        amount: Balance
-    );
+    fn validator_withdraw_callback(&mut self, validator_id: AccountId, amount: Balance);
 }
 
 /// callbacks
@@ -249,17 +227,14 @@ trait EpochActionCallbacks {
 #[near_bindgen]
 impl LiquidStakingContract {
     #[private]
-    pub fn validator_staked_callback(
-        &mut self,
-        validator_id: AccountId,
-        amount: Balance
-    ) {
+    pub fn validator_staked_callback(&mut self, validator_id: AccountId, amount: Balance) {
         if is_promise_success() {
-            let mut validator = self.validator_pool
+            let mut validator = self
+                .validator_pool
                 .get_validator(&validator_id)
                 .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
             validator.on_stake_success(&mut self.validator_pool, amount);
-          
+
             Event::EpochStakeSuccess {
                 validator_id: &validator_id,
                 amount: &U128(amount),
@@ -268,7 +243,7 @@ impl LiquidStakingContract {
         } else {
             // stake failed, revert
             self.stake_amount_to_settle += amount;
-          
+
             Event::EpochStakeFailed {
                 validator_id: &validator_id,
                 amount: &U128(amount),
@@ -278,18 +253,15 @@ impl LiquidStakingContract {
     }
 
     #[private]
-    pub fn validator_unstaked_callback(
-        &mut self,
-        validator_id: AccountId,
-        amount: Balance
-    ) {
-        let mut validator = self.validator_pool
+    pub fn validator_unstaked_callback(&mut self, validator_id: AccountId, amount: Balance) {
+        let mut validator = self
+            .validator_pool
             .get_validator(&validator_id)
             .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
         if is_promise_success() {
             validator.on_unstake_success(&mut self.validator_pool, amount);
-          
+
             Event::EpochUnstakeSuccess {
                 validator_id: &validator_id,
                 amount: &U128(amount),
@@ -302,7 +274,7 @@ impl LiquidStakingContract {
 
             // 2. revert validator states
             validator.on_unstake_failed(&mut self.validator_pool, amount);
-          
+
             Event::EpochUnstakeFailed {
                 validator_id: &validator_id,
                 amount: &U128(amount),
@@ -315,9 +287,10 @@ impl LiquidStakingContract {
     pub fn validator_get_balance_callback(
         &mut self,
         validator_id: AccountId,
-        #[callback] total_balance: U128 
+        #[callback] total_balance: U128,
     ) {
-        let mut validator = self.validator_pool
+        let mut validator = self
+            .validator_pool
             .get_validator(&validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST);
 
@@ -342,11 +315,7 @@ impl LiquidStakingContract {
     }
 
     #[private]
-    pub fn validator_withdraw_callback(
-        &mut self,
-        validator_id: AccountId,
-        amount: Balance
-    ) {
+    pub fn validator_withdraw_callback(&mut self, validator_id: AccountId, amount: Balance) {
         if is_promise_success() {
             Event::EpochWithdrawSuccess {
                 validator_id: &validator_id,
@@ -357,7 +326,8 @@ impl LiquidStakingContract {
         }
 
         // withdraw failed, revert
-        let mut validator = self.validator_pool
+        let mut validator = self
+            .validator_pool
             .get_validator(&validator_id)
             .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 

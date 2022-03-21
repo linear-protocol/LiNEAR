@@ -1,41 +1,26 @@
 use crate::*;
-use near_sdk::{
-    near_bindgen,
-};
+use near_sdk::near_bindgen;
 
 #[near_bindgen]
 impl LiquidStakingContract {
-    pub fn set_owner(
-        &mut self,
-        new_owner_id: AccountId
-    ) {
+    pub fn set_owner(&mut self, new_owner_id: AccountId) {
         self.assert_owner();
         self.owner_id = new_owner_id;
     }
 
-    pub fn set_beneficiary(
-        &mut self,
-        account_id: AccountId,
-        fraction: Fraction
-    ) {
+    pub fn set_beneficiary(&mut self, account_id: AccountId, fraction: Fraction) {
         self.assert_owner();
         fraction.assert_valid();
         self.beneficiaries.insert(&account_id, &fraction);
     }
 
-    pub fn remove_beneficiary(
-        &mut self,
-        account_id: AccountId
-    ) {
+    pub fn remove_beneficiary(&mut self, account_id: AccountId) {
         self.assert_owner();
         self.beneficiaries.remove(&account_id);
     }
-  
+
     /// Set account ID of the treasury
-    pub fn set_treasury(
-        &mut self,
-        account_id: AccountId
-    ) {
+    pub fn set_treasury(&mut self, account_id: AccountId) {
         self.assert_owner();
         self.treasury_id = account_id;
     }
@@ -110,7 +95,8 @@ mod upgrade {
     #[no_mangle]
     pub fn upgrade() {
         env::setup_panic_hook();
-        let contract: LiquidStakingContract = env::state_read().expect("ERR_CONTRACT_IS_NOT_INITIALIZED");
+        let contract: LiquidStakingContract =
+            env::state_read().expect("ERR_CONTRACT_IS_NOT_INITIALIZED");
         contract.assert_owner();
         let current_id = env::current_account_id().as_bytes().to_vec();
         let method_name = "migrate".as_bytes().to_vec();

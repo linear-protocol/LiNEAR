@@ -1,5 +1,5 @@
 use crate::*;
-use near_sdk::json_types::{U128};
+use near_sdk::json_types::U128;
 
 pub trait FungibleTokenPrice {
     fn ft_price(&self) -> U128;

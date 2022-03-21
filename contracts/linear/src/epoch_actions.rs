@@ -338,7 +338,7 @@ impl LiquidStakingContract {
         }
 
         self.total_staked_near_amount += rewards;
-        self.internal_distribute_rewards(rewards);
+        self.internal_distribute_staking_rewards(rewards);
     }
 
     #[private]

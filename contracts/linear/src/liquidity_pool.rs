@@ -29,7 +29,7 @@ pub struct LiquidityPool {
     pub total_fee_shares: ShareBalance,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize)]
+#[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone)]
 #[serde(crate = "near_sdk::serde")]
 pub struct LiquidityPoolConfig {
     /// The expected near amount used in the fee calculation formula.
@@ -493,7 +493,7 @@ impl LiquidStakingContract {
         require!(account.stake_shares >= stake_shares_in, ERR_NO_ENOUGH_STAKED_BALANCE);
 
         // Distribute rewards from all the farms for the given user.
-        self.internal_distribute_all_rewards(&mut account);
+        self.internal_distribute_all_farm_rewards(&mut account);
 
         // Calculating the amount of tokens the account will receive by unstaking the corresponding
         // number of "stake" shares, rounding up.

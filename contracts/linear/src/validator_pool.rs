@@ -286,10 +286,8 @@ pub struct Validator {
 pub struct ValidatorInfo {
     pub account_id: AccountId,
     pub weight: u16,
-    #[serde(with = "u128_dec_format")]
-    pub staked_amount: Balance,
-    #[serde(with = "u128_dec_format")]
-    pub unstaked_amount: Balance,
+    pub staked_amount: U128,
+    pub unstaked_amount: U128,
     pub pending_release: bool,
 }
 
@@ -309,8 +307,8 @@ impl Validator {
         ValidatorInfo {
             account_id: self.account_id.clone(),
             weight: self.weight,
-            staked_amount: self.staked_amount,
-            unstaked_amount: self.unstaked_amount,
+            staked_amount: self.staked_amount.into(),
+            unstaked_amount: self.unstaked_amount.into(),
             pending_release: self.pending_release(),
         }
     }

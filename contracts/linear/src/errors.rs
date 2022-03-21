@@ -58,6 +58,7 @@ pub const ERR_NON_POSITIVE_RECEIVED_FEE: &str = "The fee received by the liquidi
 pub const ERR_NO_ENOUGH_LIQUIDITY: &str = "Not enough liquidity in the pool";
 pub const ERR_ACCOUNT_NO_SHARE: &str = "Account has no shares in liquidity pool";
 pub const ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE: &str = "Not enough liquidity shares to remove from the pool";
+pub const ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT: &str = "The amount of value to be removed from liquidity pool should be positive";
 
 // staking farm
 pub const ERR_FARM_START_TOO_EARLY: &str = "Farm start date should not be earlier than the current time";

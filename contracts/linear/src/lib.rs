@@ -4,7 +4,7 @@ use near_sdk::{
     json_types::{U128},
     collections::{UnorderedMap, Vector, UnorderedSet},
     env, near_bindgen, ext_contract, require,
-    AccountId, Balance, PanicOnDefault, EpochHeight, PublicKey, StorageUsage
+    AccountId, Balance, PanicOnDefault, EpochHeight, PublicKey, StorageUsage, BorshStorageKey
 };
 
 mod view;
@@ -32,37 +32,15 @@ use crate::fungible_token::*;
 use crate::liquidity_pool::*;
 use crate::farm::{Farm};
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
-#[serde(crate = "near_sdk::serde")]
-pub struct Fraction {
-    pub numerator: u32,
-    pub denominator: u32,
-}
-
-impl Fraction {
-    pub fn new(numerator: u32, denominator: u32) -> Self {
-        let f = Self {
-            numerator,
-            denominator,
-        };
-        f.assert_valid();
-        return f;
-    }
-
-    pub fn assert_valid(&self) {
-        require!(
-            self.denominator != 0,
-            ERR_FRACTION_BAD_DENOMINATOR
-        );
-        require!(
-            self.numerator <= self.denominator,
-            ERR_FRACTION_BAD_NUMERATOR
-        );
-    }
-
-    pub fn multiply(&self, value: u128) -> u128 {
-        (U256::from(self.numerator) * U256::from(value) / U256::from(self.denominator)).as_u128()
-    }
+#[derive(BorshStorageKey, BorshSerialize)]
+pub(crate) enum StorageKey {
+    Accounts,
+    Shares,
+    Beneficiaries,
+    Validators,
+    Farms,
+    // AuthorizedUsers,
+    AuthorizedFarmTokens
 }
 
 #[near_bindgen]

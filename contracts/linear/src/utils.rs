@@ -1,7 +1,40 @@
 use near_sdk::{
-    env, EpochHeight, near_bindgen, BorshStorageKey
+    env, EpochHeight, near_bindgen
 };
 use crate::*;
+
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
+pub struct Fraction {
+    pub numerator: u32,
+    pub denominator: u32,
+}
+
+impl Fraction {
+    pub fn new(numerator: u32, denominator: u32) -> Self {
+        let f = Self {
+            numerator,
+            denominator,
+        };
+        f.assert_valid();
+        return f;
+    }
+
+    pub fn assert_valid(&self) {
+        require!(
+            self.denominator != 0,
+            ERR_FRACTION_BAD_DENOMINATOR
+        );
+        require!(
+            self.numerator <= self.denominator,
+            ERR_FRACTION_BAD_NUMERATOR
+        );
+    }
+
+    pub fn multiply(&self, value: u128) -> u128 {
+        (U256::from(self.numerator) * U256::from(value) / U256::from(self.denominator)).as_u128()
+    }
+}
 
 #[cfg(not(feature = "test"))]
 pub fn get_epoch_height() -> EpochHeight {
@@ -21,18 +54,29 @@ pub fn get_epoch_height() -> EpochHeight {
     }
 }
 
-/// Epoch height helper methods only available for testing
+
 #[near_bindgen]
 impl LiquidStakingContract {
+    /// Set epoch height helper method, only available for testing
     #[cfg(feature = "test")]
     pub fn set_epoch_height(&mut self, epoch: EpochHeight) {
         let test_epoch_height_key: &[u8] = "_test_epoch_".as_bytes();
         env::storage_write(test_epoch_height_key, &epoch.try_to_vec().unwrap_or_default());
     }
 
+    /// Read epoch height helper method, only available for testing
     #[cfg(feature = "test")]
     pub fn read_epoch_height(&self) -> EpochHeight {
         get_epoch_height()
+    }
+
+    /// Add epoch rewards method, only available for testing
+    #[cfg(feature = "test")]
+    pub fn add_epoch_rewards(&mut self, amount: U128) {
+        self.assert_owner();
+        let amount: Balance = amount.into();
+        require!(amount > 0, "Added rewards amount must be positive");
+        self.total_staked_near_amount += amount;
     }
 }
 
@@ -60,13 +104,8 @@ pub (crate) fn staked_amount_from_num_shares_rounded_down(num_shares: ShareBalan
     .as_u128()
 }
 
-#[derive(BorshStorageKey, BorshSerialize)]
-pub(crate) enum StorageKey {
-    Accounts,
-    Shares,
-    Beneficiaries,
-    Validators,
-    Farms,
-    // AuthorizedUsers,
-    AuthorizedFarmTokens
+/// The absolute diff between left and right is not greater than epsilon.
+/// This is useful when user submit requests that approximaitely equal to the acount's NEAR/LiNEAR balance
+pub (crate) fn abs_diff_eq(left: u128, right: u128, epsilon: u128 ) -> bool {
+    return left <= right + epsilon && right <= left + epsilon
 }

@@ -124,7 +124,12 @@ impl LiquidityPool {
         let prev_shares_amount = self.shares.get(&account_id).expect(ERR_ACCOUNT_NO_SHARE);
         require!(
             prev_shares_amount >= shares,
-            ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE
+            format!(
+                "{}. remove {} liquidity shares, but only has {}",
+                ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE,
+                shares,
+                prev_shares_amount
+            )
         );
 
         let mut result = vec![];
@@ -132,7 +137,6 @@ impl LiquidityPool {
             let amount = (U256::from(self.amounts[i]) * U256::from(shares)
                 / U256::from(self.shares_total_supply))
             .as_u128();
-            // require!(amount >= min_amounts[i], "ERR_MIN_AMOUNT");
             self.amounts[i] -= amount;
             result.push(amount);
         }
@@ -424,12 +428,20 @@ impl LiquidStakingContract {
 
         let account_id = env::predecessor_account_id();
         let amount: Balance = amount.into();
+        require!(amount > 0, ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT);
 
         // Calculate liquidity pool shares from NEAR amount
-        let removed_shares = self.liquidity_pool.get_shares_from_value_rounded_up(
+        let mut removed_shares = self.liquidity_pool.get_shares_from_value_rounded_up(
             amount,
             &self.internal_get_context()
         );
+        // In case the removed shares are approximately equal to account's shares,
+        // remove all the shares. This will avoid shares overflow and `dust` in the account
+        // when user removes liquidity with `amount` close to the account's total value
+        let account_lp_shares = self.liquidity_pool.get_account_shares(&account_id);
+        if abs_diff_eq(removed_shares, account_lp_shares, ONE_MICRO_NEAR) {
+            removed_shares = account_lp_shares;
+        }
         // Remove shares from liquidity pool
         let results = self.liquidity_pool.remove_liquidity(
             &account_id,

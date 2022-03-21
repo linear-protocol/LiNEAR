@@ -8,6 +8,9 @@ import {
   ONE_YOCTO
 } from './helper';
 
+// Errors
+const ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT = "The amount of value to be removed from liquidity pool should be positive";
+
 // helper functions
 
 let config = null;
@@ -28,11 +31,16 @@ const getConfig = async (contract) => {
 const estimateSwapFee = async (contract: any, totalAmount: NEAR, amount: NEAR) => {
   let { expected_near_amount, max_fee_bps, min_fee_bps } = await getConfig(contract);
   let diff = max_fee_bps.sub(min_fee_bps);
-  return amount.mul(
-    max_fee_bps.sub(
-      diff.mul(totalAmount.sub(amount)).div(expected_near_amount)
-    )
-  ).div(new BN(10000));
+  const remainingLiquidity = totalAmount.sub(amount);
+  if (remainingLiquidity.gt(expected_near_amount)) {
+    return amount.mul(min_fee_bps).div(new BN(10000));
+  } else {
+    return amount.mul(
+      max_fee_bps.sub(
+        diff.mul(remainingLiquidity).div(expected_near_amount)
+      )
+    ).div(new BN(10000));
+  }
 }
 
 const getBalance = async (user) => {
@@ -50,15 +58,18 @@ const getTotalStakedNEAR = async (contract) => {
 
 const getPoolValue = async (contract) => {
   const summary = await getSummary(contract);
-  const { lp_near_amount, ft_price, lp_staked_share } = summary;
-  const price = NEAR.from(ft_price).div(NEAR.parse('1'));
+  const { lp_near_amount, lp_staked_share } = summary;
   return NEAR.from(lp_near_amount).add(
-    NEAR.from(lp_staked_share).mul(price)
+    await stakeSharesValues(contract, NEAR.from(lp_staked_share))
   );
 }
 
-const ftPrice = async(contract) => {
-  return NEAR.from(await contract.view('ft_price', {})).div(NEAR.parse('1'));
+const getPoolAccountValue = async (contract, account) => {
+  return NEAR.from((await contract.view('get_account', { account_id: account }) as any).liquidity_pool_share_value);
+}
+
+const stakeSharesValues = async (contract, stake_shares: NEAR) => {
+  return stake_shares.mul(NEAR.from(await contract.view('ft_price', {}))).div(NEAR.parse('1'));
 }
 
 const stake = async(test, {contract, user, amount}) => {
@@ -70,8 +81,17 @@ const stake = async(test, {contract, user, amount}) => {
   );
 }
 
+const unstake = async(test, {contract, user, amount}) => {
+  await user.call(
+    contract,
+    'unstake',
+    { amount },
+  );
+}
+
 const addLiquidity = async(test, {contract, user, amount}) => {
   const previousPoolValue = await getPoolValue(contract);
+  const prevAccountPoolValue = await getPoolAccountValue(contract, user);
   await user.call(
     contract,
     'add_liquidity',
@@ -79,9 +99,10 @@ const addLiquidity = async(test, {contract, user, amount}) => {
     { attachedDeposit: amount },
   );
   const updatedPoolValue = await getPoolValue(contract);
+  const updatedAccountPoolValue = await getPoolAccountValue(contract, user);
   test.is(
-    (await contract.view('get_account', { account_id: user }) as any).liquidity_pool_share_value,
-    amount.toString()
+    prevAccountPoolValue.add(amount).toString(),
+    updatedAccountPoolValue.toString()
   );
   test.is(
     previousPoolValue.add(amount).toString(),
@@ -89,7 +110,7 @@ const addLiquidity = async(test, {contract, user, amount}) => {
   );
 }
 
-const removeLiqudity = async (test, {contract, user, amount}) => {
+const removeLiquidity = async (test, {contract, user, amount, loss = "1"}) => {
   const previousPoolValue = await getPoolValue(contract);
   const balance = await getBalance(user);
   const result = await callWithMetrics(
@@ -103,16 +124,18 @@ const removeLiqudity = async (test, {contract, user, amount}) => {
 
   const receivedAmount = NEAR.from(result.successValue[0]);
   const receivedStakedShare = NEAR.from(result.successValue[1]);
-  const price = await ftPrice(contract);
+  const receivedStakedShareValue = await stakeSharesValues(contract, receivedStakedShare);
   noMoreThanOneYoctoDiff(
     test,
+    receivedAmount.add(receivedStakedShareValue),
     amount,
-    receivedAmount.add(receivedStakedShare.mul(price))
+    loss
   );
   noMoreThanOneYoctoDiff(
     test,
+    updatedPoolValue,
     previousPoolValue.sub(amount),
-    updatedPoolValue
+    loss
   );
   // Fuzzy match due to balance accuracy issue
   numbersEqual(
@@ -124,21 +147,23 @@ const removeLiqudity = async (test, {contract, user, amount}) => {
 }
 
 const instantUnstake = async (test, {contract, user, amount}) => {
-  const delta = NEAR.parse('0.5');
   const summary = await getSummary(contract);
+  const nearAmount = await stakeSharesValues(contract, amount);
   const totalAmount = NEAR.from((summary as any).lp_near_amount);
-  let fee = await estimateSwapFee(contract, totalAmount, amount);
+  let fee = await estimateSwapFee(contract, totalAmount, nearAmount);
   const receivedAmount: string = await user.call(
     contract,
     'instant_unstake',
     {
       stake_shares_in: amount.toString(),
-      min_amount_out: amount.sub(delta).toString()
+      min_amount_out: nearAmount.sub(fee)
+        .mul(new BN(9900)).div(new BN(10000)).toString()
     }
   );
-  test.is(
-    amount.sub(fee).toString(),
-    NEAR.from(receivedAmount).toString()
+  noMoreThanOneYoctoDiff(
+    test,
+    NEAR.from(receivedAmount),
+    nearAmount.sub(fee),
   );
 }
 
@@ -200,6 +225,17 @@ workspace.test('instant unstake', async (test, { contract, alice, bob }) => {
 });
 
 workspace.test('remove liquidity', async (test, { contract, alice, bob }) => {
+  // Bob removes 0 liquidity
+  await assertFailure(
+    test,
+    removeLiquidity(test, {
+      contract,
+      user: bob,
+      amount: NEAR.parse('0')
+    }),
+    ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT
+  );
+
   // Alice deposits and stakes to avoid empty stake shares
   await stake(test, {
     contract,
@@ -215,18 +251,29 @@ workspace.test('remove liquidity', async (test, { contract, alice, bob }) => {
   });
 
   // Bob removes liquidity from pool for the 1st time
-  await removeLiqudity(test, {
+  await removeLiquidity(test, {
     contract,
     user: bob,
     amount: NEAR.parse('10')
   });
 
   // Bob removes liquidity from pool for the 2nd time
-  await removeLiqudity(test, {
+  await removeLiquidity(test, {
     contract,
     user: bob,
     amount: NEAR.parse('5')
   });
+
+  // Bob removes 0 liquidity
+  await assertFailure(
+    test,
+    removeLiquidity(test, {
+      contract,
+      user: bob,
+      amount: NEAR.parse('0')
+    }),
+    ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT
+  );
 });
 
 workspace.test('issue: add liquidity precision loss', async (test, { contract, alice, bob }) => {
@@ -282,7 +329,7 @@ workspace.test('issue: remove liquidity precision loss', async (test, { contract
   });
 
   // Bob removes liquidity, here may introduce precision loss
-  await removeLiqudity(test, {
+  await removeLiquidity(test, {
     contract,
     user: bob,
     amount: NEAR.parse('20')
@@ -296,7 +343,7 @@ workspace.test('issue: remove liquidity precision loss', async (test, { contract
   });
 
   // Bob removes liquidity, here may introduce precision loss
-  await removeLiqudity(test, {
+  await removeLiquidity(test, {
     contract,
     user: bob,
     amount: NEAR.parse('15')
@@ -481,5 +528,92 @@ workspace.test('liquidity pool misconfiguration', async (test, { contract, owner
     ),
     ERR_NON_POSITIVE_EXPECTED_NEAR_AMOUNT
   );
+});
 
+workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 1.0, liquidity > 10K)',
+  async (test, { contract, owner, alice, bob, carol }) => {
+
+  // Alice deposits and stakes to avoid empty stake shares
+  await stake(test, {
+    contract,
+    user: alice,
+    amount: NEAR.parse('40')
+  });
+
+  // Add 0.5N epoch rewards, pirce becomes 1.01
+  await owner.call(
+    contract,
+    'add_epoch_rewards',
+    { amount: NEAR.parse('0.5') }
+  );
+  test.is(
+    await contract.view('ft_price'),
+    NEAR.parse('1.01').toString()
+  );
+
+  // Bob adds liquidity
+  await addLiquidity(test, {
+    contract,
+    user: bob,
+    amount: NEAR.parse('100000')
+  });
+
+  // Alice deposits and stakes
+  await stake(test, {
+    contract,
+    user: alice,
+    amount: NEAR.parse('5000')
+  });
+
+  // Alice delayed unstake
+  await unstake(test, {
+    contract,
+    user: alice,
+    amount: NEAR.parse('1250')
+  });
+
+  // Alice instant unstake
+  await instantUnstake(test, {
+    contract,
+    user: alice,
+    amount: NEAR.parse('1250')
+  });
+
+  // Alice adds liquidity
+  await addLiquidity(test, {
+    contract,
+    user: alice,
+    amount: NEAR.parse('50')
+  });
+
+  // Alice removes liquidity
+  await removeLiquidity(test, {
+    contract,
+    user: alice,
+    amount: NEAR.parse('5')
+  });
+
+  // Add 100N epoch rewards
+  await owner.call(
+    contract,
+    'add_epoch_rewards',
+    { amount: NEAR.parse('100') }
+  );
+
+  // Carol adds liquidity
+  await addLiquidity(test, {
+    contract,
+    user: carol,
+    amount: NEAR.parse('10')
+  });
+
+  // Carol removes liquidity
+  await removeLiquidity(test, {
+    contract,
+    user: carol,
+    amount: NEAR.parse('10'),
+    // The loss is higher since rounded up is not possible which will exceeds the
+    // account's total shares
+    loss: '3' // yoctoN
+  });
 });

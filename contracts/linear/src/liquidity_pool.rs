@@ -29,7 +29,7 @@ pub struct LiquidityPool {
     pub total_fee_shares: ShareBalance,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize)]
+#[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone)]
 #[serde(crate = "near_sdk::serde")]
 pub struct LiquidityPoolConfig {
     /// The expected near amount used in the fee calculation formula.

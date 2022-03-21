@@ -177,6 +177,14 @@ impl LiquidStakingContract {
     }
 
 
+    // --- Liquidity Pool view methods ---
+
+    /// Return liquidity pool configuration
+    pub fn get_liquidity_pool_config(&self) -> LiquidityPoolConfig {
+        return self.liquidity_pool.config.clone();
+    }
+
+    
     // --- Staking Farm view methods ---
 
     /// Return all authorized users.

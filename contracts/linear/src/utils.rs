@@ -118,3 +118,25 @@ pub(crate) fn staked_amount_from_num_shares_rounded_down(
 pub(crate) fn abs_diff_eq(left: u128, right: u128, epsilon: u128) -> bool {
     return left <= right + epsilon && right <= left + epsilon;
 }
+
+/// u128 (de)serialization
+pub mod u128_dec_format {
+    use near_sdk::serde::de;
+    use near_sdk::serde::{Deserialize, Deserializer, Serializer};
+
+    pub fn serialize<S>(num: &u128, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&num.to_string())
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<u128, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        String::deserialize(deserializer)?
+            .parse()
+            .map_err(de::Error::custom)
+    }
+}

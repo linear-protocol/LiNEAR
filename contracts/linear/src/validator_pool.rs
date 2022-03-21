@@ -286,7 +286,9 @@ pub struct Validator {
 pub struct ValidatorInfo {
     pub account_id: AccountId,
     pub weight: u16,
+    #[serde(with = "u128_dec_format")]
     pub staked_amount: Balance,
+    #[serde(with = "u128_dec_format")]
     pub unstaked_amount: Balance,
     pub pending_release: bool,
 }

@@ -1,4 +1,4 @@
-import { NEAR, BN } from 'near-workspaces-ava';
+import { NEAR, BN, Gas } from 'near-workspaces-ava';
 import {
   initWorkSpace,
   callWithMetrics,
@@ -158,6 +158,9 @@ const instantUnstake = async (test, {contract, user, amount}) => {
       stake_shares_in: amount.toString(),
       min_amount_out: nearAmount.sub(fee)
         .mul(new BN(9900)).div(new BN(10000)).toString()
+    },
+    {
+      gas: Gas.parse('50 Tgas')
     }
   );
   noMoreThanOneYoctoDiff(

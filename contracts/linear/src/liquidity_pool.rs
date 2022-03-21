@@ -437,7 +437,7 @@ impl LiquidStakingContract {
         );
         // In case the removed shares are approximately equal to account's shares,
         // remove all the shares. This will avoid shares overflow and `dust` in the account
-        // when user remove liquidity with `amount` close to the account's total value
+        // when user removes liquidity with `amount` close to the account's total value
         let account_lp_shares = self.liquidity_pool.get_account_shares(&account_id);
         if abs_diff_eq(removed_shares, account_lp_shares, ONE_MICRO_NEAR) {
             removed_shares = account_lp_shares;

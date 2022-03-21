@@ -1,5 +1,5 @@
 import { Gas, NEAR, NearAccount, stake, } from "near-workspaces-ava";
-import { assertFailure, initWorkSpace, parseNEAR, skip } from "./helper";
+import { assertFailure, initWorkSpace, skip } from "./helper";
 
 const workspace = initWorkSpace();
 
@@ -42,8 +42,8 @@ function assertValidatorAmountHelper (
         validator_id: validator.accountId
       }
     );
-    const staked = parseNEAR(v.staked_amount);
-    const unstaked = parseNEAR(v.unstaked_amount);
+    const staked = NEAR.from(v.staked_amount);
+    const unstaked = NEAR.from(v.unstaked_amount);
     test.is(
       staked.toString(),
       NEAR.parse(stakedAmount).toString()

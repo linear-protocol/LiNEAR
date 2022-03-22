@@ -198,7 +198,7 @@ impl LiquidStakingContract {
     }
 
     /// When there are rewards, a part of them will be
-    /// given to operator/treasury by minting new LiNEAR tokens.
+    /// given to executor, manager or treasury by minting new LiNEAR tokens.
     pub(crate) fn internal_distribute_staking_rewards(&mut self, rewards: Balance) {
         let hashmap: HashMap<AccountId, Fraction> = self.internal_get_beneficiaries();
         for (account_id, fraction) in hashmap.iter() {
@@ -324,7 +324,7 @@ impl LiquidStakingContract {
         self.managers.remove(manager_id)
     }
 
-    pub(crate) fn internal_get_operators(& self) -> Vec<AccountId> {
+    pub(crate) fn internal_get_managers(& self) -> Vec<AccountId> {
         self.managers.to_vec()
     }
 

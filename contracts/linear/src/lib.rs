@@ -17,7 +17,7 @@ mod fungible_token;
 mod internal;
 mod legacy;
 mod liquidity_pool;
-mod owner;
+mod admin;
 mod stake;
 mod types;
 mod utils;
@@ -48,8 +48,8 @@ pub(crate) enum StorageKey {
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct LiquidStakingContract {
-    /// The account ID of the owner who's running the liquid staking contract.
-    owner_id: AccountId,
+    /// Admin account ID, who is able to set privileged configurations.
+    admin_id: AccountId,
     /// The account ID who is operating the contract, e.g. setting validator weights.
     operators: UnorderedSet<AccountId>,
     /// The account ID of the treasury that manages portion of the received fees and rewards.
@@ -111,13 +111,13 @@ pub struct LiquidStakingContract {
 
 #[near_bindgen]
 impl LiquidStakingContract {
-    /// Initializes the contract with the given owner_id.
+    /// Initializes the contract with the given admin_id.
     ///
     /// The entire current balance of this contract will be used to stake. This allows contract to
     /// always maintain staking shares that can't be unstaked or withdrawn.
     /// It prevents inflating the price of the share too much.
     #[init]
-    pub fn new(owner_id: AccountId) -> Self {
+    pub fn new(admin_id: AccountId) -> Self {
         require!(!env::state_exists(), ERR_ALREADY_INITIALZED);
         require!(
             env::account_locked_balance() == 0,
@@ -136,9 +136,9 @@ impl LiquidStakingContract {
             )
         );
         let mut this = Self {
-            owner_id: owner_id.clone(),
+            admin_id: admin_id.clone(),
             operators: UnorderedSet::new(StorageKey::Operators),
-            treasury_id: owner_id.clone(),
+            treasury_id: admin_id.clone(),
             total_share_amount: 10 * ONE_NEAR,
             total_staked_near_amount: 10 * ONE_NEAR,
             accounts: UnorderedMap::new(StorageKey::Accounts),
@@ -159,7 +159,7 @@ impl LiquidStakingContract {
             // authorized_users: UnorderedSet::new(StorageKey::AuthorizedUsers),
             authorized_farm_tokens: UnorderedSet::new(StorageKey::AuthorizedFarmTokens),
         };
-        this.internal_add_operator(&owner_id);
+        this.internal_add_operator(&admin_id);
         this.measure_account_storage_usage();
         this
     }

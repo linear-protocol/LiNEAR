@@ -2,7 +2,7 @@ import { assertFailure, initWorkSpace } from "./helper";
 
 const workspace = initWorkSpace();
 
-workspace.test('non-owner call beneficiaries', async (test, { contract, alice }) => {
+workspace.test('non-admin call beneficiaries', async (test, { contract, alice }) => {
   await assertFailure(
     test,
     alice.call(
@@ -16,7 +16,7 @@ workspace.test('non-owner call beneficiaries', async (test, { contract, alice })
         }
       }
     ),
-    'Only owner can perform this action'
+    'Only admin can perform this action'
   );
 
   await assertFailure(
@@ -28,19 +28,19 @@ workspace.test('non-owner call beneficiaries', async (test, { contract, alice })
         account_id: alice.accountId
       }
     ),
-    'Only owner can perform this action'
+    'Only admin can perform this action'
   );
 });
 
-workspace.test('set beneficiaries', async (test, { contract, owner }) => {
-  const initValues: object = await owner.call(
+workspace.test('set beneficiaries', async (test, { contract, admin }) => {
+  const initValues: object = await admin.call(
     contract,
     'get_beneficiaries',
     {}
   );
   test.deepEqual(initValues, {});
 
-  await owner.call(
+  await admin.call(
     contract,
     'set_beneficiary',
     {
@@ -51,7 +51,7 @@ workspace.test('set beneficiaries', async (test, { contract, owner }) => {
       }
     }
   );
-  await owner.call(
+  await admin.call(
     contract,
     'set_beneficiary',
     {
@@ -63,7 +63,7 @@ workspace.test('set beneficiaries', async (test, { contract, owner }) => {
     }
   );
 
-  const twoValues = await owner.call(
+  const twoValues = await admin.call(
     contract,
     'get_beneficiaries',
     {}
@@ -83,7 +83,7 @@ workspace.test('set beneficiaries', async (test, { contract, owner }) => {
     }
   );
 
-  await owner.call(
+  await admin.call(
     contract,
     'remove_beneficiary',
     {
@@ -91,7 +91,7 @@ workspace.test('set beneficiaries', async (test, { contract, owner }) => {
     }
   );
 
-  const oneValue = await owner.call(
+  const oneValue = await admin.call(
     contract,
     'get_beneficiaries',
     {}

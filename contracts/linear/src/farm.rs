@@ -322,7 +322,7 @@ impl LiquidStakingContract {
     /// Stops given farm at the current moment.
     /// Warning: IF OWNER ACCOUNT DOESN'T HAVE STORAGE, THESE FUNDS WILL BE STUCK ON THE STAKING FARM.
     pub fn stop_farm(&mut self, farm_id: u64) -> Promise {
-        self.assert_owner();
+        self.assert_admin();
         let mut farm = self.internal_get_farm(farm_id);
         let leftover_amount = (U256::from(farm.amount)
             * U256::from(farm.end_date - env::block_timestamp())
@@ -333,7 +333,7 @@ impl LiquidStakingContract {
         farm.last_distribution.undistributed -= leftover_amount;
         self.farms.replace(farm_id, &farm);
         ext_fungible_token::ft_transfer(
-            self.get_owner_id(),
+            self.get_admin_id(),
             U128(leftover_amount),
             None,
             farm.token_id.clone(),

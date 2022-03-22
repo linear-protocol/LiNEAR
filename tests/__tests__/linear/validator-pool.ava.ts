@@ -4,11 +4,11 @@ import { assertFailure, initWorkSpace } from "./helper";
 
 const workspace = initWorkSpace();
 
-async function setOperator(root: NearAccount, contract: NearAccount, owner: NearAccount) {
+async function setOperator(root: NearAccount, contract: NearAccount, admin: NearAccount) {
   const operator = await root.createAccount('linear_operator', { initialBalance: NEAR.parse("1000000").toString() });
 
   // set operator
-  await owner.call(
+  await admin.call(
     contract,
     'add_operator',
     {
@@ -19,8 +19,8 @@ async function setOperator(root: NearAccount, contract: NearAccount, owner: Near
   return operator;
 }
 
-workspace.test('not operator', async (test, { contract, alice, root, owner }) => {
-  await setOperator(root, contract, owner);
+workspace.test('not operator', async (test, { contract, alice, root, admin }) => {
+  await setOperator(root, contract, admin);
 
   let errMsg = "Only operator can perform this action";
   await assertFailure(
@@ -76,8 +76,8 @@ workspace.test('not operator', async (test, { contract, alice, root, owner }) =>
 });
 
 workspace.test('add validator', async (test, context) => {
-  const { root, owner, contract } = context;
-  const operator = await setOperator(root, contract, owner);
+  const { root, admin, contract } = context;
+  const operator = await setOperator(root, contract, admin);
 
   await operator.call(
     contract,
@@ -124,8 +124,8 @@ workspace.test('add validator', async (test, context) => {
 });
 
 workspace.test('bulk add a few validators', async (test, context) => {
-  const { root, owner, contract } = context;
-  const operator = await setOperator(root, contract, owner);
+  const { root, admin, contract } = context;
+  const operator = await setOperator(root, contract, admin);
 
   await operator.call(
     contract,
@@ -160,8 +160,8 @@ workspace.test('bulk add a few validators', async (test, context) => {
 });
 
 workspace.test('bulk add a lot validators', async (test, context) => {
-  const { root, owner, contract } = context;
-  const operator = await setOperator(root, contract, owner);
+  const { root, admin, contract } = context;
+  const operator = await setOperator(root, contract, admin);
 
   for (let i = 0; i < 2; i++) {
     const validators = Array.from({ length: 50 }, (_, j) => `validator-${i}-${j}`);
@@ -205,8 +205,8 @@ workspace.test('bulk add a lot validators', async (test, context) => {
 });
 
 workspace.test('remove validator', async (test, context) => {
-  const { root, owner, contract } = context;
-  const operator = await setOperator(root, contract, owner);
+  const { root, admin, contract } = context;
+  const operator = await setOperator(root, contract, admin);
 
   // add foo, bar
   await operator.call(
@@ -286,8 +286,8 @@ workspace.test('remove validator', async (test, context) => {
 });
 
 workspace.test('update weight', async (test, context) => {
-  const { root, owner, contract } = context;
-  const operator = await setOperator(root, contract, owner);
+  const { root, admin, contract } = context;
+  const operator = await setOperator(root, contract, admin);
 
   // add foo, bar
   await operator.call(

@@ -3,35 +3,35 @@ use near_sdk::near_bindgen;
 
 #[near_bindgen]
 impl LiquidStakingContract {
-    pub fn set_owner(&mut self, new_owner_id: AccountId) {
-        self.assert_owner();
-        self.owner_id = new_owner_id;
+    pub fn set_admin(&mut self, new_admin_id: AccountId) {
+        self.assert_admin();
+        self.admin_id = new_admin_id;
     }
 
     pub fn add_operator(&mut self, new_operator_id: AccountId) {
-        self.assert_owner();
+        self.assert_admin();
         self.internal_add_operator(&new_operator_id);
     }
 
     pub fn remove_operator(&mut self, operator_id: AccountId) -> bool {
-        self.assert_owner();
+        self.assert_admin();
         self.internal_remove_operator(&operator_id)
     }
 
     pub fn set_beneficiary(&mut self, account_id: AccountId, fraction: Fraction) {
-        self.assert_owner();
+        self.assert_admin();
         fraction.assert_valid();
         self.beneficiaries.insert(&account_id, &fraction);
     }
 
     pub fn remove_beneficiary(&mut self, account_id: AccountId) {
-        self.assert_owner();
+        self.assert_admin();
         self.beneficiaries.remove(&account_id);
     }
 
     /// Set account ID of the treasury
     pub fn set_treasury(&mut self, account_id: AccountId) {
-        self.assert_owner();
+        self.assert_admin();
         self.treasury_id = account_id;
     }
 
@@ -39,25 +39,25 @@ impl LiquidStakingContract {
 
     /// Add authorized user to the current contract.
     // pub fn add_authorized_user(&mut self, account_id: AccountId) {
-    //     self.assert_owner();
+    //     self.assert_admin();
     //     self.authorized_users.insert(&account_id);
     // }
 
     /// Remove authorized user from the current contract.
     // pub fn remove_authorized_user(&mut self, account_id: AccountId) {
-    //     self.assert_owner();
+    //     self.assert_admin();
     //     self.authorized_users.remove(&account_id);
     // }
 
     /// Add authorized token.
     pub fn add_authorized_farm_token(&mut self, token_id: &AccountId) {
-        self.assert_owner();
+        self.assert_admin();
         self.authorized_farm_tokens.insert(&token_id);
     }
 
     /// Remove authorized token.
     pub fn remove_authorized_farm_token(&mut self, token_id: &AccountId) {
-        self.assert_owner();
+        self.assert_admin();
         self.authorized_farm_tokens.remove(&token_id);
     }
 
@@ -74,7 +74,7 @@ impl LiquidStakingContract {
     // --- Liquidity Pool ----
 
     pub fn configure_liquidity_pool(&mut self, config: LiquidityPoolConfig) {
-        self.assert_owner();
+        self.assert_admin();
         self.liquidity_pool.configure(config);
     }
 
@@ -107,7 +107,7 @@ mod upgrade {
         env::setup_panic_hook();
         let contract: LiquidStakingContract =
             env::state_read().expect("ERR_CONTRACT_IS_NOT_INITIALIZED");
-        contract.assert_owner();
+        contract.assert_admin();
         let current_id = env::current_account_id().as_bytes().to_vec();
         let method_name = "migrate".as_bytes().to_vec();
         unsafe {

@@ -5,8 +5,8 @@ pub const ERR_ACCOUNT_STAKING_WHILE_INIT: &str =
 pub const ERR_NO_ENOUGH_INIT_DEPOSIT: &str =
     "The account doesn't have enough balance for initialization";
 
-// owner
-pub const ERR_NOT_OWNER: &str = "Only owner can perform this action";
+// admin
+pub const ERR_NOT_ADMIN: &str = "Only admin can perform this action";
 
 // operator
 pub const ERR_NOT_OPERATOR: &str = "Only operator can perform this action";

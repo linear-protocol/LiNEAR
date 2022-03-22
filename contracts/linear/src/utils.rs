@@ -70,7 +70,7 @@ impl LiquidStakingContract {
     /// Add epoch rewards method, only available for testing
     #[cfg(feature = "test")]
     pub fn add_epoch_rewards(&mut self, amount: U128) {
-        self.assert_owner();
+        self.assert_admin();
         let amount: Balance = amount.into();
         require!(amount > 0, "Added rewards amount must be positive");
         self.total_staked_near_amount += amount;

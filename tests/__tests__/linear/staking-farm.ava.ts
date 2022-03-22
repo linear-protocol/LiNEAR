@@ -67,14 +67,14 @@ function secondsLater(now: Date, seconds: number) {
 
 async function addFarm(
   contract: NearAccount,
-  owner: NearAccount,
+  admin: NearAccount,
   ft: NearAccount,
   name: string,
   amount: NEAR,
   start_date: string,
   end_date: string,
 ) {
-  await owner.call(
+  await admin.call(
     contract,
     'add_authorized_farm_token',
     {
@@ -86,16 +86,16 @@ async function addFarm(
     start_date,
     end_date
   })
-  await transferCall(ft, owner, contract, amount, msg);
+  await transferCall(ft, admin, contract, amount, msg);
 }
 
 async function addFirstFarm(
   root: NearAccount,
   contract: NearAccount,
-  owner: NearAccount,
+  admin: NearAccount,
   type?: number
 ) {
-  const ft = await mintFungibleTokens(root, owner, "ft-1", NEAR.parse("100000000")); // 100M
+  const ft = await mintFungibleTokens(root, admin, "ft-1", NEAR.parse("100000000")); // 100M
   const now = new Date();
   const amount = NEAR.parse("1000000"); // 1M
   const range = type === 1 ? {
@@ -119,7 +119,7 @@ async function addFirstFarm(
   }
   await addFarm(
     contract,
-    owner,
+    admin,
     ft, 
     farm.name,
     amount,
@@ -132,10 +132,10 @@ async function addFirstFarm(
 async function addSecondFarm(
   root: NearAccount,
   contract: NearAccount,
-  owner: NearAccount,
+  admin: NearAccount,
   quick?: boolean
 ) {
-  const ft = await mintFungibleTokens(root, owner, "ft-2", NEAR.parse("1000000000")); // 1B
+  const ft = await mintFungibleTokens(root, admin, "ft-2", NEAR.parse("1000000000")); // 1B
   const now = new Date();
   const amount = NEAR.parse("5000000"); // 5M
   const range = quick ? {
@@ -156,7 +156,7 @@ async function addSecondFarm(
   }
   await addFarm(
     contract,
-    owner,
+    admin,
     ft, 
     farm.name,
     amount,
@@ -201,18 +201,18 @@ function assertUnclaimedRewards(
 // time of contract call may vary. So we validate the rewards amount as long as its
 // value is within the expected range.
 
-workspace.test('add farm', async (test, {root, contract, owner}) => {
+workspace.test('add farm', async (test, {root, contract, admin}) => {
   // Add farm which will start one day later
-  const { farm } = await addFirstFarm(root, contract, owner);
+  const { farm } = await addFirstFarm(root, contract, admin);
   test.deepEqual(
     await contract.view("get_farm", { farm_id: farm.farm_id }),
     farm
   );
 });
 
-workspace.test('stake and receive rewards', async (test, {root, contract, owner, alice, bob}) => {
+workspace.test('stake and receive rewards', async (test, {root, contract, admin, alice, bob}) => {
   // Add farm which will start in 10s
-  const { farm, ft } = await addFirstFarm(root, contract, owner, 1);
+  const { farm, ft } = await addFirstFarm(root, contract, admin, 1);
   test.deepEqual(
     await contract.view("get_farm", { farm_id: farm.farm_id }),
     farm
@@ -300,9 +300,9 @@ workspace.test('stake and receive rewards', async (test, {root, contract, owner,
   );
 });
 
-workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) => {
+workspace.test('stop farm', async (test, {root, contract, admin, alice, bob}) => {
   // Add farm which will start in 10s
-  const { farm } = await addFirstFarm(root, contract, owner, 1);
+  const { farm } = await addFirstFarm(root, contract, admin, 1);
   test.deepEqual(
     await contract.view("get_farm", { farm_id: farm.farm_id }),
     farm
@@ -336,7 +336,7 @@ workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) =>
   );
 
   // Stop farm
-  await owner.call(
+  await admin.call(
     contract,
     'stop_farm',
     { farm_id: farm.farm_id }
@@ -356,14 +356,14 @@ workspace.test('stop farm', async (test, {root, contract, owner, alice, bob}) =>
   );
 });
 
-workspace.test('add two farms and receive rewards', async (test, {root, contract, owner, alice, bob}) => {
+workspace.test('add two farms and receive rewards', async (test, {root, contract, admin, alice, bob}) => {
   // Add farms which will start in 10s
-  const { farm: farm1, ft: ft1 } = await addFirstFarm(root, contract, owner, 1);
+  const { farm: farm1, ft: ft1 } = await addFirstFarm(root, contract, admin, 1);
   test.deepEqual(
     await contract.view("get_farm", { farm_id: farm1.farm_id }),
     farm1
   );
-  const { farm: farm2, ft: ft2 } = await addSecondFarm(root, contract, owner, true);
+  const { farm: farm2, ft: ft2 } = await addSecondFarm(root, contract, admin, true);
   test.deepEqual(
     await contract.view("get_farm", { farm_id: farm2.farm_id }),
     farm2
@@ -511,9 +511,9 @@ workspace.test('add two farms and receive rewards', async (test, {root, contract
   );
 });
 
-workspace.test('active farm has ended', async (test, {root, contract, owner, alice, bob}) => {
+workspace.test('active farm has ended', async (test, {root, contract, admin, alice, bob}) => {
   // Add farm which will start in 10s
-  const { farm } = await addFirstFarm(root, contract, owner, 2);
+  const { farm } = await addFirstFarm(root, contract, admin, 2);
   test.deepEqual(
     await contract.view("get_farm", { farm_id: farm.farm_id }),
     farm

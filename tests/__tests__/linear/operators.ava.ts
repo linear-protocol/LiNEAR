@@ -2,7 +2,7 @@ import { assertFailure, initWorkSpace } from "./helper";
 
 const workspace = initWorkSpace();
 
-workspace.test('non-owner call operator methods', async (test, { contract, alice }) => {
+workspace.test('non-admin call operator methods', async (test, { contract, alice }) => {
   await assertFailure(
     test,
     alice.call(
@@ -12,7 +12,7 @@ workspace.test('non-owner call operator methods', async (test, { contract, alice
         new_operator_id: alice.accountId
       }
     ),
-    'Only owner can perform this action'
+    'Only admin can perform this action'
   );
 
   await assertFailure(
@@ -24,12 +24,12 @@ workspace.test('non-owner call operator methods', async (test, { contract, alice
         operator_id: alice.accountId
       },
     ),
-    'Only owner can perform this action'
+    'Only admin can perform this action'
   );
 });
 
-workspace.test('set operator', async (test, {contract, owner, alice}) => {
-  await owner.call(
+workspace.test('set operator', async (test, {contract, admin, alice}) => {
+  await admin.call(
     contract,
     'add_operator',
     {
@@ -41,8 +41,8 @@ workspace.test('set operator', async (test, {contract, owner, alice}) => {
   test.assert(operators.includes(alice.accountId));
 });
 
-workspace.test('remove operator', async (test, {contract, owner, alice}) => {
-  await owner.call(
+workspace.test('remove operator', async (test, {contract, admin, alice}) => {
+  await admin.call(
     contract,
     'add_operator',
     {
@@ -50,7 +50,7 @@ workspace.test('remove operator', async (test, {contract, owner, alice}) => {
     }
   );
 
-  await owner.call(
+  await admin.call(
     contract,
     'remove_operator',
     {

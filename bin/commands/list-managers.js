@@ -1,7 +1,7 @@
 const { init } = require("../near");
 
-exports.command = 'list-operators <address>';
-exports.desc = 'List operator';
+exports.command = 'list-managers <address>';
+exports.desc = 'List manager';
 exports.builder = yargs => {
   yargs
     .positional('address', {
@@ -21,7 +21,7 @@ exports.handler = async function (argv) {
   const near = await init(argv.network);
   const contract = await near.account(address);
 
-  const operators = await contract.viewFunction(address, 'get_operators');
+  const managers = await contract.viewFunction(address, 'get_managers');
 
-  console.log(operators);
+  console.log(managers);
 }

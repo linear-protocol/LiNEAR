@@ -1,5 +1,5 @@
 import { Gas, NEAR, NearAccount, stake, } from "near-workspaces-ava";
-import { assertFailure, initWorkSpace, parseNEAR, skip } from "./helper";
+import { assertFailure, initWorkSpace, skip } from "./helper";
 
 const workspace = initWorkSpace();
 
@@ -42,8 +42,8 @@ function assertValidatorAmountHelper (
         validator_id: validator.accountId
       }
     );
-    const staked = parseNEAR(v.staked_amount);
-    const unstaked = parseNEAR(v.unstaked_amount);
+    const staked = NEAR.from(v.staked_amount);
+    const unstaked = NEAR.from(v.unstaked_amount);
     test.is(
       staked.toString(),
       NEAR.parse(stakedAmount).toString()
@@ -324,8 +324,8 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, own
   // epoch stake
   await stakeAll(owner, contract);
 
-  let total_share_amount_0 = parseNEAR(await contract.view('get_total_share_amount'));
-  let total_near_amount_0 = parseNEAR(await contract.view('get_total_staked_near_amount'));
+  let total_share_amount_0 = NEAR.from(await contract.view('get_total_share_amount'));
+  let total_near_amount_0 = NEAR.from(await contract.view('get_total_staked_balance'));
   test.truthy(total_share_amount_0.eq(NEAR.parse('60')));
   test.truthy(total_near_amount_0.eq(NEAR.parse('60')));
 
@@ -378,8 +378,8 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, own
     }
   );
 
-  let total_share_amount_1 = parseNEAR(await contract.view('get_total_share_amount'));
-  let total_near_amount_1 = parseNEAR(await contract.view('get_total_staked_near_amount'));
+  let total_share_amount_1 = NEAR.from(await contract.view('get_total_share_amount'));
+  let total_near_amount_1 = NEAR.from(await contract.view('get_total_staked_balance'));
   test.truthy(total_share_amount_1.eq(NEAR.parse('60')));
   test.truthy(total_near_amount_1.eq(NEAR.parse('66')));
 
@@ -414,11 +414,11 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, own
     }
   );
 
-  let total_share_amount_2 = parseNEAR(await contract.view('get_total_share_amount'));
-  let total_near_amount_2 = parseNEAR(await contract.view('get_total_staked_near_amount'));
+  let total_share_amount_2 = NEAR.from(await contract.view('get_total_share_amount'));
+  let total_near_amount_2 = NEAR.from(await contract.view('get_total_staked_balance'));
   test.is(
     total_share_amount_2.toString(),
-    '60089552238805970000000000'
+    '60089552238805970149253731'
   );
   test.is(
     total_near_amount_2.toString(),

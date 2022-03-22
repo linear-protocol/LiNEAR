@@ -198,7 +198,7 @@ impl LiquidStakingContract {
     }
 
     /// When there are rewards, a part of them will be
-    /// given to operator/treasury by minting new LiNEAR tokens.
+    /// given to executor, manager or treasury by minting new LiNEAR tokens.
     pub(crate) fn internal_distribute_staking_rewards(&mut self, rewards: Balance) {
         let hashmap: HashMap<AccountId, Fraction> = self.internal_get_beneficiaries();
         for (account_id, fraction) in hashmap.iter() {
@@ -314,24 +314,24 @@ impl LiquidStakingContract {
     }
 }
 
-// -- operator related methods
+// -- manager related methods
 impl LiquidStakingContract {
-    pub(crate) fn internal_add_operator(&mut self, operator_id: &AccountId) {
-        self.operators.insert(operator_id);
+    pub(crate) fn internal_add_manager(&mut self, manager_id: &AccountId) {
+        self.managers.insert(manager_id);
     }
 
-    pub(crate) fn internal_remove_operator(&mut self, operator_id: &AccountId) -> bool {
-        self.operators.remove(operator_id)
+    pub(crate) fn internal_remove_manager(&mut self, manager_id: &AccountId) -> bool {
+        self.managers.remove(manager_id)
     }
 
-    pub(crate) fn internal_get_operators(& self) -> Vec<AccountId> {
-        self.operators.to_vec()
+    pub(crate) fn internal_get_managers(& self) -> Vec<AccountId> {
+        self.managers.to_vec()
     }
 
-    pub(crate) fn assert_operator(& self) {
+    pub(crate) fn assert_manager(& self) {
         require!(
-            self.operators.contains(&env::predecessor_account_id()),
-            ERR_NOT_OPERATOR
+            self.managers.contains(&env::predecessor_account_id()),
+            ERR_NOT_MANAGER
         );
     }
 }

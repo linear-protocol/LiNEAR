@@ -188,6 +188,13 @@ impl LiquidStakingContract {
         );
     }
 
+    pub(crate) fn assert_operator(&self) {
+        require!(
+            env::predecessor_account_id() == self.operator_id,
+            ERR_NOT_OPERATOR
+        );
+    }
+
     pub(crate) fn internal_get_beneficiaries(&self) -> HashMap<AccountId, Fraction> {
         let mut result: HashMap<AccountId, Fraction> = HashMap::new();
         for (account_id, fraction) in self.beneficiaries.iter() {

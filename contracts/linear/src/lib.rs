@@ -49,6 +49,8 @@ pub(crate) enum StorageKey {
 pub struct LiquidStakingContract {
     /// The account ID of the owner who's running the liquid staking contract.
     owner_id: AccountId,
+    /// The account ID who is operating the contract, e.g. setting validator weights.
+    operator_id: AccountId,
     /// The account ID of the treasury that manages portion of the received fees and rewards.
     treasury_id: AccountId,
     /// Total amount of LiNEAR that was minted (minus burned).
@@ -134,6 +136,7 @@ impl LiquidStakingContract {
         );
         let mut this = Self {
             owner_id: owner_id.clone(),
+            operator_id: owner_id.clone(),
             treasury_id: owner_id.clone(),
             total_share_amount: 10 * ONE_NEAR,
             total_staked_near_amount: 10 * ONE_NEAR,

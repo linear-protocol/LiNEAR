@@ -42,7 +42,7 @@ pub(crate) enum StorageKey {
     Farms,
     // AuthorizedUsers,
     AuthorizedFarmTokens,
-    Operators,
+    Managers,
 }
 
 #[near_bindgen]
@@ -50,8 +50,8 @@ pub(crate) enum StorageKey {
 pub struct LiquidStakingContract {
     /// Admin account ID, who is able to set privileged configurations.
     admin_id: AccountId,
-    /// The account ID who is operating the contract, e.g. setting validator weights.
-    operators: UnorderedSet<AccountId>,
+    /// The accounts that are able to change key parameters and settings in the contract such as validator pool membership
+    managers: UnorderedSet<AccountId>,
     /// The account ID of the treasury that manages portion of the received fees and rewards.
     treasury_id: AccountId,
     /// Total amount of LiNEAR that was minted (minus burned).
@@ -137,7 +137,7 @@ impl LiquidStakingContract {
         );
         let mut this = Self {
             admin_id: admin_id.clone(),
-            operators: UnorderedSet::new(StorageKey::Operators),
+            managers: UnorderedSet::new(StorageKey::Managers),
             treasury_id: admin_id.clone(),
             total_share_amount: 10 * ONE_NEAR,
             total_staked_near_amount: 10 * ONE_NEAR,
@@ -159,7 +159,7 @@ impl LiquidStakingContract {
             // authorized_users: UnorderedSet::new(StorageKey::AuthorizedUsers),
             authorized_farm_tokens: UnorderedSet::new(StorageKey::AuthorizedFarmTokens),
         };
-        this.internal_add_operator(&admin_id);
+        this.internal_add_manager(&admin_id);
         this.measure_account_storage_usage();
         this
     }

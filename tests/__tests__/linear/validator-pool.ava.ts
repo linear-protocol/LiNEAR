@@ -4,25 +4,25 @@ import { assertFailure, initWorkSpace } from "./helper";
 
 const workspace = initWorkSpace();
 
-async function setOperator(root: NearAccount, contract: NearAccount, admin: NearAccount) {
-  const operator = await root.createAccount('linear_operator', { initialBalance: NEAR.parse("1000000").toString() });
+async function setManager(root: NearAccount, contract: NearAccount, admin: NearAccount) {
+  const manager = await root.createAccount('linear_manager', { initialBalance: NEAR.parse("1000000").toString() });
 
-  // set operator
+  // set manager
   await admin.call(
     contract,
-    'add_operator',
+    'add_manager',
     {
-      new_operator_id: operator.accountId
+      new_manager_id: manager.accountId
     }
   );
 
-  return operator;
+  return manager;
 }
 
-workspace.test('not operator', async (test, { contract, alice, root, admin }) => {
-  await setOperator(root, contract, admin);
+workspace.test('not manager', async (test, { contract, alice, root, admin }) => {
+  await setManager(root, contract, admin);
 
-  let errMsg = "Only operator can perform this action";
+  let errMsg = "Only manager can perform this action";
   await assertFailure(
     test,
     alice.call(
@@ -77,9 +77,9 @@ workspace.test('not operator', async (test, { contract, alice, root, admin }) =>
 
 workspace.test('add validator', async (test, context) => {
   const { root, admin, contract } = context;
-  const operator = await setOperator(root, contract, admin);
+  const manager = await setManager(root, contract, admin);
 
-  await operator.call(
+  await manager.call(
     contract,
     'add_validator',
     {
@@ -92,7 +92,7 @@ workspace.test('add validator', async (test, context) => {
     10
   );
 
-  await operator.call(
+  await manager.call(
     contract,
     'add_validator',
     {
@@ -125,9 +125,9 @@ workspace.test('add validator', async (test, context) => {
 
 workspace.test('bulk add a few validators', async (test, context) => {
   const { root, admin, contract } = context;
-  const operator = await setOperator(root, contract, admin);
+  const manager = await setManager(root, contract, admin);
 
-  await operator.call(
+  await manager.call(
     contract,
     'add_validators',
     {
@@ -161,13 +161,13 @@ workspace.test('bulk add a few validators', async (test, context) => {
 
 workspace.test('bulk add a lot validators', async (test, context) => {
   const { root, admin, contract } = context;
-  const operator = await setOperator(root, contract, admin);
+  const manager = await setManager(root, contract, admin);
 
   for (let i = 0; i < 2; i++) {
     const validators = Array.from({ length: 50 }, (_, j) => `validator-${i}-${j}`);
     const weights = validators.map(_ => 1);
 
-    await operator.call(
+    await manager.call(
       contract,
       'add_validators',
       {
@@ -190,7 +190,7 @@ workspace.test('bulk add a lot validators', async (test, context) => {
     const limit = 20;
     const offset = i * limit;
 
-    await operator.call(
+    await manager.call(
       contract,
       'get_validators',
       {
@@ -206,10 +206,10 @@ workspace.test('bulk add a lot validators', async (test, context) => {
 
 workspace.test('remove validator', async (test, context) => {
   const { root, admin, contract } = context;
-  const operator = await setOperator(root, contract, admin);
+  const manager = await setManager(root, contract, admin);
 
   // add foo, bar
-  await operator.call(
+  await manager.call(
     contract,
     'add_validator',
     {
@@ -217,7 +217,7 @@ workspace.test('remove validator', async (test, context) => {
       weight: 10
     }
   );
-  await operator.call(
+  await manager.call(
     contract,
     'add_validator',
     {
@@ -227,7 +227,7 @@ workspace.test('remove validator', async (test, context) => {
   );
 
   // remove foo
-  await operator.call(
+  await manager.call(
     contract,
     'remove_validator',
     {
@@ -258,7 +258,7 @@ workspace.test('remove validator', async (test, context) => {
   );
 
   // remove bar
-  await operator.call(
+  await manager.call(
     contract,
     'remove_validator',
     {
@@ -270,7 +270,7 @@ workspace.test('remove validator', async (test, context) => {
     0
   );
 
-  validators = await operator.call(
+  validators = await manager.call(
     contract,
     'get_validators',
     {
@@ -287,10 +287,10 @@ workspace.test('remove validator', async (test, context) => {
 
 workspace.test('update weight', async (test, context) => {
   const { root, admin, contract } = context;
-  const operator = await setOperator(root, contract, admin);
+  const manager = await setManager(root, contract, admin);
 
   // add foo, bar
-  await operator.call(
+  await manager.call(
     contract,
     'add_validator',
     {
@@ -298,7 +298,7 @@ workspace.test('update weight', async (test, context) => {
       weight: 10
     }
   );
-  await operator.call(
+  await manager.call(
     contract,
     'add_validator',
     {
@@ -308,7 +308,7 @@ workspace.test('update weight', async (test, context) => {
   );
 
   // update foo
-  await operator.call(
+  await manager.call(
     contract,
     'update_weight',
     {
@@ -322,7 +322,7 @@ workspace.test('update weight', async (test, context) => {
   );
 
   // update bar
-  await operator.call(
+  await manager.call(
     contract,
     'update_weight',
     {

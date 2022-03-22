@@ -8,8 +8,8 @@ pub const ERR_NO_ENOUGH_INIT_DEPOSIT: &str =
 // admin
 pub const ERR_NOT_ADMIN: &str = "Only admin can perform this action";
 
-// operator
-pub const ERR_NOT_OPERATOR: &str = "Only operator can perform this action";
+// manager 
+pub const ERR_NOT_MANAGER : &str = "Only manager can perform this action";
 
 // account
 pub const ERR_NO_ACCOUNT: &str = "Account not found";

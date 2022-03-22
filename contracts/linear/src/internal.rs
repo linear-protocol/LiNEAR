@@ -324,11 +324,11 @@ impl LiquidStakingContract {
         self.managers.remove(manager_id)
     }
 
-    pub(crate) fn internal_get_managers(& self) -> Vec<AccountId> {
+    pub(crate) fn internal_get_managers(&self) -> Vec<AccountId> {
         self.managers.to_vec()
     }
 
-    pub(crate) fn assert_manager(& self) {
+    pub(crate) fn assert_manager(&self) {
         require!(
             self.managers.contains(&env::predecessor_account_id()),
             ERR_NOT_MANAGER

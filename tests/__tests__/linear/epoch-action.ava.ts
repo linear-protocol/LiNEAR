@@ -17,7 +17,7 @@ async function createStakingPool (root: NearAccount, id: string) {
 function assertValidatorAmountHelper (
   test: any,
   contract: NearAccount,
-  admin: NearAccount
+  owner: NearAccount
 ) {
   return async function (
     validator: NearAccount, 
@@ -35,7 +35,7 @@ function assertValidatorAmountHelper (
     );
 
     // 2. make sure contract validator object is synced
-    const v: any = await admin.call(
+    const v: any = await owner.call(
       contract,
       'get_validator',
       {
@@ -55,10 +55,10 @@ function assertValidatorAmountHelper (
   }
 }
 
-async function stakeAll (admin: NearAccount, contract: NearAccount) {
+async function stakeAll (owner: NearAccount, contract: NearAccount) {
   let run = true;
   while (run) {
-    run = await admin.call(
+    run = await owner.call(
       contract,
       'epoch_stake',
       {},
@@ -69,10 +69,10 @@ async function stakeAll (admin: NearAccount, contract: NearAccount) {
   }
 }
 
-async function unstakeAll (admin: NearAccount, contract: NearAccount) {
+async function unstakeAll (owner: NearAccount, contract: NearAccount) {
   let run = true;
   while (run) {
-    run = await admin.call(
+    run = await owner.call(
       contract,
       'epoch_unstake',
       {},
@@ -83,8 +83,8 @@ async function unstakeAll (admin: NearAccount, contract: NearAccount) {
   }
 }
 
-workspace.test('epoch stake', async (test, {root, contract, alice, admin, bob}) => {
-  const assertValidator = assertValidatorAmountHelper(test, contract, admin);
+workspace.test('epoch stake', async (test, {root, contract, alice, owner, bob}) => {
+  const assertValidator = assertValidatorAmountHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
   const v2 = await createStakingPool(root, 'v2');
@@ -95,7 +95,7 @@ workspace.test('epoch stake', async (test, {root, contract, alice, admin, bob}) 
   // - v1: 10
   // - v2: 20
   // - v3: 30
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -103,7 +103,7 @@ workspace.test('epoch stake', async (test, {root, contract, alice, admin, bob}) 
       weight: 10
     }
   );
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -111,7 +111,7 @@ workspace.test('epoch stake', async (test, {root, contract, alice, admin, bob}) 
       weight: 20
     }
   );
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -136,7 +136,7 @@ workspace.test('epoch stake', async (test, {root, contract, alice, admin, bob}) 
   await assertValidator(v3, '0', '0');
 
   // epoch stake
-  await stakeAll(admin, contract);
+  await stakeAll(owner, contract);
 
   // validators should have staked balance based on their weights
   // note that 10 NEAR is already staked when contract init
@@ -145,7 +145,7 @@ workspace.test('epoch stake', async (test, {root, contract, alice, admin, bob}) 
   await assertValidator(v3, '30', '0');
 
   // fast-forward
-  await admin.call(
+  await owner.call(
     contract,
     'set_epoch_height',
     { epoch: 11 }
@@ -162,7 +162,7 @@ workspace.test('epoch stake', async (test, {root, contract, alice, admin, bob}) 
   );
 
   // epoch stake
-  await stakeAll(admin, contract);
+  await stakeAll(owner, contract);
 
   // validators should have staked balance based on their weights
   // note that 10 NEAR is already staked when contract init
@@ -171,8 +171,8 @@ workspace.test('epoch stake', async (test, {root, contract, alice, admin, bob}) 
   await assertValidator(v3, `${30 + 45}`, '0');
 });
 
-workspace.test('epoch unstake', async (test, {root, contract, alice, admin}) => {
-  const assertValidator = assertValidatorAmountHelper(test, contract, admin);
+workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => {
+  const assertValidator = assertValidatorAmountHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
   const v2 = await createStakingPool(root, 'v2');
@@ -183,7 +183,7 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, admin}) => 
   // - v1: 10
   // - v2: 20
   // - v3: 30
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -191,7 +191,7 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, admin}) => 
       weight: 10
     }
   );
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -199,7 +199,7 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, admin}) => 
       weight: 20
     }
   );
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -219,10 +219,10 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, admin}) => 
   );
 
   // epoch stake
-  await stakeAll(admin, contract);
+  await stakeAll(owner, contract);
 
   // fast-forward epoch
-  await admin.call(
+  await owner.call(
     contract,
     'set_epoch_height',
     { epoch: 14 }
@@ -241,7 +241,7 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, admin}) => 
   await assertValidator(v3, '30', '0');
 
   // epoch unstake
-  await unstakeAll(admin, contract);
+  await unstakeAll(owner, contract);
 
   // 60 NEAR was initially staked, 30 was taken out
   await assertValidator(v1, '10', '0');
@@ -261,20 +261,20 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, admin}) => 
   await assertValidator(v3, '0', '30');
 
   // fast-forward 
-  await admin.call(
+  await owner.call(
     contract,
     'set_epoch_height',
     { epoch: 18 }
   );
 
   // only 12 NEAR left in stake now
-  await unstakeAll(admin, contract);
+  await unstakeAll(owner, contract);
   await assertValidator(v1, '10', '0');
   await assertValidator(v2, '2', '18');
   await assertValidator(v3, '0', '30');
 });
 
-workspace.test('epoch collect rewards', async (test, {root, contract, alice, admin}) => {
+workspace.test('epoch collect rewards', async (test, {root, contract, alice, owner}) => {
   test.timeout(60 * 1000);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -286,7 +286,7 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, adm
   // - v1: 10
   // - v2: 20
   // - v3: 30
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -294,7 +294,7 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, adm
       weight: 10
     }
   );
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -302,7 +302,7 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, adm
       weight: 20
     }
   );
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -322,7 +322,7 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, adm
   );
 
   // epoch stake
-  await stakeAll(admin, contract);
+  await stakeAll(owner, contract);
 
   let total_share_amount_0 = parseNEAR(await contract.view('get_total_share_amount'));
   let total_near_amount_0 = parseNEAR(await contract.view('get_total_staked_near_amount'));
@@ -347,7 +347,7 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, adm
   );
 
   // update rewards
-  await admin.call(
+  await owner.call(
     contract,
     'epoch_update_rewards',
     {
@@ -357,7 +357,7 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, adm
       gas: Gas.parse('200 Tgas')
     }
   );
-  await admin.call(
+  await owner.call(
     contract,
     'epoch_update_rewards',
     {
@@ -367,7 +367,7 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, adm
       gas: Gas.parse('200 Tgas')
     }
   );
-  await admin.call(
+  await owner.call(
     contract,
     'epoch_update_rewards',
     {
@@ -384,11 +384,11 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, adm
   test.truthy(total_near_amount_1.eq(NEAR.parse('66')));
 
   // set beneficiary
-  await admin.call(
+  await owner.call(
       contract,
       'set_beneficiary',
       {
-          account_id: admin.accountId,
+          account_id: owner.accountId,
           fraction: {
               numerator: 1,
               denominator: 10
@@ -403,7 +403,7 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, adm
     { amount: NEAR.parse('1').toString() }
   );
 
-  await admin.call(
+  await owner.call(
     contract,
     'epoch_update_rewards',
     {
@@ -426,8 +426,8 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, adm
   );
 });
 
-workspace.test('epoch withdraw', async (test, {contract, alice, root, admin}) => {
-  const assertValidator = assertValidatorAmountHelper(test, contract, admin);
+workspace.test('epoch withdraw', async (test, {contract, alice, root, owner}) => {
+  const assertValidator = assertValidatorAmountHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
   const v2 = await createStakingPool(root, 'v2');
@@ -438,7 +438,7 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, admin}) =>
   // - v1: 10
   // - v2: 20
   // - v3: 30
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -446,7 +446,7 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, admin}) =>
       weight: 10
     }
   );
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -454,7 +454,7 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, admin}) =>
       weight: 20
     }
   );
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -474,10 +474,10 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, admin}) =>
   );
 
   // epoch stake
-  await stakeAll(admin, contract);
+  await stakeAll(owner, contract);
 
   // fast-forward
-  await admin.call(
+  await owner.call(
     contract,
     'set_epoch_height',
     { epoch: 11 }
@@ -491,12 +491,12 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, admin}) =>
   );
 
   // epoch unstake
-  await unstakeAll(admin, contract);
+  await unstakeAll(owner, contract);
 
   // withdraw should fail now
   await assertFailure(
     test,
-    admin.call(
+    owner.call(
       contract,
       'epoch_withdraw',
       {
@@ -510,14 +510,14 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, admin}) =>
   );
 
   // fast-forward 4 epoch
-  await admin.call(
+  await owner.call(
     contract,
     'set_epoch_height',
     { epoch: 15 }
   );
 
   // withdraw again
-  await admin.call(
+  await owner.call(
     contract,
     'epoch_withdraw',
     {

@@ -28,14 +28,14 @@ async function setPanic(validator: NearAccount) {
 function assertValidatorHelper(
   test: any,
   contract: NearAccount,
-  admin: NearAccount
+  owner: NearAccount
 ) {
   return async function (
     validator: NearAccount,
     stakedAmount: string,
     unstakedAmount: string
   ) {
-    const v: any = await admin.call(
+    const v: any = await owner.call(
       contract,
       'get_validator',
       {
@@ -55,12 +55,12 @@ function assertValidatorHelper(
   }
 }
 
-workspace.test('epoch stake failure', async (test, { root, contract, admin, alice }) => {
-  const assertValidator = assertValidatorHelper(test, contract, admin);
+workspace.test('epoch stake failure', async (test, { root, contract, owner, alice }) => {
+  const assertValidator = assertValidatorHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
 
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -81,7 +81,7 @@ workspace.test('epoch stake failure', async (test, { root, contract, admin, alic
 
   await setPanic(v1);
 
-  await admin.call(
+  await owner.call(
     contract,
     'epoch_stake',
     {},
@@ -94,12 +94,12 @@ workspace.test('epoch stake failure', async (test, { root, contract, admin, alic
   await assertValidator(v1, '0', '0');
 });
 
-workspace.test('unstake failure', async (test, { root, contract, admin, alice }) => {
-  const assertValidator = assertValidatorHelper(test, contract, admin);
+workspace.test('unstake failure', async (test, { root, contract, owner, alice }) => {
+  const assertValidator = assertValidatorHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
 
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -118,7 +118,7 @@ workspace.test('unstake failure', async (test, { root, contract, admin, alice })
     }
   );
 
-  await admin.call(
+  await owner.call(
     contract,
     'epoch_stake',
     {},
@@ -138,7 +138,7 @@ workspace.test('unstake failure', async (test, { root, contract, admin, alice })
 
   await setPanic(v1);
 
-  await admin.call(
+  await owner.call(
     contract,
     'epoch_unstake',
     {},
@@ -151,12 +151,12 @@ workspace.test('unstake failure', async (test, { root, contract, admin, alice })
   await assertValidator(v1, '60', '0');
 });
 
-workspace.test('withdraw failure', async (test, { root, contract, admin, alice }) => {
-  const assertValidator = assertValidatorHelper(test, contract, admin);
+workspace.test('withdraw failure', async (test, { root, contract, owner, alice }) => {
+  const assertValidator = assertValidatorHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
 
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -175,7 +175,7 @@ workspace.test('withdraw failure', async (test, { root, contract, admin, alice }
     }
   );
 
-  await admin.call(
+  await owner.call(
     contract,
     'epoch_stake',
     {},
@@ -185,7 +185,7 @@ workspace.test('withdraw failure', async (test, { root, contract, admin, alice }
   );
 
   // fast-forward 4 epoch
-  await admin.call(
+  await owner.call(
     contract,
     'set_epoch_height',
     { epoch: 14 }
@@ -200,7 +200,7 @@ workspace.test('withdraw failure', async (test, { root, contract, admin, alice }
     { amount: NEAR.parse('10') }
   );
 
-  await admin.call(
+  await owner.call(
     contract,
     'epoch_unstake',
     {},
@@ -212,7 +212,7 @@ workspace.test('withdraw failure', async (test, { root, contract, admin, alice }
   await assertValidator(v1, '50', '10');
 
   // fast-forward
-  await admin.call(
+  await owner.call(
     contract,
     'set_epoch_height',
     { epoch: 18 }
@@ -221,7 +221,7 @@ workspace.test('withdraw failure', async (test, { root, contract, admin, alice }
   await setPanic(v1);
   
   // withdraw
-  await admin.call(
+  await owner.call(
     contract,
     'epoch_withdraw',
     {
@@ -236,12 +236,12 @@ workspace.test('withdraw failure', async (test, { root, contract, admin, alice }
   await assertValidator(v1, '50', '10');
 });
 
-workspace.test('get balance failure', async (test, { root, contract, admin, alice }) => {
-  const assertValidator = assertValidatorHelper(test, contract, admin);
+workspace.test('get balance failure', async (test, { root, contract, owner, alice }) => {
+  const assertValidator = assertValidatorHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
 
-  await admin.call(
+  await owner.call(
     contract,
     'add_validator',
     {
@@ -260,7 +260,7 @@ workspace.test('get balance failure', async (test, { root, contract, admin, alic
     }
   );
 
-  await admin.call(
+  await owner.call(
     contract,
     'epoch_stake',
     {},
@@ -281,7 +281,7 @@ workspace.test('get balance failure', async (test, { root, contract, admin, alic
   await setPanic(v1);
 
   // update reward
-  await admin.call(
+  await owner.call(
     contract,
     'epoch_update_rewards',
     {

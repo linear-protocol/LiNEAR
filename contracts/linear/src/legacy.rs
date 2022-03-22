@@ -16,7 +16,7 @@ use near_sdk::{
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct ContractV1_0_0 {
     /// The account ID of the owner who's running the liquid staking contract.
-    admin_id: AccountId,
+    owner_id: AccountId,
     /// The account ID of the treasury that manages portion of the received fees and rewards.
     treasury_id: AccountId,
     /// Total amount of LiNEAR that was minted (minus burned).

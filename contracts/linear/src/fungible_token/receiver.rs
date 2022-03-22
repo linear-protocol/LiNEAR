@@ -34,7 +34,7 @@ impl FungibleTokenReceiver for LiquidStakingContract {
             ERR_NOT_AUTHORIZED_TOKEN
         );
         require!(
-            sender_id == self.get_admin_id(),
+            sender_id == self.get_owner_id(),
             // || self.authorized_users.contains(&sender_id),
             ERR_NOT_AUTHORIZED_USER
         );

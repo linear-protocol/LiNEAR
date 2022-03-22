@@ -135,8 +135,8 @@ impl LiquidStakingContract {
     }
 
     /// Returns account ID of the staking pool owner.
-    pub fn get_admin_id(&self) -> AccountId {
-        self.admin_id.clone()
+    pub fn get_owner_id(&self) -> AccountId {
+        self.owner_id.clone()
     }
 
     /// Returns the staking public key

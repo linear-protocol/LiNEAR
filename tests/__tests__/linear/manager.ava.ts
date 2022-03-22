@@ -2,7 +2,7 @@ import { assertFailure, initWorkSpace } from "./helper";
 
 const workspace = initWorkSpace();
 
-workspace.test('non-admin call manager methods', async (test, { contract, alice }) => {
+workspace.test('non-owner call manager methods', async (test, { contract, alice }) => {
   await assertFailure(
     test,
     alice.call(
@@ -12,7 +12,7 @@ workspace.test('non-admin call manager methods', async (test, { contract, alice 
         new_manager_id: alice.accountId
       }
     ),
-    'Only admin can perform this action'
+    'Only owner can perform this action'
   );
 
   await assertFailure(
@@ -24,12 +24,12 @@ workspace.test('non-admin call manager methods', async (test, { contract, alice 
         manager_id: alice.accountId
       },
     ),
-    'Only admin can perform this action'
+    'Only owner can perform this action'
   );
 });
 
-workspace.test('set manager', async (test, {contract, admin, alice}) => {
-  await admin.call(
+workspace.test('set manager', async (test, {contract, owner, alice}) => {
+  await owner.call(
     contract,
     'add_manager',
     {
@@ -41,8 +41,8 @@ workspace.test('set manager', async (test, {contract, admin, alice}) => {
   test.assert(managers.includes(alice.accountId));
 });
 
-workspace.test('remove manager', async (test, {contract, admin, alice}) => {
-  await admin.call(
+workspace.test('remove manager', async (test, {contract, owner, alice}) => {
+  await owner.call(
     contract,
     'add_manager',
     {
@@ -50,7 +50,7 @@ workspace.test('remove manager', async (test, {contract, admin, alice}) => {
     }
   );
 
-  await admin.call(
+  await owner.call(
     contract,
     'remove_manager',
     {

@@ -10,20 +10,20 @@ interface RewardFee {
 export function initWorkSpace() {
   return Workspace.init(async ({ root }) => {
     // deposit 1M $NEAR for each account
-    const admin = await root.createAccount('linear_admin', { initialBalance: NEAR.parse("1000000").toString() });
+    const owner = await root.createAccount('linear_owner', { initialBalance: NEAR.parse("1000000").toString() });
     const alice = await root.createAccount('alice', { initialBalance: NEAR.parse("1000000").toString() });
     const bob = await root.createAccount('bob', { initialBalance: NEAR.parse("1000000").toString() });
     const carol = await root.createAccount('carol', { initialBalance: NEAR.parse("1000000").toString() });
 
-    const contract = await deployLinear(root, admin.accountId);
+    const contract = await deployLinear(root, owner.accountId);
 
-    return { contract, admin, alice, bob, carol };
+    return { contract, owner, alice, bob, carol };
   });
 }
 
 export async function deployLinear(
   root: NearAccount,
-  admin_id: string,
+  owner_id: string,
   contractId = 'linear',
   reward_fee?: RewardFee,
 ) {
@@ -40,7 +40,8 @@ export async function deployLinear(
     {
       method: 'new',
       args: {
-        admin_id
+        owner_id,
+        reward_fee,
       }
     }
   )

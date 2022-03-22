@@ -398,7 +398,7 @@ workspace.test('rebalance liquidity', async (test, { contract, alice, bob }) => 
   );
 });
 
-workspace.test('configure liquidity pool', async (test, { contract, admin, alice, bob }) => {
+workspace.test('configure liquidity pool', async (test, { contract, owner, alice, bob }) => {
   // Alice deposits and stakes to avoid empty stake shares
   await stake(test, {
     contract,
@@ -414,7 +414,7 @@ workspace.test('configure liquidity pool', async (test, { contract, admin, alice
   });
 
   // Increase the treasury fee to 70%
-  await admin.call(
+  await owner.call(
     contract,
     'configure_liquidity_pool',
     {
@@ -457,7 +457,7 @@ workspace.test('configure liquidity pool', async (test, { contract, admin, alice
   );
 });
 
-workspace.test('liquidity pool misconfiguration', async (test, { contract, admin }) => {
+workspace.test('liquidity pool misconfiguration', async (test, { contract, owner }) => {
 
   const ERR_NON_POSITIVE_MIN_FEE = "The min fee basis points should be positive";
   const ERR_FEE_MAX_LESS_THAN_MIN = "The max fee basis points should be no less than the min fee";
@@ -466,7 +466,7 @@ workspace.test('liquidity pool misconfiguration', async (test, { contract, admin
 
   await assertFailure(
     test,
-    admin.call(
+    owner.call(
       contract,
       'configure_liquidity_pool',
       {
@@ -483,7 +483,7 @@ workspace.test('liquidity pool misconfiguration', async (test, { contract, admin
 
   await assertFailure(
     test,
-    admin.call(
+    owner.call(
       contract,
       'configure_liquidity_pool',
       {
@@ -500,7 +500,7 @@ workspace.test('liquidity pool misconfiguration', async (test, { contract, admin
 
   await assertFailure(
     test,
-    admin.call(
+    owner.call(
       contract,
       'configure_liquidity_pool',
       {
@@ -517,7 +517,7 @@ workspace.test('liquidity pool misconfiguration', async (test, { contract, admin
 
   await assertFailure(
     test,
-    admin.call(
+    owner.call(
       contract,
       'configure_liquidity_pool',
       {
@@ -534,7 +534,7 @@ workspace.test('liquidity pool misconfiguration', async (test, { contract, admin
 });
 
 workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 1.0, liquidity > 10K)',
-  async (test, { contract, admin, alice, bob, carol }) => {
+  async (test, { contract, owner, alice, bob, carol }) => {
 
   // Alice deposits and stakes to avoid empty stake shares
   await stake(test, {
@@ -544,7 +544,7 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
   });
 
   // Add 0.5N epoch rewards, pirce becomes 1.01
-  await admin.call(
+  await owner.call(
     contract,
     'add_epoch_rewards',
     { amount: NEAR.parse('0.5') }
@@ -597,7 +597,7 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
   });
 
   // Add 100N epoch rewards
-  await admin.call(
+  await owner.call(
     contract,
     'add_epoch_rewards',
     { amount: NEAR.parse('100') }

@@ -1,7 +1,7 @@
 const { init } = require("../near");
 
-exports.command = 'set-admin <address>';
-exports.desc = 'Set admin';
+exports.command = 'set-owner <address>';
+exports.desc = 'Set owner';
 exports.builder = yargs => {
   yargs
     .positional('address', {
@@ -16,25 +16,25 @@ exports.builder = yargs => {
     .option('signer', {
       describe: 'signer account Id to call contract'
     })
-    .option('admin', {
-      describe: 'new admin ID'
+    .option('owner', {
+      describe: 'new owner ID'
     })
-    .demandOption(['signer', 'admin'])
+    .demandOption(['signer', 'owner'])
 }
 
 exports.handler = async function (argv) {
-  const { address, admin } = argv;
+  const { address, owner } = argv;
   
   const near = await init(argv.network);
   const signer = await near.account(argv.signer);
 
-  console.log(`Setting admin to ${admin}`);
+  console.log(`Setting owner to ${owner}`);
 
   await signer.functionCall({
     contractId: address,
-    methodName: 'set_admin',
+    methodName: 'set_owner',
     args: {
-      new_admin_id: admin
+      new_owner_id: owner
     }
   });
 

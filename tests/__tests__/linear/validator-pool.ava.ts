@@ -4,11 +4,11 @@ import { assertFailure, initWorkSpace } from "./helper";
 
 const workspace = initWorkSpace();
 
-async function setManager(root: NearAccount, contract: NearAccount, admin: NearAccount) {
+async function setManager(root: NearAccount, contract: NearAccount, owner: NearAccount) {
   const manager = await root.createAccount('linear_manager', { initialBalance: NEAR.parse("1000000").toString() });
 
   // set manager
-  await admin.call(
+  await owner.call(
     contract,
     'add_manager',
     {
@@ -19,8 +19,8 @@ async function setManager(root: NearAccount, contract: NearAccount, admin: NearA
   return manager;
 }
 
-workspace.test('not manager', async (test, { contract, alice, root, admin }) => {
-  await setManager(root, contract, admin);
+workspace.test('not manager', async (test, { contract, alice, root, owner }) => {
+  await setManager(root, contract, owner);
 
   let errMsg = "Only manager can perform this action";
   await assertFailure(
@@ -76,8 +76,8 @@ workspace.test('not manager', async (test, { contract, alice, root, admin }) => 
 });
 
 workspace.test('add validator', async (test, context) => {
-  const { root, admin, contract } = context;
-  const manager = await setManager(root, contract, admin);
+  const { root, owner, contract } = context;
+  const manager = await setManager(root, contract, owner);
 
   await manager.call(
     contract,
@@ -124,8 +124,8 @@ workspace.test('add validator', async (test, context) => {
 });
 
 workspace.test('bulk add a few validators', async (test, context) => {
-  const { root, admin, contract } = context;
-  const manager = await setManager(root, contract, admin);
+  const { root, owner, contract } = context;
+  const manager = await setManager(root, contract, owner);
 
   await manager.call(
     contract,
@@ -160,8 +160,8 @@ workspace.test('bulk add a few validators', async (test, context) => {
 });
 
 workspace.test('bulk add a lot validators', async (test, context) => {
-  const { root, admin, contract } = context;
-  const manager = await setManager(root, contract, admin);
+  const { root, owner, contract } = context;
+  const manager = await setManager(root, contract, owner);
 
   for (let i = 0; i < 2; i++) {
     const validators = Array.from({ length: 50 }, (_, j) => `validator-${i}-${j}`);
@@ -205,8 +205,8 @@ workspace.test('bulk add a lot validators', async (test, context) => {
 });
 
 workspace.test('remove validator', async (test, context) => {
-  const { root, admin, contract } = context;
-  const manager = await setManager(root, contract, admin);
+  const { root, owner, contract } = context;
+  const manager = await setManager(root, contract, owner);
 
   // add foo, bar
   await manager.call(
@@ -286,8 +286,8 @@ workspace.test('remove validator', async (test, context) => {
 });
 
 workspace.test('update weight', async (test, context) => {
-  const { root, admin, contract } = context;
-  const manager = await setManager(root, contract, admin);
+  const { root, owner, contract } = context;
+  const manager = await setManager(root, contract, owner);
 
   // add foo, bar
   await manager.call(

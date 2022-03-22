@@ -188,13 +188,6 @@ impl LiquidStakingContract {
         );
     }
 
-    pub(crate) fn assert_operator(&self) {
-        require!(
-            env::predecessor_account_id() == self.operator_id,
-            ERR_NOT_OPERATOR
-        );
-    }
-
     pub(crate) fn internal_get_beneficiaries(&self) -> HashMap<AccountId, Fraction> {
         let mut result: HashMap<AccountId, Fraction> = HashMap::new();
         for (account_id, fraction) in self.beneficiaries.iter() {
@@ -318,5 +311,27 @@ impl LiquidStakingContract {
         } else {
             self.accounts.remove(account_id);
         }
+    }
+}
+
+// -- operator related methods
+impl LiquidStakingContract {
+    pub(crate) fn internal_add_operator(&mut self, operator_id: &AccountId) {
+        self.operators.insert(operator_id);
+    }
+
+    pub(crate) fn internal_remove_operator(&mut self, operator_id: &AccountId) -> bool {
+        self.operators.remove(operator_id)
+    }
+
+    pub(crate) fn internal_get_operators(& self) -> Vec<AccountId> {
+        self.operators.to_vec()
+    }
+
+    pub(crate) fn assert_operator(& self) {
+        require!(
+            self.operators.contains(&env::predecessor_account_id()),
+            ERR_NOT_OPERATOR
+        );
     }
 }

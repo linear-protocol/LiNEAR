@@ -1,7 +1,7 @@
 const { init } = require("../near");
 
-exports.command = 'add-operator <address>';
-exports.desc = 'Add operator';
+exports.command = 'del-operator <address>';
+exports.desc = 'Remove operator';
 exports.builder = yargs => {
   yargs
     .positional('address', {
@@ -17,7 +17,7 @@ exports.builder = yargs => {
       describe: 'signer account Id to call contract'
     })
     .option('operator', {
-      describe: 'new operator ID'
+      describe: 'operator ID to remove'
     })
     .demandOption(['signer', 'operator'])
 }
@@ -28,13 +28,13 @@ exports.handler = async function (argv) {
   const near = await init(argv.network);
   const signer = await near.account(argv.signer);
 
-  console.log(`Adding operator ${operator}`);
+  console.log(`Removing operator ${operator}`);
 
   await signer.functionCall({
     contractId: address,
-    methodName: 'add_operator',
+    methodName: 'remove_operator',
     args: {
-      new_operator_id: operator
+      operator_id: operator
     }
   });
 

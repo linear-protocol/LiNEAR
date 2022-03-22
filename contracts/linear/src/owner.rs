@@ -8,9 +8,14 @@ impl LiquidStakingContract {
         self.owner_id = new_owner_id;
     }
 
-    pub fn set_operator(&mut self, new_operator_id: AccountId) {
+    pub fn add_operator(&mut self, new_operator_id: AccountId) {
         self.assert_owner();
-        self.operator_id = new_operator_id;
+        self.internal_add_operator(&new_operator_id);
+    }
+
+    pub fn remove_operator(&mut self, operator_id: AccountId) -> bool {
+        self.assert_owner();
+        self.internal_remove_operator(&operator_id)
     }
 
     pub fn set_beneficiary(&mut self, account_id: AccountId, fraction: Fraction) {

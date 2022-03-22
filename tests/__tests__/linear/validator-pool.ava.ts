@@ -10,7 +10,7 @@ async function setOperator(root: NearAccount, contract: NearAccount, owner: Near
   // set operator
   await owner.call(
     contract,
-    'set_operator',
+    'add_operator',
     {
       new_operator_id: operator.accountId
     }
@@ -73,19 +73,6 @@ workspace.test('not operator', async (test, { contract, alice, root, owner }) =>
     ),
     errMsg
   );
-
-  await assertFailure(
-    test,
-    alice.call(
-      contract,
-      'get_validators',
-      {
-        offset: 0,
-        limit: 1
-      }
-    ),
-    errMsg
-  );
 });
 
 workspace.test('add validator', async (test, context) => {
@@ -118,8 +105,7 @@ workspace.test('add validator', async (test, context) => {
     30
   );
 
-  const validators: [any] = await operator.call(
-    contract,
+  const validators: [any] = await contract.view(
     'get_validators',
     {
       offset: 0,
@@ -155,8 +141,7 @@ workspace.test('bulk add a few validators', async (test, context) => {
     30
   );
 
-  const validators: [any] = await operator.call(
-    contract,
+  const validators: [any] = await contract.view(
     'get_validators',
     {
       offset: 0,
@@ -254,8 +239,8 @@ workspace.test('remove validator', async (test, context) => {
     await contract.view('get_total_weight'),
     20
   );
-  let validators: [any] = await operator.call(
-    contract,
+
+  let validators: [any] = await contract.view(
     'get_validators',
     {
       offset: 0,

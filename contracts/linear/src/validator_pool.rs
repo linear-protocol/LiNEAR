@@ -247,7 +247,6 @@ impl LiquidStakingContract {
     }
 
     pub fn get_validator(&self, validator_id: AccountId) -> ValidatorInfo {
-        self.assert_operator();
         self.validator_pool
             .get_validator(&validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST)
@@ -255,7 +254,6 @@ impl LiquidStakingContract {
     }
 
     pub fn get_validators(&self, offset: u64, limit: u64) -> Vec<ValidatorInfo> {
-        self.assert_operator();
         self.validator_pool
             .get_validators(offset, limit)
             .iter()

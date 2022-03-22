@@ -79,6 +79,10 @@ impl LiquidStakingContract {
         self.internal_get_beneficiaries()
     }
 
+    pub fn get_managers(&self) -> Vec<AccountId> {
+        self.internal_get_managers()
+    }
+
     pub fn get_summary(&self) -> Summary {
         Summary {
             total_share_amount: self.total_share_amount.into(),

@@ -8,6 +8,9 @@ pub const ERR_NO_ENOUGH_INIT_DEPOSIT: &str =
 // owner
 pub const ERR_NOT_OWNER: &str = "Only owner can perform this action";
 
+// manager
+pub const ERR_NOT_MANAGER: &str = "Only manager can perform this action";
+
 // account
 pub const ERR_NO_ACCOUNT: &str = "Account not found";
 pub const ERR_UNREGISTER_POSITIVE_UNSTAKED: &str = "Cannot delete the account because the unstaked amount is not empty. Withdraw your balance first.";

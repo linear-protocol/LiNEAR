@@ -209,7 +209,7 @@ fn min3(x: u128, y: u128, z: u128) -> u128 {
 #[near_bindgen]
 impl LiquidStakingContract {
     pub fn add_validator(&mut self, validator_id: AccountId, weight: u16) -> Validator {
-        self.assert_owner();
+        self.assert_manager();
         self.validator_pool.add_validator(&validator_id, weight)
     }
 
@@ -218,7 +218,7 @@ impl LiquidStakingContract {
         validator_ids: Vec<AccountId>,
         weights: Vec<u16>,
     ) -> Vec<Validator> {
-        self.assert_owner();
+        self.assert_manager();
         require!(validator_ids.len() == weights.len(), ERR_BAD_VALIDATOR_LIST);
         let mut results: Vec<Validator> = vec![];
         for i in 0..validator_ids.len() {
@@ -232,12 +232,12 @@ impl LiquidStakingContract {
     }
 
     pub fn remove_validator(&mut self, validator_id: AccountId) -> Validator {
-        self.assert_owner();
+        self.assert_manager();
         self.validator_pool.remove_validator(&validator_id)
     }
 
     pub fn update_weight(&mut self, validator_id: AccountId, weight: u16) {
-        self.assert_owner();
+        self.assert_manager();
         self.validator_pool.update_weight(&validator_id, weight);
     }
 
@@ -247,7 +247,6 @@ impl LiquidStakingContract {
     }
 
     pub fn get_validator(&self, validator_id: AccountId) -> ValidatorInfo {
-        self.assert_owner();
         self.validator_pool
             .get_validator(&validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST)
@@ -255,7 +254,6 @@ impl LiquidStakingContract {
     }
 
     pub fn get_validators(&self, offset: u64, limit: u64) -> Vec<ValidatorInfo> {
-        self.assert_owner();
         self.validator_pool
             .get_validators(offset, limit)
             .iter()

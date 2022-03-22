@@ -198,7 +198,7 @@ impl LiquidStakingContract {
     }
 
     /// When there are rewards, a part of them will be
-    /// given to operator/treasury by minting new LiNEAR tokens.
+    /// given to executor, manager or treasury by minting new LiNEAR tokens.
     pub(crate) fn internal_distribute_staking_rewards(&mut self, rewards: Balance) {
         let hashmap: HashMap<AccountId, Fraction> = self.internal_get_beneficiaries();
         for (account_id, fraction) in hashmap.iter() {
@@ -311,5 +311,27 @@ impl LiquidStakingContract {
         } else {
             self.accounts.remove(account_id);
         }
+    }
+}
+
+// -- manager related methods
+impl LiquidStakingContract {
+    pub(crate) fn internal_add_manager(&mut self, manager_id: &AccountId) {
+        self.managers.insert(manager_id);
+    }
+
+    pub(crate) fn internal_remove_manager(&mut self, manager_id: &AccountId) -> bool {
+        self.managers.remove(manager_id)
+    }
+
+    pub(crate) fn internal_get_managers(&self) -> Vec<AccountId> {
+        self.managers.to_vec()
+    }
+
+    pub(crate) fn assert_manager(&self) {
+        require!(
+            self.managers.contains(&env::predecessor_account_id()),
+            ERR_NOT_MANAGER
+        );
     }
 }

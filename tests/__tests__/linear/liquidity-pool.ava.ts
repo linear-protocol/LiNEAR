@@ -142,7 +142,7 @@ const removeLiquidity = async (test, {contract, user, amount, loss = "1"}) => {
     test,
     balance.add(receivedAmount).sub(result.metrics.tokensBurnt),
     await getBalance(user),
-    0.02
+    0.025
   );
 }
 

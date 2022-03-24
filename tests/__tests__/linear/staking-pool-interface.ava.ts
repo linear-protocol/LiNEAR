@@ -1,7 +1,6 @@
 import { NEAR } from 'near-workspaces-ava';
-import { initWorkSpace, assertFailure } from './helper';
+import { initWorkSpace, assertFailure, epochHeightFastforward } from './helper';
 
-const NUM_EPOCHS_TO_UNLOCK = 4;
 const ERR_UNSTAKED_BALANCE_NOT_AVAILABLE = 'The unstaked balance is not yet available due to unstaking delay';
 
 const workspace = initWorkSpace();
@@ -128,17 +127,6 @@ workspace.test('unstake', async (test, { contract, alice }) => {
 });
 
 workspace.test('unstake and withdraw', async (test, { contract, alice }) => {
-  let epoch = 10;
-  const epochHeightFastforward = async (numEpoches = NUM_EPOCHS_TO_UNLOCK) => {
-    // increase epoch height
-    epoch += numEpoches;
-    await alice.call(
-      contract,
-      'set_epoch_height',
-      { epoch }
-    );
-  }
-
   // deposit
   const deposit = NEAR.parse('10');
   await alice.call(
@@ -193,7 +181,7 @@ workspace.test('unstake and withdraw', async (test, { contract, alice }) => {
   );
 
   // wait 4 epoches
-  await epochHeightFastforward();
+  await epochHeightFastforward(contract, alice);
 
   // withdraw all after 4 epoches
   await alice.call(
@@ -228,7 +216,7 @@ workspace.test('unstake and withdraw', async (test, { contract, alice }) => {
   );
 
   // wait 4 epoches
-  await epochHeightFastforward();
+  await epochHeightFastforward(contract, alice);
 
   // withdraw all after 4 epoches
   const withdrawAmount = NEAR.parse('1');

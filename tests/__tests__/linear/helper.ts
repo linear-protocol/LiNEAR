@@ -1,6 +1,7 @@
 import { Workspace, NEAR, NearAccount, BN } from "near-workspaces-ava";
 
 export const ONE_YOCTO = '1';
+export const NUM_EPOCHS_TO_UNLOCK = 4;
 
 interface RewardFee {
   numerator: number,
@@ -145,4 +146,16 @@ export async function registerFungibleTokenUser(
 export function parseNEAR(a: number): NEAR {
   const yoctoString = a.toLocaleString('fullwide', { useGrouping: false });
   return NEAR.from(yoctoString);
+}
+
+export const epochHeightFastforward = async (contract, user, numEpoches = NUM_EPOCHS_TO_UNLOCK) => {
+  // read current epoch
+  let epoch: number = await contract.view('read_epoch_height', {});
+  // increase epoch height
+  epoch += numEpoches;
+  await user.call(
+    contract,
+    'set_epoch_height',
+    { epoch }
+  );
 }

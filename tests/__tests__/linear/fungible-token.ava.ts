@@ -1,12 +1,16 @@
-import { Workspace, NEAR, NearAccount } from 'near-workspaces-ava';
+import { Workspace, NEAR, NearAccount, BN } from 'near-workspaces-ava';
 import {
   initWorkSpace,
   assertFailure,
   registerFungibleTokenUser,
-  ONE_YOCTO
+  ONE_YOCTO,
+  epochHeightFastforward
 } from './helper';
 
 const ERR_NO_ENOUGH_BALANCE = 'The account doesn\'t have enough balance';
+const ERR_UNREGISTER_POSITIVE_UNSTAKED =
+  "Cannot delete the account because the unstaked amount is not empty. Withdraw your balance first.";
+const ERR_UNREGISTER_WITH_BALANCE = "Can\'t unregister the account with the positive balance without force";
 
 async function transfer(
   contract: NearAccount,
@@ -128,5 +132,123 @@ workspace.test('register LiNEAR with 0.00125Ⓝ storage balance', async (test, {
   test.is(
     await contract.view('ft_balance_of', { account_id: bob }),
     transferAmount1.toString()
+  );
+});
+
+workspace.test('storage unregister', async (test, {contract, alice, bob}) => {
+  await registerFungibleTokenUser(contract, alice);
+  await registerFungibleTokenUser(contract, bob);
+
+  test.is(
+    (await contract.view('storage_balance_of', { account_id: alice }) as any).total,
+    NEAR.parse("0.00125").toString()
+  );
+
+  // Unregister Alice
+  await alice.call(
+    contract,
+    'storage_unregister',
+    {},
+    { attachedDeposit: ONE_YOCTO }
+  );
+  test.is(
+    await contract.view('storage_balance_of', { account_id: alice }),
+    null
+  );
+
+  // Alice deposit and stake 10 NEAR
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    { attachedDeposit: NEAR.parse('10') },
+  );
+
+  // Force unregister Alice successfully.
+  // The $LiNEAR owned by Alice are all burnt. Now $LiNEAR price increased to 2 $NEAER.
+  await alice.call(
+    contract,
+    'storage_unregister',
+    { force: true },
+    { attachedDeposit: ONE_YOCTO }
+  );
+  test.is(
+    await contract.view('storage_balance_of', { account_id: alice }),
+    null
+  );
+  test.is(
+    await contract.view('ft_balance_of', { account_id: alice }),
+    '0',
+  );
+
+  // Alice deposit and stake 10 NEAR
+  const stakeAmount = NEAR.parse('10');
+  const ft_price = NEAR.from((await contract.view('ft_price', {}))).div(NEAR.parse('1'));
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    { attachedDeposit: stakeAmount },
+  );
+  test.is(
+    await contract.view('ft_balance_of', { account_id: alice }),
+    stakeAmount.div(ft_price).toString(),   // 5 $LiNEAR
+  );
+
+  // transfer 1 LiNEAR from alice to bob
+  await transfer(contract, alice, bob, NEAR.parse('1'));
+
+  // Alice unstakes 2 NEAR
+  await alice.call(
+    contract,
+    'unstake',
+    { amount: NEAR.parse('2') },
+  );
+
+  // Unregister Alice when unstaked is non-zero, should fail
+  await assertFailure(
+    test,
+    alice.call(
+      contract,
+      'storage_unregister',
+      { force: true },
+      { attachedDeposit: ONE_YOCTO }
+    ),
+    ERR_UNREGISTER_POSITIVE_UNSTAKED
+  );
+
+  // 4 epoches later, Alice withdraws 2 NEAR
+  await epochHeightFastforward(contract, alice);
+  await alice.call(
+    contract,
+    'withdraw',
+    { amount: NEAR.parse('2') },
+  );
+
+  // non-force unregister when Alice has some LiNEAR, should fail
+  await assertFailure(
+    test,
+    alice.call(
+      contract,
+      'storage_unregister',
+      {},
+      { attachedDeposit: ONE_YOCTO }
+    ),
+    ERR_UNREGISTER_WITH_BALANCE
+  );
+
+  // transfer 3 LiNEAR from alice to bob
+  await transfer(contract, alice, bob, NEAR.parse('3'));
+
+  // Now Alice could unregister successfully
+  await alice.call(
+    contract,
+    'storage_unregister',
+    {},
+    { attachedDeposit: ONE_YOCTO }
+  );
+  test.is(
+    await contract.view('storage_balance_of', { account_id: alice }),
+    null
   );
 });

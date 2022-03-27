@@ -100,7 +100,8 @@ export async function callWithMetrics(
 export async function numbersEqual(test: any, a: NEAR, b: NEAR, diff = 0.000001) {
   test.is(
     a.sub(b).abs().lt(NEAR.parse(diff.toString())),
-    true
+    true,
+    `The actual value ${a.toString()} doesn't match with expected value ${b.toString()}`
   )
 }
 

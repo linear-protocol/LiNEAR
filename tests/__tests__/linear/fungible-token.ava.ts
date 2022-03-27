@@ -1,9 +1,10 @@
-import { Workspace, NEAR, NearAccount } from 'near-workspaces-ava';
+import { Workspace, NEAR, NearAccount, Gas } from 'near-workspaces-ava';
 import {
   initWorkSpace,
   assertFailure,
   registerFungibleTokenUser,
-  ONE_YOCTO
+  ONE_YOCTO,
+  deployDex,
 } from './helper';
 
 const ERR_NO_ENOUGH_BALANCE = 'The account doesn\'t have enough balance';
@@ -19,9 +20,33 @@ async function transfer(
     'ft_transfer',
     {
       receiver_id: receiver,
-      amount:   amount.toString()
+      amount,
     },
     {
+      attachedDeposit: ONE_YOCTO
+    }
+  );
+}
+
+async function transferCall(
+  contract: NearAccount,
+  sender: NearAccount,
+  receiver: NearAccount,
+  amount: NEAR,
+  msg: String,
+  memo?: String,
+) {
+  await sender.call(
+    contract,
+    'ft_transfer_call',
+    {
+      receiver_id: receiver,
+      amount,
+      memo,
+      msg,
+    },
+    {
+      gas: Gas.parse('75 Tgas'),
       attachedDeposit: ONE_YOCTO
     }
   );
@@ -128,5 +153,45 @@ workspace.test('register LiNEAR with 0.00125Ⓝ storage balance', async (test, {
   test.is(
     await contract.view('ft_balance_of', { account_id: bob }),
     transferAmount1.toString()
+  );
+});
+
+workspace.test('ft_transfer_call LiNEAR', async (test, { root, contract, alice }) => {
+  // Deploy the decentralized exchange
+  const dex = await deployDex(root);
+  await registerFungibleTokenUser(contract, alice, NEAR.parse("0.00125"));
+  await registerFungibleTokenUser(contract, dex, NEAR.parse("0.00125"));
+
+  // deposit and stake 10 NEAR
+  const stakeAmount = NEAR.parse('10');
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    { attachedDeposit: stakeAmount },
+  );
+
+  // ft_transfer_call() with `ft_on_trasfer()` passed
+  const transferAmount1 = NEAR.parse('1');
+  await transferCall(contract, alice, dex, transferAmount1, 'pass', 'keep my money');
+  test.is(
+    await contract.view('ft_balance_of', { account_id: alice }),
+    stakeAmount.sub(transferAmount1).toString()
+  );
+
+  // ft_transfer_call() with `ft_on_trasfer()` failed, all assets refunded
+  const transferAmount2 = NEAR.parse('2');
+  await transferCall(contract, alice, dex, transferAmount2, 'fail', 'pay me 1B $NEAR');
+  test.is(
+    await contract.view('ft_balance_of', { account_id: alice }),
+    stakeAmount.sub(transferAmount1).toString()
+  );
+
+  // ft_transfer_call() with `ft_on_trasfer()` refunded, all assets refunded
+  const transferAmount3 = NEAR.parse('3');
+  await transferCall(contract, alice, dex, transferAmount3, 'refund', 'refund all my assets');
+  test.is(
+    await contract.view('ft_balance_of', { account_id: alice }),
+    stakeAmount.sub(transferAmount1).toString()
   );
 });

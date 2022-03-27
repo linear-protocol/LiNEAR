@@ -147,3 +147,12 @@ export function parseNEAR(a: number): NEAR {
   const yoctoString = a.toLocaleString('fullwide', { useGrouping: false });
   return NEAR.from(yoctoString);
 }
+
+
+export async function deployDex (root: NearAccount) {
+  const contract = await root.createAndDeploy(
+    'dex',
+    'compiled-contracts/mock_dex.wasm',
+  );
+  return contract;
+}

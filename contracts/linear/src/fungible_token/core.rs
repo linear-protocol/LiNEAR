@@ -9,7 +9,7 @@ use near_sdk::{
 
 // allocate enough gas for ft_resolve_transfer() to avoid unexpected failure
 const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(12 * TGAS);
-const GAS_FOR_FT_TRANSFER_CALL: Gas = Gas(25 * TGAS + GAS_FOR_RESOLVE_TRANSFER.0);
+const GAS_FOR_FT_TRANSFER_CALL: Gas = Gas(35 * TGAS + GAS_FOR_RESOLVE_TRANSFER.0);
 
 #[ext_contract(ext_fungible_token_receiver)]
 pub trait FungibleTokenReceiver {

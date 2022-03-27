@@ -47,6 +47,13 @@ export async function deployLinear(
   )
 }
 
+function parseError(e: any): string {
+  let status: any = e && e.parse
+  ? e.parse().result.status
+  : JSON.parse(e.message);
+  return status.Failure.ActionError.kind.FunctionCallError.ExecutionError;
+}
+
 export async function assertFailure(
   test: any,
   action: Promise<unknown>,
@@ -58,7 +65,7 @@ export async function assertFailure(
     await action;
   } catch (e) {
     if (errorMessage) {
-      let msg: string = e.kind.ExecutionError;
+      let msg: string = parseError(e);
       test.truthy(
         msg.includes(errorMessage),
         `Bad error message. expect: "${errorMessage}", actual: "${msg}"`

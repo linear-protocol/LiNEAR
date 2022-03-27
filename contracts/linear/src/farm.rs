@@ -122,8 +122,9 @@ impl LiquidStakingContract {
             return Some(distribution);
         }
         distribution.reward_round = (env::block_timestamp() - farm.start_date) / SESSION_INTERVAL;
-        let reward_per_session =
-            farm.amount / (farm.end_date - farm.start_date) as u128 * SESSION_INTERVAL as u128;
+        let reward_per_session = (U256::from(farm.amount) * U256::from(SESSION_INTERVAL)
+            / U256::from(farm.end_date - farm.start_date))
+        .as_u128();
         let mut reward_added = (distribution.reward_round - farm.last_distribution.reward_round)
             as u128
             * reward_per_session;

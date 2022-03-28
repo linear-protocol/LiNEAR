@@ -1,10 +1,10 @@
-import { Workspace, NEAR, NearAccount, BN, Gas } from 'near-workspaces-ava';
+import { NEAR, NearAccount, BN, Gas } from 'near-workspaces-ava';
 import {
   initWorkSpace,
   assertFailure,
   registerFungibleTokenUser,
   ONE_YOCTO,
-  epochHeightFastforward
+  epochHeightFastforward,
   deployDex,
 } from './helper';
 

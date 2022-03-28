@@ -48,6 +48,13 @@ export async function deployLinear(
   )
 }
 
+function parseError(e: any): string {
+  let status: any = e && e.parse
+  ? e.parse().result.status
+  : JSON.parse(e.message);
+  return status.Failure.ActionError.kind.FunctionCallError.ExecutionError;
+}
+
 export async function assertFailure(
   test: any,
   action: Promise<unknown>,
@@ -59,7 +66,7 @@ export async function assertFailure(
     await action;
   } catch (e) {
     if (errorMessage) {
-      let msg: string = e.kind.ExecutionError;
+      let msg: string = parseError(e);
       test.truthy(
         msg.includes(errorMessage),
         `Bad error message. expect: "${errorMessage}", actual: "${msg}"`
@@ -101,7 +108,8 @@ export async function callWithMetrics(
 export async function numbersEqual(test: any, a: NEAR, b: NEAR, diff = 0.000001) {
   test.is(
     a.sub(b).abs().lt(NEAR.parse(diff.toString())),
-    true
+    true,
+    `The actual value ${a.toString()} doesn't match with expected value ${b.toString()}`
   )
 }
 
@@ -148,7 +156,7 @@ export function parseNEAR(a: number): NEAR {
   return NEAR.from(yoctoString);
 }
 
-export const epochHeightFastforward = async (contract, user, numEpoches = NUM_EPOCHS_TO_UNLOCK) => {
+export async function epochHeightFastforward(contract, user, numEpoches = NUM_EPOCHS_TO_UNLOCK) {
   // read current epoch
   let epoch: number = await contract.view('read_epoch_height', {});
   // increase epoch height
@@ -158,4 +166,12 @@ export const epochHeightFastforward = async (contract, user, numEpoches = NUM_EP
     'set_epoch_height',
     { epoch }
   );
+}
+
+export async function deployDex (root: NearAccount) {
+  const contract = await root.createAndDeploy(
+    'dex',
+    'compiled-contracts/mock_dex.wasm',
+  );
+  return contract;
 }

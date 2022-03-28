@@ -48,7 +48,10 @@ export async function deployLinear(
 }
 
 function parseError(e: any): string {
-  return e?.kind?.ExecutionError || '';
+  let status: any = e && e.parse
+  ? e.parse().result.status
+  : JSON.parse(e.message);
+  return status.Failure.ActionError.kind.FunctionCallError.ExecutionError;
 }
 
 export async function assertFailure(

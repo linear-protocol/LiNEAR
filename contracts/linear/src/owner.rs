@@ -21,6 +21,23 @@ impl LiquidStakingContract {
     pub fn set_beneficiary(&mut self, account_id: AccountId, fraction: Fraction) {
         self.assert_owner();
         fraction.assert_valid();
+
+        let fraction_sum = self.beneficiaries.values().map(|f| {
+            f.as_f32()
+        }).reduce(|sum, v| {
+            sum + v
+        });
+        let fraction_sum = fraction_sum.unwrap_or_default();
+
+        let old_value = self.beneficiaries.get(&account_id)
+            .map(|f| {f.as_f32()})
+            .unwrap_or_default();
+
+        require!(
+            fraction_sum - old_value + fraction.as_f32() <= 1.0,
+            ERR_FRACTION_SUM_ONE
+        );
+
         self.beneficiaries.insert(&account_id, &fraction);
     }
 

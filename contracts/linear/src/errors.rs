@@ -18,6 +18,7 @@ pub const ERR_UNREGISTER_POSITIVE_UNSTAKED: &str = "Cannot delete the account be
 // fraction
 pub const ERR_FRACTION_BAD_DENOMINATOR: &str = "Denominator cannot be zero";
 pub const ERR_FRACTION_BAD_NUMERATOR: &str = "Numerator must <= denominator";
+pub const ERR_FRACTION_SUM_ONE: &str = "Fractions sum should be less than 1";
 
 // stake
 pub const ERR_NON_POSITIVE_STAKING_AMOUNT: &str = "Staking amount should be positive";

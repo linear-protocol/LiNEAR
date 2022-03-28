@@ -32,6 +32,36 @@ workspace.test('non-owner call beneficiaries', async (test, { contract, alice })
   );
 });
 
+workspace.test('beneficiaries sum > 1', async (test, { contract, owner }) => {
+  await owner.call(
+    contract,
+    'set_beneficiary',
+    {
+      account_id: 'foo',
+      fraction: {
+        numerator: 5,
+        denominator: 10
+      }
+    }
+  );
+
+  await assertFailure(
+    test,
+    owner.call(
+      contract,
+      'set_beneficiary',
+      {
+        account_id: 'bar',
+        fraction: {
+          numerator: 6,
+          denominator: 10
+        }
+      }
+    ),
+    'Fractions sum should be less than 1'
+  );
+});
+
 workspace.test('set beneficiaries', async (test, { contract, owner }) => {
   const initValues: object = await owner.call(
     contract,

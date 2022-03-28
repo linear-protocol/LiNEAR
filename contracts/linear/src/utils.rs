@@ -29,6 +29,10 @@ impl Fraction {
     pub fn multiply(&self, value: u128) -> u128 {
         (U256::from(self.numerator) * U256::from(value) / U256::from(self.denominator)).as_u128()
     }
+
+    pub fn as_f32(&self) -> f32 {
+        self.numerator as f32 / self.denominator as f32
+    }
 }
 
 #[cfg(not(feature = "test"))]

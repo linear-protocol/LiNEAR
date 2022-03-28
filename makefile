@@ -26,6 +26,12 @@ mock-fungible-token: contracts/mock-fungible-token
 	mkdir -p res
 	cp target/wasm32-unknown-unknown/release/mock_fungible_token.wasm ./res/mock_fungible_token.wasm
 
+mock-dex: contracts/mock-dex
+	rustup target add wasm32-unknown-unknown
+	RUSTFLAGS=$(RFLAGS) cargo build -p mock-dex --target wasm32-unknown-unknown --release
+	mkdir -p res
+	cp target/wasm32-unknown-unknown/release/mock_dex.wasm ./res/mock_dex.wasm
+
 clean:
 	rm res/*.wasm
 
@@ -36,11 +42,12 @@ test-unit:
 
 TEST_FILE ?= **
 LOGS ?=
-test-linear: linear_test mock-staking-pool mock-fungible-token
+test-linear: linear_test mock-staking-pool mock-fungible-token mock-dex
 	@mkdir -p ./tests/compiled-contracts/
 	cp ./res/linear_test.wasm ./tests/compiled-contracts/linear.wasm
 	cp ./res/mock_staking_pool.wasm ./tests/compiled-contracts/mock_staking_pool.wasm
 	cp ./res/mock_fungible_token.wasm ./tests/compiled-contracts/mock_fungible_token.wasm
+	cp ./res/mock_dex.wasm ./tests/compiled-contracts/mock_dex.wasm
 	cd tests && NEAR_PRINT_LOGS=$(LOGS) npx near-workspaces-ava --timeout=2m __tests__/linear/$(TEST_FILE).ava.ts --verbose
 
 test-mock-staking-pool: mock-staking-pool

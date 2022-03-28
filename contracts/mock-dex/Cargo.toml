@@ -1,5 +1,5 @@
 [package]
-name = "mock-fungible-token"
+name = "mock-dex"
 version = "0.0.1"
 authors = ["linguists", "dongcool"]
 edition = "2018"

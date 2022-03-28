@@ -8,8 +8,8 @@ use near_sdk::{
 };
 
 // allocate enough gas for ft_resolve_transfer() to avoid unexpected failure
-const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(12_000_000_000_000);
-const GAS_FOR_FT_TRANSFER_CALL: Gas = Gas(25_000_000_000_000 + GAS_FOR_RESOLVE_TRANSFER.0);
+const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(12 * TGAS);
+const GAS_FOR_FT_TRANSFER_CALL: Gas = Gas(35 * TGAS + GAS_FOR_RESOLVE_TRANSFER.0);
 
 #[ext_contract(ext_fungible_token_receiver)]
 pub trait FungibleTokenReceiver {
@@ -50,6 +50,11 @@ impl FungibleTokenCore for LiquidStakingContract {
         msg: String,
     ) -> PromiseOrValue<U128> {
         assert_one_yocto();
+        // Ensure minimum required gas is attached
+        require!(
+            env::prepaid_gas() > GAS_FOR_FT_TRANSFER_CALL,
+            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, GAS_FOR_FT_TRANSFER_CALL)
+        );
         let sender_id = env::predecessor_account_id();
         let amount = amount.into();
         self.internal_ft_transfer(&sender_id, &receiver_id, amount, memo);
@@ -85,6 +90,7 @@ impl FungibleTokenCore for LiquidStakingContract {
 
 #[near_bindgen]
 impl FungibleTokenResolver for LiquidStakingContract {
+    #[private]
     fn ft_resolve_transfer(
         &mut self,
         sender_id: AccountId,

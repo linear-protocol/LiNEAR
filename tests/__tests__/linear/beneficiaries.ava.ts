@@ -62,6 +62,38 @@ workspace.test('beneficiaries sum > 1', async (test, { contract, owner }) => {
   );
 });
 
+workspace.test('too many beneficiaries', async (test, { contract, owner }) => {
+  for (let i = 0; i < 10; i++) {
+    await owner.call(
+      contract,
+      'set_beneficiary',
+      {
+        account_id: `b${i}`,
+        fraction: {
+          numerator: 1,
+          denominator: 20
+        }
+      }
+    );
+  }
+
+  await assertFailure(
+    test,
+    owner.call(
+      contract,
+      'set_beneficiary',
+      {
+        account_id: 'bar',
+        fraction: {
+          numerator: 1,
+          denominator: 20
+        }
+      }
+    ),
+    'Too many beneficiaries'
+  );
+});
+
 workspace.test('set beneficiaries', async (test, { contract, owner }) => {
   const initValues: object = await owner.call(
     contract,

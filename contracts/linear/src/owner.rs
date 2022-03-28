@@ -1,6 +1,8 @@
 use crate::*;
 use near_sdk::near_bindgen;
 
+const MAX_BENEFICIARIES: u64 = 10;
+
 #[near_bindgen]
 impl LiquidStakingContract {
     pub fn set_owner(&mut self, new_owner_id: AccountId) {
@@ -21,6 +23,11 @@ impl LiquidStakingContract {
     pub fn set_beneficiary(&mut self, account_id: AccountId, fraction: Fraction) {
         self.assert_owner();
         fraction.assert_valid();
+
+        if self.beneficiaries.len() == MAX_BENEFICIARIES &&
+            self.beneficiaries.get(&account_id).is_none() {
+            env::panic_str(ERR_TOO_MANY_BENEFICIARIES);
+        }
 
         let fraction_sum = self.beneficiaries.values().map(|f| {
             f.as_f32()

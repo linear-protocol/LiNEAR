@@ -104,7 +104,8 @@ impl LiquidStakingContract {
 
     /// Should only be called by this contract on migration.
     /// This is NOOP implementation. KEEP IT if you haven't changed contract state.
-    /// If you have changed state, you need to implement migration from old state (keep the old struct with different name to deserialize it first).
+    /// If you have changed state, you need to implement migration from old state (keep the old
+    /// struct with different name to deserialize it first).
     /// After migration goes live, revert back to this implementation for next updates.
     #[init(ignore_state)]
     #[private]
@@ -121,8 +122,11 @@ mod upgrade {
 
     use super::*;
 
-    /// Gas for calling migration call.
-    pub const GAS_FOR_MIGRATE_CALL: Gas = Gas(5_000_000_000_000);
+    /// Gas for completing the upgrade call
+    pub const GAS_FOR_COMPLETING_UPGRADE_CALL: Gas = Gas(10 * TGAS);
+    /// Minimum gas for calling state migration call. Please notice the gas cost will be higher
+    /// if the number of accounts and validator pools grows.
+    pub const MIN_GAS_FOR_MIGRATE_CALL: Gas = Gas(10 * TGAS);
 
     /// Self upgrade and call migrate, optimizes gas by not loading into memory the code.
     /// Takes as input non serialized set of bytes of the code.
@@ -143,7 +147,12 @@ mod upgrade {
             // 1st action in the Tx: "deploy contract" (code is taken from register 0)
             sys::promise_batch_action_deploy_contract(promise_id, u64::MAX as _, 0);
             // 2nd action in the Tx: call this_contract.migrate() with remaining gas
-            let attached_gas = env::prepaid_gas() - env::used_gas() - GAS_FOR_MIGRATE_CALL;
+            let required_gas = env::used_gas() + GAS_FOR_COMPLETING_UPGRADE_CALL;
+            require!(
+                env::prepaid_gas() >= required_gas + MIN_GAS_FOR_MIGRATE_CALL,
+                ERR_NO_GAS_FOR_MIGRATION
+            );
+            let migrate_attached_gas = env::prepaid_gas() - required_gas;
             sys::promise_batch_action_function_call(
                 promise_id,
                 method_name.len() as _,
@@ -151,7 +160,7 @@ mod upgrade {
                 0 as _,
                 0 as _,
                 0 as _,
-                attached_gas.0,
+                migrate_attached_gas.0,
             );
         }
     }

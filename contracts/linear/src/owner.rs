@@ -41,7 +41,7 @@ impl LiquidStakingContract {
             .unwrap_or_default();
 
         require!(
-            fraction_sum - old_value + fraction.as_f32() <= 1.0,
+            fraction_sum - old_value + fraction.as_f32() < 1.0_f32,
             ERR_FRACTION_SUM_ONE
         );
 

@@ -39,8 +39,8 @@ impl LiquidStakingContract {
         // make sure the contract has enough NEAR for user to withdraw,
         // the balance of liquidity pool should be excluded.
         require!(
-            env::account_balance() - self.liquidity_pool.amounts[0] - amount
-                >= CONTRACT_MIN_RESERVE_BALANCE,
+            env::account_balance() - self.liquidity_pool.amounts[0] - CONTRACT_MIN_RESERVE_BALANCE 
+                >= amount,
             ERR_NO_ENOUGH_CONTRACT_BALANCE
         );
     }

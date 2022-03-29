@@ -181,6 +181,13 @@ impl LiquidStakingContract {
             .collect()
     }
 
+    // --- custom staking pool view methods ---
+
+    /// confirm if the user can perform withdraw now
+    pub fn withdraw_dryrun(&self, account_id: AccountId, amount: Balance) {
+        self.assert_can_withdraw(&account_id, amount);
+    }
+
     // --- Liquidity Pool view methods ---
 
     /// Return liquidity pool configuration

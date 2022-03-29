@@ -24,11 +24,10 @@ impl LiquidStakingContract {
         .emit();
     }
 
-    pub(crate) fn internal_withdraw(&mut self, amount: Balance) {
+    pub(crate) fn assert_can_withdraw(& self, account_id: &AccountId, amount: Balance) {
         require!(amount > 0, ERR_NON_POSITIVE_WITHDRAWAL_AMOUNT);
 
-        let account_id = env::predecessor_account_id();
-        let mut account = self.internal_get_account(&account_id);
+        let account = self.internal_get_account(&account_id);
         require!(
             account.unstaked >= amount,
             ERR_NO_ENOUGH_UNSTAKED_BALANCE_TO_WITHDRAW
@@ -37,6 +36,20 @@ impl LiquidStakingContract {
             account.unstaked_available_epoch_height <= get_epoch_height(),
             ERR_UNSTAKED_BALANCE_NOT_AVAILABLE
         );
+        // make sure the contract has enough NEAR for user to withdraw,
+        // the balance of liquidity pool should be excluded.
+        require!(
+            env::account_balance() - self.liquidity_pool.amounts[0] - amount
+                >= CONTRACT_MIN_RESERVE_BALANCE,
+            ERR_NO_ENOUGH_CONTRACT_BALANCE
+        );
+    }
+
+    pub(crate) fn internal_withdraw(&mut self, amount: Balance) {
+        let account_id = env::predecessor_account_id();
+        self.assert_can_withdraw(&account_id, amount);
+
+        let mut account = self.internal_get_account(&account_id);
         account.unstaked -= amount;
         self.internal_save_account(&account_id, &account);
 

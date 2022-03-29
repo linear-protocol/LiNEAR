@@ -20,6 +20,10 @@ pub const NUM_EPOCHS_TO_UNLOCK: EpochHeight = 4;
 /// Full basis points, i.e. 10,000
 pub const FULL_BASIS_POINTS: u32 = 10_000;
 
+/// min NEAR balance this contract should hold in order to cover
+/// storage and contract call fees.
+pub const CONTRACT_MIN_RESERVE_BALANCE: Balance = ONE_NEAR;
+
 /// Maximum number of active farms at one time.
 pub const MAX_NUM_ACTIVE_FARMS: usize = 10;
 

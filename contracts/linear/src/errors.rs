@@ -48,6 +48,7 @@ pub const ERR_NO_ENOUGH_UNSTAKED_BALANCE_TO_WITHDRAW: &str =
     "Not enough unstaked balance to withdraw";
 pub const ERR_UNSTAKED_BALANCE_NOT_AVAILABLE: &str =
     "The unstaked balance is not yet available due to unstaking delay";
+pub const ERR_INCONSISTANT_BALANCE: &str = "Contract balance less than liquidity pool balance";
 pub const ERR_NO_ENOUGH_CONTRACT_BALANCE: &str = "No enough balance in contract to perform withdraw";
 
 // validator

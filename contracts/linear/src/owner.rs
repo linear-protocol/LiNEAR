@@ -150,7 +150,7 @@ mod upgrade {
             let required_gas = env::used_gas() + GAS_FOR_COMPLETING_UPGRADE_CALL;
             require!(
                 env::prepaid_gas() >= required_gas + MIN_GAS_FOR_MIGRATE_CALL,
-                ERR_NO_GAS_FOR_MIGRATION
+                "Not enough gas to complete contract state migration"
             );
             let migrate_attached_gas = env::prepaid_gas() - required_gas;
             sys::promise_batch_action_function_call(

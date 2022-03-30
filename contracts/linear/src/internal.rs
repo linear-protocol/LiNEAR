@@ -38,8 +38,7 @@ impl LiquidStakingContract {
         );
         // make sure the contract has enough NEAR for user to withdraw,
         // the balance of liquidity pool should be excluded.
-        let available_balance = (env::account_balance() 
-            + env::account_locked_balance())
+        let available_balance = env::account_balance()
             .checked_sub(self.liquidity_pool.amounts[0])
             .expect(ERR_INCONSISTANT_BALANCE);
 

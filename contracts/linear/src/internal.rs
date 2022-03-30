@@ -36,8 +36,9 @@ impl LiquidStakingContract {
             account.unstaked_available_epoch_height <= get_epoch_height(),
             ERR_UNSTAKED_BALANCE_NOT_AVAILABLE
         );
-        // make sure the contract has enough NEAR for user to withdraw,
+        // Make sure the contract has enough NEAR for user to withdraw,
         // the balance of liquidity pool should be excluded.
+        // Note that account locked balance should not be included.
         let available_balance = env::account_balance()
             .checked_sub(self.liquidity_pool.amounts[0])
             .expect(ERR_INCONSISTANT_BALANCE);

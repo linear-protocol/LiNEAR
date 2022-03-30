@@ -196,9 +196,31 @@ impl ValidatorPool {
         total_staked_near_amount * (validator.weight as u128) / (self.total_weight as u128)
     }
 
-    pub fn get_num_epoch_to_unstake(&self, _amount: u128) -> EpochHeight {
-        // the num of epoches can be doubled or trippled if not enough stake is available
-        NUM_EPOCHS_TO_UNLOCK
+    pub fn get_num_epoch_to_unstake(&self, amount: u128) -> EpochHeight {
+        let mut available_amount: Balance = 0;
+        let mut total_staked_amount: Balance = 0;
+        for validator in self.validators.values() {
+            total_staked_amount += validator.staked_amount;
+
+            if !validator.pending_release() && validator.staked_amount > 0 {
+                available_amount += validator.staked_amount;
+            }
+
+            // found enough balance to unstake from available validators
+            if available_amount >= amount {
+                return NUM_EPOCHS_TO_UNLOCK;
+            }
+        }
+
+        // nothing is actually staked, all balance should be available now
+        // still leave a buffer for the user
+        if total_staked_amount == 0 {
+            return NUM_EPOCHS_TO_UNLOCK;
+        }
+
+        // no enough available validators to unstake
+        // double the unstake wating time
+        return 2 * NUM_EPOCHS_TO_UNLOCK;
     }
 }
 
@@ -315,6 +337,7 @@ impl Validator {
         self.staked_amount + self.unstaked_amount
     }
 
+    /// whether the validator is in unstake releasing period.
     pub fn pending_release(&self) -> bool {
         let current_epoch = get_epoch_height();
         current_epoch >= self.unstake_fired_epoch

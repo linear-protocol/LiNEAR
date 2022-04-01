@@ -39,6 +39,11 @@ pub const ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE: &str = "The total staked balanc
 pub const ERR_NON_POSITIVE_TOTAL_STAKE_SHARES: &str = "The total number of stake shares can't be 0";
 pub const ERR_CONTRACT_NO_STAKED_BALANCE: &str = "Invariant violation. The calculated number of \"stake\" shares for unstaking should be positive";
 
+// manual operations
+pub const ERR_NON_ZERO_WEIGHT: &str = "Validator weight must be zero for manual operation";
+pub const ERR_NON_ZERO_UNSTAKED_AMOUNT: &str = "Validator unstaked amount must be zero when manually unstake";
+pub const ERR_NON_ZERO_STAKED_AMOUNT: &str = "Validator staked amount must be zero when manually withdraw";
+
 // withdraw
 pub const ERR_NON_POSITIVE_WITHDRAWAL_AMOUNT: &str = "Withdrawal amount should be positive";
 pub const ERR_NO_ENOUGH_UNSTAKED_BALANCE_TO_WITHDRAW: &str =

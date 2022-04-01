@@ -51,6 +51,31 @@ pub enum Event<'a> {
         new_balance: &'a U128,
         rewards: &'a U128,
     },
+    // Manual Operations
+    ManuallyUnstakeAttempt {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    ManuallyUnstakeSuccess {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    ManuallyUnstakeFailed {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    ManuallyWithdrawAttempt {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    ManuallyWithdrawSuccess {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    ManuallyWithdrawFailed {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
     // Staking Pool Interface
     Deposit {
         account_id: &'a AccountId,
@@ -238,6 +263,96 @@ mod tests {
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_unstake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn manually_unstake_attempt() {
+        let validator_id = &alice();
+        let amount = &U128(100);
+        Event::ManuallyUnstakeAttempt {
+            validator_id,
+            amount,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"manually_unstake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn manually_unstake_success() {
+        let validator_id = &alice();
+        let amount = &U128(100);
+        Event::ManuallyUnstakeSuccess {
+            validator_id,
+            amount,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"manually_unstake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn manually_unstake_failed() {
+        let validator_id = &alice();
+        let amount = &U128(100);
+        Event::ManuallyUnstakeFailed {
+            validator_id,
+            amount,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"manually_unstake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn manually_withdraw_attempt() {
+        let validator_id = &alice();
+        let amount = &U128(100);
+        Event::ManuallyWithdrawAttempt {
+            validator_id,
+            amount,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"manually_withdraw_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn manually_withdraw_success() {
+        let validator_id = &alice();
+        let amount = &U128(100);
+        Event::ManuallyWithdrawSuccess {
+            validator_id,
+            amount,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"manually_withdraw_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn manually_withdraw_failed() {
+        let validator_id = &alice();
+        let amount = &U128(100);
+        Event::ManuallyWithdrawFailed {
+            validator_id,
+            amount,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"manually_withdraw_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 

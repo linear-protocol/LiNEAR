@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { init } = require('../near');
+const prompts = require('prompts');
 
 exports.command = 'set-node <address>';
 exports.desc = 'Sync validators to the contract';
@@ -68,6 +69,13 @@ exports.handler = async function (argv) {
   console.log('Nodes to remove:');
   console.log(nodesToRemove);
 
+  const res = await prompts({
+    type: 'confirm',
+    name: 'confirm',
+    message: 'Confirm update?'
+  });
+  if (!res.confirm) return;
+
   // Add
   // in case the list is too long, we cut it into chunks
   const chunks = chunkList(nodesToAdd, 10);
@@ -95,15 +103,17 @@ exports.handler = async function (argv) {
     console.log(`node ${node.id} weight updated to ${node.weight}`);
   }
 
+  // set weight to zero instead of remove it
   for (const node of nodesToRemove) {
     await signer.functionCall({
       contractId: address,
-      methodName: 'remove_validator',
+      methodName: 'update_weight',
       args: {
-        validator_id: node.id
+        validator_id: node.id,
+        weight: 0
       }
-    });
-    console.log(`node ${node.id} removed`);
+    }); 
+    console.log(`node ${node.id} weight set to 0`);
   }
 
   console.log('done.');

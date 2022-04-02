@@ -193,7 +193,11 @@ impl ValidatorPool {
         total_staked_near_amount: Balance,
         validator: &Validator,
     ) -> Balance {
-        total_staked_near_amount * (validator.weight as u128) / (self.total_weight as u128)
+        if validator.weight == 0 {
+            0
+        } else {
+            total_staked_near_amount * (validator.weight as u128) / (self.total_weight as u128)
+        }
     }
 
     pub fn get_num_epoch_to_unstake(&self, amount: u128) -> EpochHeight {

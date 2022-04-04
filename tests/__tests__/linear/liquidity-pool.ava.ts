@@ -65,7 +65,7 @@ const getPoolValue = async (contract) => {
 }
 
 const getPoolAccountValue = async (contract, account) => {
-  return NEAR.from((await contract.view('get_account', { account_id: account }) as any).liquidity_pool_share_value);
+  return NEAR.from((await contract.view('get_account_details', { account_id: account }) as any).liquidity_pool_share_value);
 }
 
 const stakeSharesValues = async (contract, stake_shares: NEAR) => {

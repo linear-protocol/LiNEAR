@@ -1,7 +1,32 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::collections::LookupMap;
 use near_sdk::json_types::U128;
-use near_sdk::{env, near_bindgen, require, AccountId, PanicOnDefault, Promise};
+use near_sdk::{
+    env, near_bindgen, require, AccountId, 
+    PanicOnDefault, Promise, EpochHeight,
+};
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct HumanReadableAccount {
+    pub account_id: AccountId,
+    /// The unstaked balance that can be withdrawn or staked.
+    pub unstaked_balance: U128,
+    /// The amount balance staked at the current "stake" share price.
+    pub staked_balance: U128,
+    /// The minimum epoch height when the withdrawn is allowed.
+    /// This changes after unstaking action, because the amount is still locked for 3 epochs.
+    pub unstaked_available_epoch_height: EpochHeight,
+    /// Whether the unstaked balance is available for withdrawal now.
+    pub can_withdraw: bool,
+    /// The liquidity pool share of the account
+    pub liquidity_pool_share: U128,
+    /// The value of the liquidity pool share in $NEAR
+    pub liquidity_pool_share_value: U128,
+    /// The liquidity pool share ratio of the total supply in basis points
+    pub liquidity_pool_share_ratio_in_basis_points: u32,
+}
 
 /// Staking pool interface
 trait StakingPool {

@@ -76,6 +76,12 @@ pub enum Event<'a> {
         validator_id: &'a AccountId,
         amount: &'a U128,
     },
+    // Sync validator balance
+    AccountBalanceSynced {
+        validator_id: &'a AccountId,
+        staked_balance: &'a U128,
+        unstaked_balance: &'a U128,
+    },
     // Staking Pool Interface
     Deposit {
         account_id: &'a AccountId,
@@ -416,6 +422,23 @@ mod tests {
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_update_rewards","data":[{"validator_id":"alice","old_balance":"100","new_balance":"120","rewards":"20"}]}"#
+        );
+    }
+
+    #[test]
+    fn account_balance_synced() {
+        let validator_id = &alice();
+        let staked_balance = &U128(300);
+        let unstaked_balance = &U128(200);
+        Event::AccountBalanceSynced {
+            validator_id,
+            staked_balance,
+            unstaked_balance
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"account_balance_synced","data":[{"validator_id":"alice","staked_balance":"300","unstaked_balance":"200"}]}"#
         );
     }
 

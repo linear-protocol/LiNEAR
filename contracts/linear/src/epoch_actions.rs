@@ -1,5 +1,5 @@
 use crate::*;
-use near_sdk::{is_promise_success, log, near_bindgen, Balance};
+use near_sdk::{log, near_bindgen, Balance, is_promise_success,};
 
 use crate::errors::*;
 use crate::events::Event;
@@ -205,6 +205,32 @@ impl LiquidStakingContract {
         }
     }
 
+    /// Due to shares calculation and rounding of staking pool contract,
+    /// the amount of staked and unstaked balance might be a little bit
+    /// different than we requested.
+    /// This method is to sync the actual numbers with the validator.
+    pub fn sync_account_balance(&mut self, validator_id: AccountId) {
+        let min_gas = GAS_SYNC_BALANCE + GAS_EXT_GET_ACCOUNT + GAS_CB_VALIDATOR_SYNC_BALANCE;
+        require!(
+            env::prepaid_gas() >= min_gas,
+            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+        );
+
+        let validator = self
+            .validator_pool
+            .get_validator(&validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        validator
+            .sync_account_balance()
+            .then(ext_self_action_cb::validator_get_account_callback(
+                validator.account_id,
+                env::current_account_id(),
+                NO_DEPOSIT,
+                GAS_CB_VALIDATOR_SYNC_BALANCE
+            ));
+    }
+
     /// This method is designed to drain a validator.
     /// The weight of target validator should be set to 0 before calling this.
     /// And a following call to manually_withdraw MUST be made after 4 epoches.
@@ -322,6 +348,8 @@ trait EpochActionCallbacks {
     fn validator_manually_unstaked_callback(&mut self, validator_id: AccountId, amount: Balance);
 
     fn validator_get_balance_callback(&mut self, validator_id: AccountId);
+
+    fn validator_get_account_callback(&mut self, validator_id: AccountId);
 
     fn validator_withdraw_callback(&mut self, validator_id: AccountId, amount: Balance);
 
@@ -445,6 +473,31 @@ impl LiquidStakingContract {
 
         self.total_staked_near_amount += rewards;
         self.internal_distribute_staking_rewards(rewards);
+    }
+
+    #[private]
+    pub fn validator_get_account_callback(
+        &mut self, 
+        validator_id: AccountId,
+        #[callback] account: HumanReadableAccount
+    ) {
+        let mut validator = self
+            .validator_pool
+            .get_validator(&validator_id)
+            .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
+
+        validator.on_sync_account_balance(
+            &mut self.validator_pool, 
+            account.staked_balance.0,
+            account.unstaked_balance.0
+        );
+
+        Event::AccountBalanceSynced {
+            validator_id: &validator_id,
+            staked_balance: &account.staked_balance,
+            unstaked_balance: &account.unstaked_balance
+        }
+        .emit();
     }
 
     #[private]

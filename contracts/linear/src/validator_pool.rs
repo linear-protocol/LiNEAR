@@ -22,6 +22,8 @@ pub trait ExtStakingPool {
 
     fn get_account_total_balance(&self, account_id: AccountId) -> U128;
 
+    fn get_account(&self, account_id: AccountId) -> HumanReadableAccount;
+
     fn deposit(&mut self);
 
     fn deposit_and_stake(&mut self);
@@ -409,6 +411,64 @@ impl Validator {
 
     pub fn on_new_total_balance(&mut self, pool: &mut ValidatorPool, new_total_balance: Balance) {
         self.staked_amount = new_total_balance - self.unstaked_amount;
+        pool.save_validator(self);
+    }
+
+    pub fn sync_account_balance(&self) -> Promise {
+        ext_staking_pool::get_account(
+            env::current_account_id(),
+            self.account_id.clone(),
+            NO_DEPOSIT,
+            GAS_EXT_GET_ACCOUNT,
+        )
+    }
+
+    pub fn on_sync_account_balance(
+        &mut self,
+        pool: &mut ValidatorPool,
+        staked_balance: Balance,
+        unstaked_balance: Balance 
+    ) {
+        // allow at most 1 yN diff in total balance
+        let new_total_balance = staked_balance + unstaked_balance;
+        require!(
+            new_total_balance >= self.total_balance().saturating_sub(1)
+                && new_total_balance <= self.total_balance().saturating_add(1),
+            format!(
+                "{}. new: {}, old: {}",
+                ERR_SYNC_BALANCE_BAD_TOTAL,
+                new_total_balance,
+                self.total_balance()
+            )
+        );
+
+        // allow at most 100 yN diff in staked/unstaked balance
+        let diff: Balance = 100;
+        require!(
+            staked_balance >= self.staked_amount.saturating_sub(diff)
+                && staked_balance <= self.staked_amount.saturating_add(diff),
+            format!(
+                "{}. new: {}, old: {}",
+                ERR_SYNC_BALANCE_BAD_STAKED,
+                staked_balance,
+                self.staked_amount
+            )
+        );
+        require!(
+            unstaked_balance >= self.unstaked_amount.saturating_sub(diff)
+                && unstaked_balance <= self.unstaked_amount.saturating_add(diff),
+            format!(
+                "{}. new: {}, old: {}",
+                ERR_SYNC_BALANCE_BAD_UNSTAKED,
+                unstaked_balance,
+                self.unstaked_amount
+            )
+        );
+
+        // update balance
+        self.staked_amount = staked_balance;
+        self.unstaked_amount = unstaked_balance;
+
         pool.save_validator(self);
     }
 

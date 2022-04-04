@@ -29,9 +29,25 @@ pub struct Account {
 }
 
 /// Represents an account structure readable by humans.
+/// This is from staking-pool contract.
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct HumanReadableAccount {
+    pub account_id: AccountId,
+    /// The unstaked balance that can be withdrawn or staked.
+    pub unstaked_balance: U128,
+    /// The amount balance staked at the current "stake" share price.
+    pub staked_balance: U128,
+    /// Whether the unstaked balance is available for withdrawal now.
+    pub can_withdraw: bool,
+}
+
+/// AccountInfo contains all values from HumanReadableAccount plus:
+/// 1. unstaked_available_epoch_height
+/// 2. LP data
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct AccountInfo {
     pub account_id: AccountId,
     /// The unstaked balance that can be withdrawn or staked.
     pub unstaked_balance: U128,

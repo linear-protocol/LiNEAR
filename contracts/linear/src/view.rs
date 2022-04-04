@@ -135,7 +135,10 @@ impl LiquidStakingContract {
         self.owner_id.clone()
     }
 
-    /// reward fee to display on wallet, not actually used
+    /// Returns the current reward fee as a fraction.
+    ///
+    /// TODO: this is the temporary rewards fee fraction that should be replaced by the actual
+    /// fee calculated based on the validator pool and beneficiaries
     pub fn get_reward_fee_fraction(&self) -> Fraction {
         Fraction {
             numerator: 1,

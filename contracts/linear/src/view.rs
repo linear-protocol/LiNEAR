@@ -135,6 +135,14 @@ impl LiquidStakingContract {
         self.owner_id.clone()
     }
 
+    /// reward fee to display on wallet, not actually used
+    pub fn get_reward_fee_fraction(&self) -> Fraction {
+        Fraction {
+            numerator: 1,
+            denominator: 100
+        }
+    }
+
     /// Returns the staking public key
     pub fn get_staking_key(&self) -> PublicKey {
         panic!("no need to specify public key for liquid staking pool");

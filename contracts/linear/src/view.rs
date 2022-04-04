@@ -100,6 +100,28 @@ impl LiquidStakingContract {
         }
     }
 
+    // Return account details including staking pool and liquidity pool
+    pub fn get_account_details(&self, account_id: AccountId) -> AccountDetailsView {
+        let account = self.internal_get_account(&account_id);
+        AccountDetailsView {
+            account_id: account_id.clone(),
+            unstaked_balance: account.unstaked.into(),
+            staked_balance: self
+                .staked_amount_from_num_shares_rounded_down(account.stake_shares)
+                .into(),
+            unstaked_available_epoch_height: account.unstaked_available_epoch_height,
+            can_withdraw: account.unstaked_available_epoch_height <= get_epoch_height(),
+            liquidity_pool_share: self.liquidity_pool.get_account_shares(&account_id).into(),
+            liquidity_pool_share_value: self
+                .liquidity_pool
+                .get_account_value(&account_id, &self.internal_get_context())
+                .into(),
+            liquidity_pool_share_ratio_in_basis_points: self
+                .liquidity_pool
+                .get_account_shares_ratio_in_basis_points(&account_id),
+        }
+    }
+
     // --- Staking Pool view methods ---
 
     /// Returns the unstaked balance of the given account.
@@ -171,29 +193,6 @@ impl LiquidStakingContract {
             .map(|index| self.get_account(keys.get(index).unwrap()))
             .collect()
     }
-
-    // --- custom staking pool view methods ---
-    pub fn get_account_details(&self, account_id: AccountId) -> AccountDetailsView {
-        let account = self.internal_get_account(&account_id);
-        AccountDetailsView {
-            account_id: account_id.clone(),
-            unstaked_balance: account.unstaked.into(),
-            staked_balance: self
-                .staked_amount_from_num_shares_rounded_down(account.stake_shares)
-                .into(),
-            unstaked_available_epoch_height: account.unstaked_available_epoch_height,
-            can_withdraw: account.unstaked_available_epoch_height <= get_epoch_height(),
-            liquidity_pool_share: self.liquidity_pool.get_account_shares(&account_id).into(),
-            liquidity_pool_share_value: self
-                .liquidity_pool
-                .get_account_value(&account_id, &self.internal_get_context())
-                .into(),
-            liquidity_pool_share_ratio_in_basis_points: self
-                .liquidity_pool
-                .get_account_shares_ratio_in_basis_points(&account_id),
-        }
-    }
-
 
     /// confirm if the user can perform withdraw now
     pub fn can_account_withdraw(&self, account_id: AccountId, amount: U128) {

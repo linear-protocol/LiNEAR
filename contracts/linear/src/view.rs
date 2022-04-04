@@ -173,9 +173,9 @@ impl LiquidStakingContract {
     }
 
     // --- custom staking pool view methods ---
-    pub fn get_account_info(&self, account_id: AccountId) -> AccountInfo {
+    pub fn get_account_details(&self, account_id: AccountId) -> AccountDetailsView {
         let account = self.internal_get_account(&account_id);
-        AccountInfo {
+        AccountDetailsView {
             account_id: account_id.clone(),
             unstaked_balance: account.unstaked.into(),
             staked_balance: self

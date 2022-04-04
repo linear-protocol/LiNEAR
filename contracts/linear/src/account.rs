@@ -43,8 +43,8 @@ pub struct HumanReadableAccount {
 }
 
 /// AccountDetailsView contains all fields from HumanReadableAccount plus:
-///     - `unstaked_available_epoch_height` for calculating account unstake waiting time
-///     - liquidity pool account data
+/// - `unstaked_available_epoch_height` for calculating account unstake waiting time
+/// - liquidity pool account data
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct AccountDetailsView {

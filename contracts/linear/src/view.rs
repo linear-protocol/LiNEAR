@@ -157,6 +157,17 @@ impl LiquidStakingContract {
         self.owner_id.clone()
     }
 
+    /// Returns the current reward fee as a fraction.
+    ///
+    /// TODO: this is the temporary rewards fee fraction that should be replaced by the actual
+    /// fee calculated based on the validator pool and beneficiaries
+    pub fn get_reward_fee_fraction(&self) -> Fraction {
+        Fraction {
+            numerator: 1,
+            denominator: 100
+        }
+    }
+
     /// Returns the staking public key
     pub fn get_staking_key(&self) -> PublicKey {
         panic!("no need to specify public key for liquid staking pool");

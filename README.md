@@ -26,6 +26,18 @@ In order to use it, run `npm i` first.
 - init contract:
   - `./bin/cli.js init linear.testnet --signer owner.testnet --owner_id owner.testnet`
 
+## Release new version
+- checkout the branch to release
+- make sure all tests pass:
+  - `make test`
+- update version in `contracts/linear/Cargo.toml`
+- git commit version update:
+  -  `git commit -m 'v1.0.1'`
+- make a tag:
+  - `git tag v1.0.1`
+- push branch and tag
+  - `git push origin main`
+  - `git push origin v1.0.1`
 
 ## Design
 

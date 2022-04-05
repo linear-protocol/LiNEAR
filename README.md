@@ -26,6 +26,18 @@ In order to use it, run `npm i` first.
 - init contract:
   - `./bin/cli.js init linear.testnet --signer owner.testnet --owner_id owner.testnet`
 
+## Release new version
+- checkout a release branch from main
+  - `git checkout -b release/v1.0.1`
+- make sure all tests pass:
+  - `make test`
+- update version in `contracts/linear/Cargo.toml`
+- git commit version update:
+  -  `git commit -m 'v1.0.1'`
+- push branch and tag
+  - `git push origin release/v1.0.1`
+- Create a PR from the release branch
+- Once the PR is merged, make a new release on github
 
 ## Design
 

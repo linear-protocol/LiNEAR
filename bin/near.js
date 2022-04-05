@@ -3,8 +3,7 @@ const nearAPI = require('near-api-js');
 const configs = {
   testnet: {
     networkId: "testnet",
-    // nodeUrl: "https://public-rpc.blockpi.io/http/near-testnet",
-    nodeUrl: process.env.NODE_URL_TESTNET || "https://hk.bsngate.com/api/969ae9025c789b565f20817be86b95653bcfa07adaf6d9add730c817456b0cc2/Near-Testnet/rpc",
+    nodeUrl: process.env.NODE_URL_TESTNET || "https://rpc.testnet.near.org",
     walletUrl: "https://wallet.testnet.near.org",
     helperUrl: "https://helper.testnet.near.org",
     explorerUrl: "https://explorer.testnet.near.org",

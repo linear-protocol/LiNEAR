@@ -133,7 +133,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice})
     }
   );
 
-  // 1. cannot manually unstake when weight > 0
+  // 1. cannot drain unstake when weight > 0
   await assertFailure(
     test,
     manager.call(
@@ -146,7 +146,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice})
         gas: Gas.parse('200 Tgas')
       }
     ),
-    'Validator weight must be zero for manual operation'
+    'Validator weight must be zero for drain operation'
   );
 
   // set weight to 0
@@ -186,7 +186,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice})
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
   await assertValidator(v1, '10', '50');
 
-  // -- 2. cannot manually unstake when pending release
+  // -- 2. cannot drain unstake when pending release
   await assertFailure(
     test,
     manager.call(
@@ -209,7 +209,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice})
     { epoch: 15 }
   );
 
-  // -- 3. cannot manually unstake when unstaked balance > 0
+  // -- 3. cannot drain unstake when unstaked balance > 0
   await assertFailure(
     test,
     manager.call(
@@ -222,11 +222,11 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice})
         gas: Gas.parse('200 Tgas')
       }
     ),
-    'Validator unstaked amount must be zero when manually unstake'
+    'Validator unstaked amount must be zero when drain unstake'
   );
 });
 
-workspace.test('manually unstake and withdraw', async (test, {contract, root, owner, alice}) => {
+workspace.test('drain unstake and withdraw', async (test, {contract, root, owner, alice}) => {
   const manager = alice;
   await setManager(owner, contract, manager);
 

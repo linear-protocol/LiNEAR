@@ -44,10 +44,10 @@ pub const ERR_SYNC_BALANCE_BAD_TOTAL: &str = "Diff between new total balance and
 pub const ERR_SYNC_BALANCE_BAD_STAKED: &str = "Diff between new staked balance and old balance too large";
 pub const ERR_SYNC_BALANCE_BAD_UNSTAKED: &str = "Diff between new unstaked balance and old balance too large";
 
-// manual operations
-pub const ERR_NON_ZERO_WEIGHT: &str = "Validator weight must be zero for manual operation";
-pub const ERR_NON_ZERO_UNSTAKED_AMOUNT: &str = "Validator unstaked amount must be zero when manually unstake";
-pub const ERR_NON_ZERO_STAKED_AMOUNT: &str = "Validator staked amount must be zero when manually withdraw";
+// drain operations
+pub const ERR_NON_ZERO_WEIGHT: &str = "Validator weight must be zero for drain operation";
+pub const ERR_NON_ZERO_UNSTAKED_AMOUNT: &str = "Validator unstaked amount must be zero when drain unstake";
+pub const ERR_NON_ZERO_STAKED_AMOUNT: &str = "Validator staked amount must be zero when drain withdraw";
 
 // withdraw
 pub const ERR_NON_POSITIVE_WITHDRAWAL_AMOUNT: &str = "Withdrawal amount should be positive";

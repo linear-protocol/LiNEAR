@@ -8,7 +8,7 @@ LiNEAR Protocol is a liquid staking solution built on the NEAR Protocol. LiNEAR 
 
 The LiNEAR smart contracts are implemented with [NEAR Rust SDK](https://near-sdk.io/). The core contract is located in `contracts/linear`, and several mock contracts were made for testing various scenarios via simulation test.
 
-The [v1.0.0 release](https://github.com/linear-protocol/LiNEAR/releases/tag/v1.0.0) has been audited by [BlockSec](https://www.blocksecteam.com/). According to [its report](https://files.gitbook.com/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FVUsjtIZTjrEX8y9oBG0Z%2Fuploads%2FANndiBCKoL0hX9HNEUd7%2FLiNEAR%20security%20auditing%20by%20BlockSec.pdf?alt=media&token=655abd1f-50d3-40b4-8d0b-a38897d98392), no critical issues were found, and several low-risk minor issues were reported and have been fixed.
+The [v1.0.0 contract release](https://github.com/linear-protocol/LiNEAR/releases/tag/v1.0.0) has been audited by [BlockSec](https://www.blocksecteam.com/). According to [BlockSec's auditing report](https://github.com/linear-protocol/audits/blob/main/BlockSec%20-%20Security%20Audit%20Report%20for%20LiNEAR%20-%20202204.pdf), no critical issues were found, and few low-risk minor issues were reported and have been fixed.
 
 ## Deployment
 

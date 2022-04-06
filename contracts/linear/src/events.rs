@@ -51,28 +51,28 @@ pub enum Event<'a> {
         new_balance: &'a U128,
         rewards: &'a U128,
     },
-    // Manual Operations
-    ManuallyUnstakeAttempt {
+    // Drain Operations
+    DrainUnstakeAttempt {
         validator_id: &'a AccountId,
         amount: &'a U128,
     },
-    ManuallyUnstakeSuccess {
+    DrainUnstakeSuccess {
         validator_id: &'a AccountId,
         amount: &'a U128,
     },
-    ManuallyUnstakeFailed {
+    DrainUnstakeFailed {
         validator_id: &'a AccountId,
         amount: &'a U128,
     },
-    ManuallyWithdrawAttempt {
+    DrainWithdrawAttempt {
         validator_id: &'a AccountId,
         amount: &'a U128,
     },
-    ManuallyWithdrawSuccess {
+    DrainWithdrawSuccess {
         validator_id: &'a AccountId,
         amount: &'a U128,
     },
-    ManuallyWithdrawFailed {
+    DrainWithdrawFailed {
         validator_id: &'a AccountId,
         amount: &'a U128,
     },
@@ -273,92 +273,92 @@ mod tests {
     }
 
     #[test]
-    fn manually_unstake_attempt() {
+    fn drain_unstake_attempt() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::ManuallyUnstakeAttempt {
+        Event::DrainUnstakeAttempt {
             validator_id,
             amount,
         }
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"manually_unstake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_unstake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
     #[test]
-    fn manually_unstake_success() {
+    fn drain_unstake_success() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::ManuallyUnstakeSuccess {
+        Event::DrainUnstakeSuccess {
             validator_id,
             amount,
         }
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"manually_unstake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_unstake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
     #[test]
-    fn manually_unstake_failed() {
+    fn drain_unstake_failed() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::ManuallyUnstakeFailed {
+        Event::DrainUnstakeFailed {
             validator_id,
             amount,
         }
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"manually_unstake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_unstake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
     #[test]
-    fn manually_withdraw_attempt() {
+    fn drain_withdraw_attempt() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::ManuallyWithdrawAttempt {
+        Event::DrainWithdrawAttempt {
             validator_id,
             amount,
         }
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"manually_withdraw_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_withdraw_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
     #[test]
-    fn manually_withdraw_success() {
+    fn drain_withdraw_success() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::ManuallyWithdrawSuccess {
+        Event::DrainWithdrawSuccess{
             validator_id,
             amount,
         }
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"manually_withdraw_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_withdraw_success","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
     #[test]
-    fn manually_withdraw_failed() {
+    fn drain_withdraw_failed() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::ManuallyWithdrawFailed {
+        Event::DrainWithdrawFailed {
             validator_id,
             amount,
         }
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"manually_withdraw_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_withdraw_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 

@@ -233,12 +233,12 @@ impl LiquidStakingContract {
 
     /// This method is designed to drain a validator.
     /// The weight of target validator should be set to 0 before calling this.
-    /// And a following call to manually_withdraw MUST be made after 4 epoches.
-    pub fn manually_unstake(&mut self, validator_id: AccountId) {
+    /// And a following call to drain_withdraw MUST be made after 4 epoches.
+    pub fn drain_unstake(&mut self, validator_id: AccountId) {
         self.assert_manager();
 
         // make sure enough gas was given
-        let min_gas = GAS_MANUALLY_UNSTAKE + GAS_EXT_UNSTAKE + GAS_CB_VALIDATOR_UNSTAKED;
+        let min_gas = GAS_DRAIN_UNSTAKE + GAS_EXT_UNSTAKE + GAS_CB_VALIDATOR_UNSTAKED;
         require!(
             env::prepaid_gas() >= min_gas,
             format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
@@ -266,7 +266,7 @@ impl LiquidStakingContract {
 
         let unstake_amount = validator.staked_amount;
 
-        Event::ManuallyUnstakeAttempt{
+        Event::DrainUnstakeAttempt {
             validator_id: &validator_id,
             amount: &U128(unstake_amount)
         }
@@ -275,7 +275,7 @@ impl LiquidStakingContract {
         // perform actual unstake
         validator
             .unstake(&mut self.validator_pool, unstake_amount)
-            .then(ext_self_action_cb::validator_manually_unstaked_callback(
+            .then(ext_self_action_cb::validator_drain_unstaked_callback(
                 validator.account_id,
                 unstake_amount,
                 env::current_account_id(),
@@ -285,11 +285,11 @@ impl LiquidStakingContract {
     }
 
     /// Withdraw from a drained validator
-    pub fn manually_withdraw(&mut self, validator_id: AccountId) {
+    pub fn drain_withdraw(&mut self, validator_id: AccountId) {
         self.assert_manager();
 
         // make sure enough gas was given
-        let min_gas = GAS_MANUALLY_WITHDRAW + GAS_EXT_WITHDRAW + GAS_CB_VALIDATOR_WITHDRAW;
+        let min_gas = GAS_DRAIN_WITHDRAW + GAS_EXT_WITHDRAW + GAS_CB_VALIDATOR_WITHDRAW;
         require!(
             env::prepaid_gas() >= min_gas,
             format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
@@ -319,14 +319,14 @@ impl LiquidStakingContract {
 
         let amount = validator.unstaked_amount;
 
-        Event::ManuallyWithdrawAttempt {
+        Event::DrainWithdrawAttempt {
             validator_id: &validator_id,
             amount: &U128(amount)
         }
         .emit();
 
         validator.withdraw(&mut self.validator_pool, amount).then(
-            ext_self_action_cb::validator_manually_withdraw_callback(
+            ext_self_action_cb::validator_drain_withdraw_callback(
                 validator.account_id.clone(),
                 amount,
                 env::current_account_id(),
@@ -345,7 +345,7 @@ trait EpochActionCallbacks {
 
     fn validator_unstaked_callback(&mut self, validator_id: AccountId, amount: Balance);
 
-    fn validator_manually_unstaked_callback(&mut self, validator_id: AccountId, amount: Balance);
+    fn validator_drain_unstaked_callback(&mut self, validator_id: AccountId, amount: Balance);
 
     fn validator_get_balance_callback(&mut self, validator_id: AccountId);
 
@@ -353,7 +353,7 @@ trait EpochActionCallbacks {
 
     fn validator_withdraw_callback(&mut self, validator_id: AccountId, amount: Balance);
 
-    fn validator_manually_withdraw_callback(&mut self, validator_id: AccountId, amount: Balance);
+    fn validator_drain_withdraw_callback(&mut self, validator_id: AccountId, amount: Balance);
 }
 
 /// callbacks
@@ -418,7 +418,7 @@ impl LiquidStakingContract {
     }
 
     #[private]
-    pub fn validator_manually_unstaked_callback(&mut self, validator_id: AccountId, amount: Balance) {
+    pub fn validator_drain_unstaked_callback(&mut self, validator_id: AccountId, amount: Balance) {
         let mut validator = self
             .validator_pool
             .get_validator(&validator_id)
@@ -427,7 +427,7 @@ impl LiquidStakingContract {
         if is_promise_success() {
             validator.on_unstake_success(&mut self.validator_pool, amount);
 
-            Event::ManuallyUnstakeSuccess{
+            Event::DrainUnstakeSuccess {
                 validator_id: &validator_id,
                 amount: &U128(amount),
             }
@@ -436,7 +436,7 @@ impl LiquidStakingContract {
             // unstake failed, revert
             validator.on_unstake_failed(&mut self.validator_pool, amount);
 
-            Event::ManuallyUnstakeFailed{
+            Event::DrainUnstakeFailed {
                 validator_id: &validator_id,
                 amount: &U128(amount),
             }
@@ -527,9 +527,9 @@ impl LiquidStakingContract {
     }
 
     #[private]
-    pub fn validator_manually_withdraw_callback(&mut self, validator_id: AccountId, amount: Balance) {
+    pub fn validator_drain_withdraw_callback(&mut self, validator_id: AccountId, amount: Balance) {
         if is_promise_success() {
-            Event::ManuallyWithdrawSuccess{
+            Event::DrainWithdrawSuccess {
                 validator_id: &validator_id,
                 amount: &U128(amount),
             }
@@ -548,7 +548,7 @@ impl LiquidStakingContract {
 
             validator.on_withdraw_failed(&mut self.validator_pool, amount);
 
-            Event::ManuallyWithdrawFailed{
+            Event::DrainWithdrawFailed {
                 validator_id: &validator_id,
                 amount: &U128(amount),
             }

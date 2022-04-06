@@ -77,7 +77,7 @@ workspace.test('Non-manager call drain methods', async (test, {contract, alice})
         test,
         alice.call(
             contract,
-            'manually_unstake',
+            'drain_unstake',
             {
                 validator_id: 'foo'
             }
@@ -89,7 +89,7 @@ workspace.test('Non-manager call drain methods', async (test, {contract, alice})
         test,
         alice.call(
             contract,
-            'manually_withdraw',
+            'drain_withdraw',
             {
                 validator_id: 'foo'
             }
@@ -138,7 +138,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice})
     test,
     manager.call(
       contract,
-      'manually_unstake',
+      'drain_unstake',
       {
         validator_id: v1.accountId
       },
@@ -191,7 +191,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice})
     test,
     manager.call(
       contract,
-      'manually_unstake',
+      'drain_unstake',
       {
         validator_id: v1.accountId
       },
@@ -214,7 +214,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice})
     test,
     manager.call(
       contract,
-      'manually_unstake',
+      'drain_unstake',
       {
         validator_id: v1.accountId
       },
@@ -267,8 +267,8 @@ workspace.test('manually unstake and withdraw', async (test, {contract, root, ow
   /**
    * Steps to drain a validator
    * 1. set weight to 0
-   * 2. call manually_unstake
-   * 3. call manually_withdraw
+   * 2. call drain_unstake
+   * 3. call drain_withdraw
    */
 
   await manager.call(
@@ -282,7 +282,7 @@ workspace.test('manually unstake and withdraw', async (test, {contract, root, ow
 
   await manager.call(
     contract,
-    'manually_unstake',
+    'drain_unstake',
     {
       validator_id: v1.accountId
     },
@@ -300,7 +300,7 @@ workspace.test('manually unstake and withdraw', async (test, {contract, root, ow
 
   await manager.call(
     contract,
-    'manually_withdraw',
+    'drain_withdraw',
     {
       validator_id: v1.accountId
     },

@@ -42,8 +42,8 @@ pub const GAS_EPOCH_WITHDRAW: Gas = Gas(75 * TGAS);
 
 pub const GAS_SYNC_BALANCE: Gas = Gas(75 * TGAS);
 
-pub const GAS_MANUALLY_UNSTAKE: Gas = Gas(75 * TGAS);
-pub const GAS_MANUALLY_WITHDRAW: Gas = Gas(75 * TGAS);
+pub const GAS_DRAIN_UNSTAKE: Gas = Gas(75 * TGAS);
+pub const GAS_DRAIN_WITHDRAW: Gas = Gas(75 * TGAS);
 
 pub const GAS_EXT_DEPOSIT_AND_STAKE: Gas = Gas(75 * TGAS);
 pub const GAS_EXT_UNSTAKE: Gas = Gas(75 * TGAS);

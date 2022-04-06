@@ -1,8 +1,8 @@
 const { init } = require("../near");
 const { Gas } = require("near-units");
 
-exports.command = 'manual-unstake <address>';
-exports.desc = 'Manually Unstake';
+exports.command = 'drain-unstake <address>';
+exports.desc = 'Drain Unstake';
 exports.builder = yargs => {
   yargs
     .positional('address', {
@@ -32,11 +32,11 @@ exports.handler = async function (argv) {
   const near = await init(network);
   const signer = await near.account(argv.signer);
 
-  console.log(`Manually unstake from ${argv.validator}`);
+  console.log(`Drain unstake from ${argv.validator}`);
 
   await signer.functionCall({
     contractId: address,
-    methodName: 'manually_unstake',
+    methodName: 'drain_unstake',
     args: {
       validator_id: argv.validator
     },

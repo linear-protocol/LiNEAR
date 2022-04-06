@@ -48,6 +48,17 @@ export async function deployLinear(
   )
 }
 
+export async function createStakingPool (root: NearAccount, id: string) {
+  return root.createAndDeploy(
+    id,
+    'compiled-contracts/mock_staking_pool.wasm',
+    {
+      method: 'new',
+      args: {}
+    }
+  );
+}
+
 function parseError(e: any): string {
   let status: any = e && e.parse
   ? e.parse().result.status

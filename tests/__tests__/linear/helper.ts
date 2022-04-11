@@ -186,3 +186,20 @@ export async function deployDex (root: NearAccount) {
   );
   return contract;
 }
+
+export async function setManager(root: NearAccount, contract: NearAccount, owner: NearAccount, manager?: NearAccount) {
+  if (!manager) {
+    manager = await root.createAccount('linear_manager', { initialBalance: NEAR.parse("1000000").toString() });
+  }
+
+  // set manager
+  await owner.call(
+    contract,
+    'add_manager',
+    {
+      new_manager_id: manager.accountId
+    }
+  );
+
+  return manager;
+}

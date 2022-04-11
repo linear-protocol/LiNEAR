@@ -415,7 +415,7 @@ impl Validator {
         pool.save_validator(self);
     }
 
-    pub fn sync_account_balance(&self) -> Promise {
+    pub fn sync_balance_from_validator(&self) -> Promise {
         ext_staking_pool::get_account(
             env::current_account_id(),
             self.account_id.clone(),
@@ -424,7 +424,7 @@ impl Validator {
         )
     }
 
-    pub fn on_sync_account_balance(
+    pub fn on_sync_balance_from_validator(
         &mut self,
         pool: &mut ValidatorPool,
         staked_balance: Balance,

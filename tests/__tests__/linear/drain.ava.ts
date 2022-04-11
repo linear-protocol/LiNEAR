@@ -1,21 +1,7 @@
 import { NearAccount, NEAR, Gas } from "near-workspaces-ava";
-import { assertFailure, initWorkSpace, createStakingPool } from "./helper";
+import { assertFailure, initWorkSpace, createStakingPool, setManager } from "./helper";
 
 const workspace = initWorkSpace();
-
-async function setManager(
-  owner: NearAccount,
-  contract: NearAccount,
-  manager: NearAccount
-) {
-  await owner.call(
-    contract,
-    'add_manager',
-    {
-      new_manager_id: manager.accountId
-    }
-  );
-}
 
 function assertValidatorAmountHelper (
   test: any,
@@ -58,10 +44,10 @@ function assertValidatorAmountHelper (
   }
 }
 
-async function stakeAll (manager: NearAccount, contract: NearAccount) {
+async function stakeAll (signer: NearAccount, contract: NearAccount) {
   let run = true;
   while (run) {
-    run = await manager.call(
+    run = await signer.call(
       contract,
       'epoch_stake',
       {},
@@ -98,9 +84,9 @@ workspace.test('Non-manager call drain methods', async (test, {contract, alice})
     );
 });
 
-workspace.test('drain constraints', async (test, {contract, root, owner, alice}) => {
+workspace.test('drain constraints', async (test, {contract, root, owner, alice, bob}) => {
   const manager = alice;
-  await setManager(owner, contract, manager);
+  await setManager(root, contract, owner, manager);
 
   const v1 = await createStakingPool(root, 'v1');
   // add validator
@@ -124,7 +110,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice})
   );
 
   // run stake
-  await manager.call(
+  await bob.call(
     contract,
     'epoch_stake',
     {},
@@ -173,7 +159,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice})
     {}
   );
 
-  await manager.call(
+  await bob.call(
     contract,
     'epoch_unstake',
     {},
@@ -226,9 +212,9 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice})
   );
 });
 
-workspace.test('drain unstake and withdraw', async (test, {contract, root, owner, alice}) => {
+workspace.test('drain unstake and withdraw', async (test, {contract, root, owner, alice, bob}) => {
   const manager = alice;
-  await setManager(owner, contract, manager);
+  await setManager(root, contract, owner, manager);
 
   const v1 = await createStakingPool(root, 'v1');
   const v2 = await createStakingPool(root, 'v2');
@@ -262,7 +248,7 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
   );
 
   // run stake
-  await stakeAll(manager, contract);
+  await stakeAll(bob, contract);
 
   /**
    * Steps to drain a validator
@@ -315,7 +301,7 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
   await assertValidator(v2, '30', '0');
 
   // restake and make sure funds are re-distributed
-  await stakeAll(manager, contract);
+  await stakeAll(bob, contract);
 
   await assertValidator(v1, '0', '0');
   await assertValidator(v2, '60', '0');

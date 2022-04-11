@@ -222,7 +222,7 @@ impl LiquidStakingContract {
             .expect(ERR_VALIDATOR_NOT_EXIST);
 
         validator
-            .sync_account_balance()
+            .sync_balance_from_validator()
             .then(ext_self_action_cb::validator_get_account_callback(
                 validator.account_id,
                 env::current_account_id(),
@@ -486,7 +486,7 @@ impl LiquidStakingContract {
             .get_validator(&validator_id)
             .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
-        validator.on_sync_account_balance(
+        validator.on_sync_balance_from_validator(
             &mut self.validator_pool, 
             account.staked_balance.0,
             account.unstaked_balance.0

@@ -66,7 +66,7 @@ In order to use it, run `npm i` first.
 
 
 ## Manage
-### - Drain
+### Drain
 Drain is to totally remove a validator from candidate list, all funds on it will be re-distributed
 among others.
 

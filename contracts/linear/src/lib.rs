@@ -83,6 +83,8 @@ pub struct LiquidStakingContract {
     // --- Validator Pool ---
     /// The validator pool that manage the actions against validators
     validator_pool: ValidatorPool,
+    /// The whitelist contract ID, which controls the staking pool whitelist.
+    whitelist_account_id: Option<AccountId>,
     /// Amount of NEAR that is requested to stake by all users during the last epoch
     epoch_requested_stake_amount: Balance,
     /// Amount of NEAR that is requested to unstake by all users during the last epoch
@@ -148,6 +150,7 @@ impl LiquidStakingContract {
             liquidity_pool: LiquidityPool::new(LiquidityPoolConfig::default()),
             // Validator Pool
             validator_pool: ValidatorPool::new(),
+            whitelist_account_id: None,
             epoch_requested_stake_amount: 10 * ONE_NEAR,
             epoch_requested_unstake_amount: 0,
             stake_amount_to_settle: 0,

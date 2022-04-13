@@ -96,6 +96,9 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
     {
       validator_id: v1.accountId,
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
 
@@ -226,6 +229,9 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
     {
       validator_id: v1.accountId,
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
   await manager.call(
@@ -234,6 +240,9 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
     {
       validator_id: v2.accountId,
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
 

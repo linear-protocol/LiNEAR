@@ -1,6 +1,7 @@
 use crate::errors::*;
 use crate::types::*;
 use crate::utils::*;
+use crate::events::Event;
 use crate::*;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
@@ -38,6 +39,16 @@ pub trait ExtStakingPool {
     fn unstake(&mut self, amount: U128);
 
     fn unstake_all(&mut self);
+}
+
+#[ext_contract(ext_whitelist)]
+trait ExtWhitelist {
+    fn is_whitelisted(&self, staking_pool_account_id: AccountId) -> bool;
+}
+
+#[ext_contract(ext_self_whitelist_cb)]
+trait WhitelistCallback {
+    fn is_whitelisted_callback(&mut self, validator_id: AccountId, weight: u16);
 }
 
 /// A pool of validators.
@@ -81,6 +92,11 @@ impl ValidatorPool {
 
         self.total_weight += weight;
 
+        Event::ValidatorAdded{
+            account_id: validator_id,
+            weight
+        }.emit();
+
         return validator;
     }
 
@@ -98,6 +114,10 @@ impl ValidatorPool {
 
         self.total_weight -= validator.weight;
 
+        Event::ValidatorRemoved{
+            account_id: validator_id
+        }.emit();
+
         return validator;
     }
 
@@ -112,6 +132,11 @@ impl ValidatorPool {
 
         validator.weight = weight;
         self.validators.insert(validator_id, &validator);
+
+        Event::ValidatorUpdated{
+            account_id: validator_id,
+            weight
+        }.emit();
     }
 
     pub fn get_validators(&self, offset: u64, limit: u64) -> Vec<Validator> {
@@ -237,27 +262,65 @@ fn min3(x: u128, y: u128, z: u128) -> u128 {
 
 #[near_bindgen]
 impl LiquidStakingContract {
-    pub fn add_validator(&mut self, validator_id: AccountId, weight: u16) -> Validator {
+    pub fn add_validator(&mut self, validator_id: AccountId, weight: u16) {
         self.assert_manager();
-        self.validator_pool.add_validator(&validator_id, weight)
+        self.add_whitelisted_validator(&validator_id, weight);
     }
 
     pub fn add_validators(
         &mut self,
         validator_ids: Vec<AccountId>,
         weights: Vec<u16>,
-    ) -> Vec<Validator> {
+    ) {
         self.assert_manager();
         require!(validator_ids.len() == weights.len(), ERR_BAD_VALIDATOR_LIST);
-        let mut results: Vec<Validator> = vec![];
         for i in 0..validator_ids.len() {
-            results.push(
-                self.validator_pool
-                    .add_validator(&validator_ids[i], weights[i]),
-            );
+            self.add_whitelisted_validator(&validator_ids[i], weights[i]);
         }
+    }
+    
+    /// Add a new validator only if it's whitelisted
+    fn add_whitelisted_validator(
+        &mut self,
+        validator_id: &AccountId,
+        weight: u16
+    ) {
+        let whitelist_id = self.whitelist_account_id
+            .as_ref()
+            .expect(ERR_VALIDATOR_WHITELIST_NOT_SET);
 
-        return results;
+        ext_whitelist::is_whitelisted(
+            validator_id.clone(),
+            whitelist_id.clone(),
+            NO_DEPOSIT,
+            GAS_EXT_WHITELIST
+        )
+        .then(ext_self_whitelist_cb::is_whitelisted_callback(
+            validator_id.clone(),
+            weight,
+            env::current_account_id(),
+            NO_DEPOSIT,
+            GAS_CB_WHITELIST
+        ));
+    }
+
+    #[private]
+    pub fn is_whitelisted_callback(
+        &mut self,
+        validator_id: AccountId,
+        weight: u16,
+        #[callback] whitelisted: bool
+    ) {
+        require!(
+            whitelisted,
+            format!(
+                "{}. {}",
+                ERR_VALIDATOR_NOT_WHITELISTED,
+                validator_id.clone()
+            )
+        );
+
+        self.validator_pool.add_validator(&validator_id, weight);
     }
 
     pub fn remove_validator(&mut self, validator_id: AccountId) -> Validator {

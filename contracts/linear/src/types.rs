@@ -50,12 +50,14 @@ pub const GAS_EXT_UNSTAKE: Gas = Gas(75 * TGAS);
 pub const GAS_EXT_GET_BALANCE: Gas = Gas(25 * TGAS);
 pub const GAS_EXT_GET_ACCOUNT: Gas = Gas(25 * TGAS);
 pub const GAS_EXT_WITHDRAW: Gas = Gas(75 * TGAS);
+pub const GAS_EXT_WHITELIST: Gas = Gas(10 * TGAS);
 
 pub const GAS_CB_VALIDATOR_STAKED: Gas = Gas(25 * TGAS);
 pub const GAS_CB_VALIDATOR_UNSTAKED: Gas = Gas(25 * TGAS);
 pub const GAS_CB_VALIDATOR_GET_BALANCE: Gas = Gas(25 * TGAS);
 pub const GAS_CB_VALIDATOR_SYNC_BALANCE: Gas = Gas(25 * TGAS);
 pub const GAS_CB_VALIDATOR_WITHDRAW: Gas = Gas(25 * TGAS);
+pub const GAS_CB_WHITELIST: Gas = Gas(15 * TGAS);
 
 // -- COMMON TYPES
 

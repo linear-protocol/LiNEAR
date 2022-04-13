@@ -1,7 +1,23 @@
 import { Gas, NEAR } from "near-units";
-import { assertFailure, initWorkSpace, setManager } from "./helper";
+import { NearAccount } from "near-workspaces-ava";
+import { assertFailure, initAndSetWhitelist, initWorkSpace, } from "./helper";
 
 const workspace = initWorkSpace();
+
+async function setManager(root: NearAccount, contract: NearAccount, owner: NearAccount) {
+  const manager = await root.createAccount('linear_manager', { initialBalance: NEAR.parse("1000000").toString() });
+
+  // set manager
+  await owner.call(
+    contract,
+    'add_manager',
+    {
+      new_manager_id: manager.accountId
+    }
+  );
+
+  return manager;
+}
 
 workspace.test('not manager', async (test, { contract, alice, root, owner }) => {
   await setManager(root, contract, owner);
@@ -15,6 +31,9 @@ workspace.test('not manager', async (test, { contract, alice, root, owner }) => 
       {
         validator_id: 'foo',
         weight: 10
+      },
+      {
+        gas: Gas.parse('100 Tgas')
       }
     ),
     errMsg
@@ -69,6 +88,9 @@ workspace.test('add validator', async (test, context) => {
     {
       validator_id: 'foo',
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
   test.is(
@@ -82,6 +104,9 @@ workspace.test('add validator', async (test, context) => {
     {
       validator_id: 'bar',
       weight: 20
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
   test.is(
@@ -117,6 +142,9 @@ workspace.test('bulk add a few validators', async (test, context) => {
     {
       validator_ids: ['foo', 'bar'],
       weights: [10, 20]
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
 
@@ -148,7 +176,7 @@ workspace.test('bulk add a lot validators', async (test, context) => {
   const manager = await setManager(root, contract, owner);
 
   for (let i = 0; i < 2; i++) {
-    const validators = Array.from({ length: 50 }, (_, j) => `validator-${i}-${j}`);
+    const validators = Array.from({ length: 5 }, (_, j) => `validator-${i}-${j}`);
     const weights = validators.map(_ => 1);
 
     await manager.call(
@@ -159,19 +187,19 @@ workspace.test('bulk add a lot validators', async (test, context) => {
         weights
       },
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('300 Tgas')
       }
     );
   }
 
   test.is(
     await contract.view('get_total_weight'),
-    100
+    10
   );
 
   // read all validators
-  for (let i = 0; i < 5; i++) {
-    const limit = 20;
+  for (let i = 0; i < 2; i++) {
+    const limit = 5;
     const offset = i * limit;
 
     await manager.call(
@@ -188,6 +216,69 @@ workspace.test('bulk add a lot validators', async (test, context) => {
   }
 });
 
+workspace.test('whitelist', async (test, context) => {
+  const { root, owner, contract } = context;
+
+  // set a new whitelist
+  const whitelist = await initAndSetWhitelist(root, contract, owner, false);
+
+  // set whitelist account
+  await root.call(
+    whitelist,
+    'add_whitelist',
+    {
+      account_id: 'foo'
+    }
+  );
+
+  // try to add an validator not in whitelist
+  await owner.call(
+    contract,
+    'add_validators',
+    {
+      validator_ids: ['bar'],
+      weights: [1]
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+
+  let validators: any[] = await contract.view(
+    'get_validators',
+    {
+      offset: 0,
+      limit: 10
+    }
+  );
+  test.assert(validators.length === 0, 'bar should not be added');
+
+  // try to add an validator in whitelist
+  await owner.call(
+    contract,
+    'add_validators',
+    {
+      validator_ids: ['foo'],
+      weights: [1]
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+
+  validators = await contract.view(
+    'get_validators',
+    {
+      offset: 0,
+      limit: 10
+    }
+  );
+  test.assert(validators.length === 1, 'foo should be added');
+  test.assert(
+    validators[0].account_id === 'foo'
+  );
+});
+
 workspace.test('remove validator', async (test, context) => {
   const { root, owner, contract } = context;
   const manager = await setManager(root, contract, owner);
@@ -199,6 +290,9 @@ workspace.test('remove validator', async (test, context) => {
     {
       validator_id: 'foo',
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
   await manager.call(
@@ -207,6 +301,9 @@ workspace.test('remove validator', async (test, context) => {
     {
       validator_id: 'bar',
       weight: 20
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
 
@@ -280,6 +377,9 @@ workspace.test('update weight', async (test, context) => {
     {
       validator_id: 'foo',
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
   await manager.call(
@@ -288,6 +388,9 @@ workspace.test('update weight', async (test, context) => {
     {
       validator_id: 'bar',
       weight: 20
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
 

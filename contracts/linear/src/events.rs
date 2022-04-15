@@ -77,7 +77,7 @@ pub enum Event<'a> {
         amount: &'a U128,
     },
     // Sync validator balance
-    AccountBalanceSynced {
+    BalanceFromValidatorSynced {
         validator_id: &'a AccountId,
         staked_balance: &'a U128,
         unstaked_balance: &'a U128,
@@ -426,11 +426,11 @@ mod tests {
     }
 
     #[test]
-    fn account_balance_synced() {
+    fn balance_from_validator_synced() {
         let validator_id = &alice();
         let staked_balance = &U128(300);
         let unstaked_balance = &U128(200);
-        Event::AccountBalanceSynced {
+        Event::BalanceFromValidatorSynced {
             validator_id,
             staked_balance,
             unstaked_balance
@@ -438,7 +438,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"account_balance_synced","data":[{"validator_id":"alice","staked_balance":"300","unstaked_balance":"200"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"balance_from_validator_synced","data":[{"validator_id":"alice","staked_balance":"300","unstaked_balance":"200"}]}"#
         );
     }
 

@@ -492,7 +492,7 @@ impl LiquidStakingContract {
             account.unstaked_balance.0
         );
 
-        Event::AccountBalanceSynced {
+        Event::BalanceFromValidatorSynced {
             validator_id: &validator_id,
             staked_balance: &account.staked_balance,
             unstaked_balance: &account.unstaked_balance

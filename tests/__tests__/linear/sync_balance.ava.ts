@@ -88,7 +88,7 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
 
   await owner.call(
     contract,
-    'sync_account_balance',
+    'sync_balance_from_validator',
     {
       validator_id: v1.accountId
     },
@@ -113,7 +113,7 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
 
   await owner.call(
     contract,
-    'sync_account_balance',
+    'sync_balance_from_validator',
     {
       validator_id: v2.accountId
     },
@@ -181,7 +181,7 @@ workspace.test('sync balance', async (test, { root, contract, alice, owner }) =>
 
   await owner.call(
     contract,
-    'sync_account_balance',
+    'sync_balance_from_validator',
     {
       validator_id: v2.accountId
     },

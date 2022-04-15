@@ -209,7 +209,7 @@ impl LiquidStakingContract {
     /// the amount of staked and unstaked balance might be a little bit
     /// different than we requested.
     /// This method is to sync the actual numbers with the validator.
-    pub fn sync_account_balance(&mut self, validator_id: AccountId) {
+    pub fn sync_balance_from_validator(&mut self, validator_id: AccountId) {
         let min_gas = GAS_SYNC_BALANCE + GAS_EXT_GET_ACCOUNT + GAS_CB_VALIDATOR_SYNC_BALANCE;
         require!(
             env::prepaid_gas() >= min_gas,
@@ -222,7 +222,7 @@ impl LiquidStakingContract {
             .expect(ERR_VALIDATOR_NOT_EXIST);
 
         validator
-            .sync_balance_from_validator()
+            .sync_account_balance()
             .then(ext_self_action_cb::validator_get_account_callback(
                 validator.account_id,
                 env::current_account_id(),
@@ -486,7 +486,7 @@ impl LiquidStakingContract {
             .get_validator(&validator_id)
             .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
-        validator.on_sync_balance_from_validator(
+        validator.on_sync_account_balance(
             &mut self.validator_pool, 
             account.staked_balance.0,
             account.unstaked_balance.0

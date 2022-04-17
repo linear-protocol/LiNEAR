@@ -48,6 +48,17 @@ export async function deployLinear(
   )
 }
 
+export async function createStakingPool (root: NearAccount, id: string) {
+  return root.createAndDeploy(
+    id,
+    'compiled-contracts/mock_staking_pool.wasm',
+    {
+      method: 'new',
+      args: {}
+    }
+  );
+}
+
 function parseError(e: any): string {
   let status: any = e && e.parse
   ? e.parse().result.status
@@ -174,4 +185,21 @@ export async function deployDex (root: NearAccount) {
     'compiled-contracts/mock_dex.wasm',
   );
   return contract;
+}
+
+export async function setManager(root: NearAccount, contract: NearAccount, owner: NearAccount, manager?: NearAccount) {
+  if (!manager) {
+    manager = await root.createAccount('linear_manager', { initialBalance: NEAR.parse("1000000").toString() });
+  }
+
+  // set manager
+  await owner.call(
+    contract,
+    'add_manager',
+    {
+      new_manager_id: manager.accountId
+    }
+  );
+
+  return manager;
 }

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { init } = require('../near');
+const prompts = require('prompts');
 
 exports.command = 'set-node <address>';
 exports.desc = 'Sync validators to the contract';
@@ -31,9 +32,10 @@ exports.handler = async function (argv) {
 
   const near = await init(argv.network);
   const signer = await near.account(argv.signer);
+  const contract = await near.account(address);
 
   // currentNodes is a map from nodeID to validator struct
-  const currentNodes = await getValidators(signer, address);
+  const currentNodes = await getValidators(contract);
 
   const nodesToAdd = [];
   const nodesToUpdate = [];
@@ -68,6 +70,13 @@ exports.handler = async function (argv) {
   console.log('Nodes to remove:');
   console.log(nodesToRemove);
 
+  const res = await prompts({
+    type: 'confirm',
+    name: 'confirm',
+    message: 'Confirm update?'
+  });
+  if (!res.confirm) return;
+
   // Add
   // in case the list is too long, we cut it into chunks
   const chunks = chunkList(nodesToAdd, 10);
@@ -95,15 +104,17 @@ exports.handler = async function (argv) {
     console.log(`node ${node.id} weight updated to ${node.weight}`);
   }
 
+  // set weight to zero instead of remove it
   for (const node of nodesToRemove) {
     await signer.functionCall({
       contractId: address,
-      methodName: 'remove_validator',
+      methodName: 'update_weight',
       args: {
-        validator_id: node.id
+        validator_id: node.id,
+        weight: 0
       }
-    });
-    console.log(`node ${node.id} removed`);
+    }); 
+    console.log(`node ${node.id} weight set to 0`);
   }
 
   console.log('done.');
@@ -117,24 +128,20 @@ function chunkList(items, k) {
   }, []);
 }
 
-async function getValidators(signer, address) {
+async function getValidators(contract) {
   let results = {};
   let offset = 0;
   const limit = 20;
 
   while (true) {
-    const data = await signer.functionCall({
-      contractId: address,
-      methodName: 'get_validators',
-      args: {
+    const res = await contract.viewFunction(
+      contract.accountId,
+      'get_validators',
+      {
         offset,
         limit
       }
-    });
-
-    const rawValue = data.status.SuccessValue;
-    const rawString = Buffer.from(rawValue, 'base64').toString();
-    const res = JSON.parse(rawString);
+    );
     if (res.length === 0) break;
 
     offset += res.length;

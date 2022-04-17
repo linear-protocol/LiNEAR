@@ -64,6 +64,17 @@ In order to use it, run `npm i` first.
 - Create a PR from the release branch
 - Once the PR is merged, publish a new release on GitHub
 
+
+## Manage
+### Drain
+Drain is to totally remove a validator from candidate list, all funds on it will be re-distributed
+among others.
+
+1. Make sure there is currently no unstaked balance on it. If there is, call `epoch_withdraw` to withdraw.
+2. Set validator weight to 0, which can be done by either removing this validator from nodes list or set its weight to 0 directly. Run `set-node` command to update the weight.
+3. Run `drain-unstake` to unstake all funds from the validator.
+4. After 4 epoches, run `drain-withdraw` to withdraw and restake those funds.
+
 ## Design
 
 ### Terminologies

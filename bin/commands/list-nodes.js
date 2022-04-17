@@ -13,41 +13,33 @@ exports.builder = yargs => {
       default: 'testnet',
       choices: ['testnet', 'mainnet']
     })
-    .option('signer', {
-      describe: 'signer account Id to call contract'
-    })
-    .demandOption(['signer'])
 }
 
 exports.handler = async function (argv) {
   const address = argv.address;
 
   const near = await init(argv.network);
-  const signer = await near.account(argv.signer);
+  const contract = await near.account(address);
 
   // currentNodes is a map from nodeID to validator struct
-  const currentNodes = await getValidators(signer, address);
+  const currentNodes = await getValidators(contract);
   console.log(currentNodes);
 }
 
-async function getValidators(signer, address) {
+async function getValidators(contract) {
   let results = {};
   let offset = 0;
   const limit = 20;
 
   while (true) {
-    const data = await signer.functionCall({
-      contractId: address,
-      methodName: 'get_validators',
-      args: {
+    const res = await contract.viewFunction(
+      contract.accountId,
+      'get_validators',
+      {
         offset,
         limit
       }
-    });
-
-    const rawValue = data.status.SuccessValue;
-    const rawString = Buffer.from(rawValue, 'base64').toString();
-    const res = JSON.parse(rawString);
+    );
     if (res.length === 0) break;
 
     offset += res.length;

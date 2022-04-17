@@ -41,7 +41,7 @@ mock-lockup: contracts/mock-lockup
 clean:
 	rm res/*.wasm
 
-test: test-unit test-linear test-mock-staking-pool
+test: test-unit test-linear test-mock-staking-pool test-mock-fungible-token
 
 test-unit:
 	cargo test --features "test"

@@ -51,6 +51,37 @@ pub enum Event<'a> {
         new_balance: &'a U128,
         rewards: &'a U128,
     },
+    // Drain Operations
+    DrainUnstakeAttempt {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    DrainUnstakeSuccess {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    DrainUnstakeFailed {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    DrainWithdrawAttempt {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    DrainWithdrawSuccess {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    DrainWithdrawFailed {
+        validator_id: &'a AccountId,
+        amount: &'a U128,
+    },
+    // Sync validator balance
+    BalanceSyncedFromValidator {
+        validator_id: &'a AccountId,
+        staked_balance: &'a U128,
+        unstaked_balance: &'a U128,
+    },
     // Staking Pool Interface
     Deposit {
         account_id: &'a AccountId,
@@ -242,6 +273,96 @@ mod tests {
     }
 
     #[test]
+    fn drain_unstake_attempt() {
+        let validator_id = &alice();
+        let amount = &U128(100);
+        Event::DrainUnstakeAttempt {
+            validator_id,
+            amount,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_unstake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn drain_unstake_success() {
+        let validator_id = &alice();
+        let amount = &U128(100);
+        Event::DrainUnstakeSuccess {
+            validator_id,
+            amount,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_unstake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn drain_unstake_failed() {
+        let validator_id = &alice();
+        let amount = &U128(100);
+        Event::DrainUnstakeFailed {
+            validator_id,
+            amount,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_unstake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn drain_withdraw_attempt() {
+        let validator_id = &alice();
+        let amount = &U128(100);
+        Event::DrainWithdrawAttempt {
+            validator_id,
+            amount,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_withdraw_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn drain_withdraw_success() {
+        let validator_id = &alice();
+        let amount = &U128(100);
+        Event::DrainWithdrawSuccess{
+            validator_id,
+            amount,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_withdraw_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn drain_withdraw_failed() {
+        let validator_id = &alice();
+        let amount = &U128(100);
+        Event::DrainWithdrawFailed {
+            validator_id,
+            amount,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_withdraw_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
     fn epoch_withdraw_attempt() {
         let validator_id = &alice();
         let amount = &U128(100);
@@ -301,6 +422,23 @@ mod tests {
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_update_rewards","data":[{"validator_id":"alice","old_balance":"100","new_balance":"120","rewards":"20"}]}"#
+        );
+    }
+
+    #[test]
+    fn balance_synced_from_validator() {
+        let validator_id = &alice();
+        let staked_balance = &U128(300);
+        let unstaked_balance = &U128(200);
+        Event::BalanceSyncedFromValidator {
+            validator_id,
+            staked_balance,
+            unstaked_balance
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"balance_synced_from_validator","data":[{"validator_id":"alice","staked_balance":"300","unstaked_balance":"200"}]}"#
         );
     }
 

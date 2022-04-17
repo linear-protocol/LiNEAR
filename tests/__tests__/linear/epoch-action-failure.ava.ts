@@ -1,19 +1,7 @@
 import { NearAccount, NEAR, Gas } from "near-workspaces-ava";
-import { assertFailure, initWorkSpace } from "./helper";
+import { assertFailure, initWorkSpace, createStakingPool } from "./helper";
 
 const workspace = initWorkSpace();
-
-async function createStakingPool(root: NearAccount, id: string) {
-  const v = await root.createAndDeploy(
-    id,
-    'compiled-contracts/mock_staking_pool.wasm',
-    {
-      method: 'new',
-      args: {}
-    }
-  );
-  return v;
-}
 
 async function setPanic(validator: NearAccount) {
   return validator.call(

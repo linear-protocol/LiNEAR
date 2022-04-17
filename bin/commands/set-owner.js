@@ -1,4 +1,5 @@
 const { init } = require("../near");
+const prompts = require('prompts');
 
 exports.command = 'set-owner <address>';
 exports.desc = 'Set owner';
@@ -29,6 +30,13 @@ exports.handler = async function (argv) {
   const signer = await near.account(argv.signer);
 
   console.log(`Setting owner to ${owner}`);
+
+  const res = await prompts({
+    type: 'confirm',
+    name: 'confirm',
+    message: 'Confirm update?'
+  });
+  if (!res.confirm) return;
 
   await signer.functionCall({
     contractId: address,

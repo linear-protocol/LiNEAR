@@ -1,14 +1,10 @@
 [
     {
-        "id": "a.lisp.testnet",
+        "id": "nodeasy.pool.f863973.m0",
         "weight": 10
     },
     {
-        "id": "b.lisp.testnet",
-        "weight": 10
-    },
-    {
-        "id": "c.lisp.testnet",
+        "id": "staked.pool.f863973.m0",
         "weight": 20
     }
 ]

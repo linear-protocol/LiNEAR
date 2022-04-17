@@ -1,23 +1,7 @@
 import { Gas, NEAR } from "near-units";
-import { NearAccount } from "near-workspaces-ava";
-import { assertFailure, initWorkSpace } from "./helper";
+import { assertFailure, initWorkSpace, setManager } from "./helper";
 
 const workspace = initWorkSpace();
-
-async function setManager(root: NearAccount, contract: NearAccount, owner: NearAccount) {
-  const manager = await root.createAccount('linear_manager', { initialBalance: NEAR.parse("1000000").toString() });
-
-  // set manager
-  await owner.call(
-    contract,
-    'add_manager',
-    {
-      new_manager_id: manager.accountId
-    }
-  );
-
-  return manager;
-}
 
 workspace.test('not manager', async (test, { contract, alice, root, owner }) => {
   await setManager(root, contract, owner);

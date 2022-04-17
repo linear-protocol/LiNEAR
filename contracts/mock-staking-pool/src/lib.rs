@@ -1,7 +1,23 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::collections::LookupMap;
 use near_sdk::json_types::U128;
-use near_sdk::{env, near_bindgen, require, AccountId, PanicOnDefault, Promise};
+use near_sdk::{
+    env, near_bindgen, require, AccountId, 
+    PanicOnDefault, Promise,
+};
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct HumanReadableAccount {
+    pub account_id: AccountId,
+    /// The unstaked balance that can be withdrawn or staked.
+    pub unstaked_balance: U128,
+    /// The amount balance staked at the current "stake" share price.
+    pub staked_balance: U128,
+    /// Whether the unstaked balance is available for withdrawal now.
+    pub can_withdraw: bool,
+}
 
 /// Staking pool interface
 trait StakingPool {
@@ -10,6 +26,8 @@ trait StakingPool {
     fn get_account_unstaked_balance(&self, account_id: AccountId) -> U128;
 
     fn get_account_total_balance(&self, account_id: AccountId) -> U128;
+
+    fn get_account(&self, account_id: AccountId) -> HumanReadableAccount;
 
     fn deposit(&mut self);
 
@@ -65,6 +83,16 @@ impl StakingPool for MockStakingPool {
         U128::from(
             self.internal_get_unstaked_deposit(&account_id) + self.internal_get_staked(&account_id),
         )
+    }
+
+    fn get_account(&self, account_id: AccountId) -> HumanReadableAccount {
+        require!(!self.panic, "Test Panic!");
+        HumanReadableAccount {
+            account_id: account_id.clone(),
+            staked_balance: U128::from(self.internal_get_staked(&account_id)),
+            unstaked_balance: U128::from(self.internal_get_unstaked_deposit(&account_id)),
+            can_withdraw: true,
+        }
     }
 
     #[payable]
@@ -134,6 +162,19 @@ impl MockStakingPool {
 
     pub fn set_panic(&mut self, panic: bool) {
         self.panic = panic;
+    }
+
+    pub fn adjust_balance(
+        &mut self,
+        account_id: AccountId, 
+        staked_delta: u128, 
+        unstaked_delta: u128, 
+    ) {
+        let staked_amount = self.internal_get_staked(&account_id) - staked_delta;
+        let unstaked_amount = self.internal_get_unstaked_deposit(&account_id) + unstaked_delta;
+
+        self.staked.insert(&account_id, &staked_amount);
+        self.deposits.insert(&account_id, &unstaked_amount);
     }
 }
 

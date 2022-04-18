@@ -22,3 +22,6 @@ neardev*
 # AVA tests
 node_modules/
 compiled-contracts/
+
+# Config files
+nodes-testnet.json

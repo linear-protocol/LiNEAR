@@ -203,6 +203,12 @@ impl LiquidStakingContract {
             self.unstake_amount_to_settle -= self.stake_amount_to_settle;
             self.stake_amount_to_settle = 0;
         }
+
+        Event::EpochCleanup {
+            stake_amount_to_settle: &U128(self.stake_amount_to_settle),
+            unstake_amount_to_settle: &U128(self.unstake_amount_to_settle),
+        }
+        .emit();
     }
 
     /// Due to shares calculation and rounding of staking pool contract,

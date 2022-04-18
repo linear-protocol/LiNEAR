@@ -51,6 +51,10 @@ pub enum Event<'a> {
         new_balance: &'a U128,
         rewards: &'a U128,
     },
+    EpochCleanup {
+        stake_amount_to_settle: &'a U128,
+        unstake_amount_to_settle: &'a U128,
+    },
     // Drain Operations
     DrainUnstakeAttempt {
         validator_id: &'a AccountId,
@@ -269,6 +273,21 @@ mod tests {
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_unstake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+        );
+    }
+
+    #[test]
+    fn epoch_cleanup() {
+        let stake_amount_to_settle = &U128(100);
+        let unstake_amount_to_settle = &U128(0);
+        Event::EpochCleanup {
+            stake_amount_to_settle,
+            unstake_amount_to_settle
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_cleanup","data":[{"stake_amount_to_settle":"100","unstake_amount_to_settle":"0"}]}"#
         );
     }
 

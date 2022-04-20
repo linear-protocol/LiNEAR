@@ -428,7 +428,7 @@ impl Validator {
         &mut self,
         pool: &mut ValidatorPool,
         staked_balance: Balance,
-        unstaked_balance: Balance 
+        unstaked_balance: Balance,
     ) {
         // allow at most 1 yN diff in total balance
         let new_total_balance = staked_balance + unstaked_balance;
@@ -447,18 +447,18 @@ impl Validator {
             abs_diff_eq(staked_balance, self.staked_amount, MAX_SYNC_BALANCE_DIFF),
             format!(
                 "{}. new: {}, old: {}",
-                ERR_SYNC_BALANCE_BAD_STAKED,
-                staked_balance,
-                self.staked_amount
+                ERR_SYNC_BALANCE_BAD_STAKED, staked_balance, self.staked_amount
             )
         );
         require!(
-            abs_diff_eq(unstaked_balance, self.unstaked_amount, MAX_SYNC_BALANCE_DIFF),
+            abs_diff_eq(
+                unstaked_balance,
+                self.unstaked_amount,
+                MAX_SYNC_BALANCE_DIFF
+            ),
             format!(
                 "{}. new: {}, old: {}",
-                ERR_SYNC_BALANCE_BAD_UNSTAKED,
-                unstaked_balance,
-                self.unstaked_amount
+                ERR_SYNC_BALANCE_BAD_UNSTAKED, unstaked_balance, self.unstaked_amount
             )
         );
 

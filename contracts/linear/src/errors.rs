@@ -40,14 +40,19 @@ pub const ERR_NON_POSITIVE_TOTAL_STAKE_SHARES: &str = "The total number of stake
 pub const ERR_CONTRACT_NO_STAKED_BALANCE: &str = "Invariant violation. The calculated number of \"stake\" shares for unstaking should be positive";
 
 // sync balance
-pub const ERR_SYNC_BALANCE_BAD_TOTAL: &str = "Diff between new total balance and old balance > 1 yN";
-pub const ERR_SYNC_BALANCE_BAD_STAKED: &str = "Diff between new staked balance and old balance too large";
-pub const ERR_SYNC_BALANCE_BAD_UNSTAKED: &str = "Diff between new unstaked balance and old balance too large";
+pub const ERR_SYNC_BALANCE_BAD_TOTAL: &str =
+    "Diff between new total balance and old balance > 1 yN";
+pub const ERR_SYNC_BALANCE_BAD_STAKED: &str =
+    "Diff between new staked balance and old balance too large";
+pub const ERR_SYNC_BALANCE_BAD_UNSTAKED: &str =
+    "Diff between new unstaked balance and old balance too large";
 
 // drain operations
 pub const ERR_NON_ZERO_WEIGHT: &str = "Validator weight must be zero for drain operation";
-pub const ERR_NON_ZERO_UNSTAKED_AMOUNT: &str = "Validator unstaked amount must be zero when drain unstake";
-pub const ERR_NON_ZERO_STAKED_AMOUNT: &str = "Validator staked amount must be zero when drain withdraw";
+pub const ERR_NON_ZERO_UNSTAKED_AMOUNT: &str =
+    "Validator unstaked amount must be zero when drain unstake";
+pub const ERR_NON_ZERO_STAKED_AMOUNT: &str =
+    "Validator staked amount must be zero when drain withdraw";
 
 // withdraw
 pub const ERR_NON_POSITIVE_WITHDRAWAL_AMOUNT: &str = "Withdrawal amount should be positive";
@@ -56,7 +61,8 @@ pub const ERR_NO_ENOUGH_UNSTAKED_BALANCE_TO_WITHDRAW: &str =
 pub const ERR_UNSTAKED_BALANCE_NOT_AVAILABLE: &str =
     "The unstaked balance is not yet available due to unstaking delay";
 pub const ERR_INCONSISTANT_BALANCE: &str = "Contract balance less than liquidity pool balance";
-pub const ERR_NO_ENOUGH_CONTRACT_BALANCE: &str = "No enough balance in contract to perform withdraw";
+pub const ERR_NO_ENOUGH_CONTRACT_BALANCE: &str =
+    "No enough balance in contract to perform withdraw";
 
 // validator
 pub const ERR_MIN_RESERVE: &str = "Contract min reserve error";

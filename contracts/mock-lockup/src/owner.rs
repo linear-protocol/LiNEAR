@@ -7,17 +7,11 @@ impl LockupContract {
     ///
     /// Requires 75 TGas (3 * BASE_GAS)
     ///
-    /// Selects staking pool contract at the given account ID. 
+    /// Selects staking pool contract at the given account ID.
     /// Whitelist is ignored for test purpose
     pub fn select_staking_pool(&mut self, staking_pool_account_id: AccountId) -> bool {
         self.assert_owner();
-        env::log(
-            format!(
-                "Selecting staking pool @{}.",
-                staking_pool_account_id
-            )
-            .as_bytes(),
-        );
+        env::log(format!("Selecting staking pool @{}.", staking_pool_account_id).as_bytes());
         self.staking_information = Some(StakingInformation {
             staking_pool_account_id,
             status: TransactionStatus::Idle,
@@ -490,7 +484,11 @@ impl LockupContract {
         self.assert_transfers_enabled();
         self.assert_no_staking_or_idle();
         self.assert_no_termination();
-        assert_eq!(self.get_locked_amount().0, 0, "Tokens are still locked/unvested");
+        assert_eq!(
+            self.get_locked_amount().0,
+            0,
+            "Tokens are still locked/unvested"
+        );
 
         env::log(b"Adding a full access key");
 

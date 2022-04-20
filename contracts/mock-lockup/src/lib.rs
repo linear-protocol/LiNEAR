@@ -227,8 +227,8 @@ impl LockupContract {
             }
         };
         assert!(
-            vesting_information == VestingInformation::None ||
-                env::is_valid_account_id(foundation_account_id.as_ref().unwrap().as_bytes()),
+            vesting_information == VestingInformation::None
+                || env::is_valid_account_id(foundation_account_id.as_ref().unwrap().as_bytes()),
             "Foundation account should be added for vesting schedule"
         );
 

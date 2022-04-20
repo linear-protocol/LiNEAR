@@ -1,11 +1,8 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::collections::LookupMap;
 use near_sdk::json_types::U128;
-use near_sdk::{
-    env, near_bindgen, require, AccountId, 
-    PanicOnDefault, Promise,
-};
+use near_sdk::serde::{Deserialize, Serialize};
+use near_sdk::{env, near_bindgen, require, AccountId, PanicOnDefault, Promise};
 
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "near_sdk::serde")]
@@ -166,9 +163,9 @@ impl MockStakingPool {
 
     pub fn adjust_balance(
         &mut self,
-        account_id: AccountId, 
-        staked_delta: u128, 
-        unstaked_delta: u128, 
+        account_id: AccountId,
+        staked_delta: u128,
+        unstaked_delta: u128,
     ) {
         let staked_amount = self.internal_get_staked(&account_id) - staked_delta;
         let unstaked_amount = self.internal_get_unstaked_deposit(&account_id) + unstaked_delta;

@@ -53,7 +53,10 @@ impl FungibleTokenCore for LiquidStakingContract {
         // Ensure minimum required gas is attached
         require!(
             env::prepaid_gas() > GAS_FOR_FT_TRANSFER_CALL,
-            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, GAS_FOR_FT_TRANSFER_CALL)
+            format!(
+                "{}. require at least {:?}",
+                ERR_NO_ENOUGH_GAS, GAS_FOR_FT_TRANSFER_CALL
+            )
         );
         let sender_id = env::predecessor_account_id();
         let amount = amount.into();

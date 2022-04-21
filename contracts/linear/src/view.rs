@@ -158,13 +158,12 @@ impl LiquidStakingContract {
     }
 
     /// Returns the current reward fee as a fraction.
-    ///
-    /// TODO: this is the temporary rewards fee fraction that should be replaced by the actual
-    /// fee calculated based on the validator pool and beneficiaries
+    /// Weighted average fee of all validators: 4.9%, treasury fee 1%.
+    /// Total fee: 100% - (100% - 4.9%) * (100% - 1%)
     pub fn get_reward_fee_fraction(&self) -> Fraction {
         Fraction {
-            numerator: 1,
-            denominator: 100,
+            numerator: 58,
+            denominator: 1000,
         }
     }
 

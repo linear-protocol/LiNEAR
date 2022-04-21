@@ -3,7 +3,7 @@ use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     env,
     json_types::U128,
-    log, require, near_bindgen, AccountId, PromiseOrValue,
+    log, near_bindgen, require, AccountId, PromiseOrValue,
 };
 
 #[near_bindgen]
@@ -20,14 +20,8 @@ impl FungibleTokenReceiver for Contract {
         msg: String,
     ) -> PromiseOrValue<U128> {
         let amount = amount.into();
-        require!(
-            amount > 0,
-            "received amount must be positive"
-        );
-        log!(
-            "sender: {}, amount: {}, msg: {}",
-            sender_id, amount, msg
-        );
+        require!(amount > 0, "received amount must be positive");
+        log!("sender: {}, amount: {}, msg: {}", sender_id, amount, msg);
         log!(
             "predecessor: {}, attached gas: {}T, deposit: {}yoctoN",
             env::predecessor_account_id(),
@@ -35,7 +29,9 @@ impl FungibleTokenReceiver for Contract {
             env::attached_deposit()
         );
         match msg.as_str() {
-            "fail" => env::panic_str(format!("ft_on_transfer() from @{} failed!", sender_id).as_str()),
+            "fail" => {
+                env::panic_str(format!("ft_on_transfer() from @{} failed!", sender_id).as_str())
+            }
             "refund" => PromiseOrValue::Value(U128(amount)),
             _ => PromiseOrValue::Value(U128(0)),
         }

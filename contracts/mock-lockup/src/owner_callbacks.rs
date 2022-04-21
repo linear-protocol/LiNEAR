@@ -1,5 +1,5 @@
 use crate::*;
-use near_sdk::{near_bindgen, PromiseOrValue, assert_self, is_promise_success};
+use near_sdk::{assert_self, is_promise_success, near_bindgen, PromiseOrValue};
 
 #[near_bindgen]
 impl LockupContract {

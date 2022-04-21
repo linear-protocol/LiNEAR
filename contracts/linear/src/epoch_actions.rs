@@ -1,5 +1,5 @@
 use crate::*;
-use near_sdk::{log, near_bindgen, Balance, is_promise_success,};
+use near_sdk::{is_promise_success, log, near_bindgen, Balance};
 
 use crate::errors::*;
 use crate::events::Event;
@@ -233,7 +233,7 @@ impl LiquidStakingContract {
                 validator.account_id,
                 env::current_account_id(),
                 NO_DEPOSIT,
-                GAS_CB_VALIDATOR_SYNC_BALANCE
+                GAS_CB_VALIDATOR_SYNC_BALANCE,
             ));
     }
 
@@ -250,31 +250,27 @@ impl LiquidStakingContract {
             format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
         );
 
-        let mut validator = self.validator_pool.get_validator(&validator_id)
+        let mut validator = self
+            .validator_pool
+            .get_validator(&validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST);
 
         // make sure the validator:
         // 1. has weight set to 0
         // 2. not in pending release
         // 3. has not unstaked balance (because this part is from user's unstake request)
-        require!(
-            validator.weight == 0,
-            ERR_NON_ZERO_WEIGHT
-        );
+        require!(validator.weight == 0, ERR_NON_ZERO_WEIGHT);
         require!(
             !validator.pending_release(),
             ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED
         );
-        require!(
-            validator.unstaked_amount == 0,
-            ERR_NON_ZERO_UNSTAKED_AMOUNT
-        );
+        require!(validator.unstaked_amount == 0, ERR_NON_ZERO_UNSTAKED_AMOUNT);
 
         let unstake_amount = validator.staked_amount;
 
         Event::DrainUnstakeAttempt {
             validator_id: &validator_id,
-            amount: &U128(unstake_amount)
+            amount: &U128(unstake_amount),
         }
         .emit();
 
@@ -310,14 +306,8 @@ impl LiquidStakingContract {
         // 1. has weight set to 0
         // 2. has no staked balance
         // 3. not pending release
-        require!(
-            validator.weight == 0,
-            ERR_NON_ZERO_WEIGHT
-        );
-        require!(
-            validator.staked_amount == 0,
-            ERR_NON_ZERO_STAKED_AMOUNT
-        );
+        require!(validator.weight == 0, ERR_NON_ZERO_WEIGHT);
+        require!(validator.staked_amount == 0, ERR_NON_ZERO_STAKED_AMOUNT);
         require!(
             !validator.pending_release(),
             ERR_VALIDATOR_WITHDRAW_WHEN_LOCKED
@@ -327,7 +317,7 @@ impl LiquidStakingContract {
 
         Event::DrainWithdrawAttempt {
             validator_id: &validator_id,
-            amount: &U128(amount)
+            amount: &U128(amount),
         }
         .emit();
 
@@ -483,9 +473,9 @@ impl LiquidStakingContract {
 
     #[private]
     pub fn validator_get_account_callback(
-        &mut self, 
+        &mut self,
         validator_id: AccountId,
-        #[callback] account: HumanReadableAccount
+        #[callback] account: HumanReadableAccount,
     ) {
         let mut validator = self
             .validator_pool
@@ -493,15 +483,15 @@ impl LiquidStakingContract {
             .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
         validator.on_sync_account_balance(
-            &mut self.validator_pool, 
+            &mut self.validator_pool,
             account.staked_balance.0,
-            account.unstaked_balance.0
+            account.unstaked_balance.0,
         );
 
         Event::BalanceSyncedFromValidator {
             validator_id: &validator_id,
             staked_balance: &account.staked_balance,
-            unstaked_balance: &account.unstaked_balance
+            unstaked_balance: &account.unstaked_balance,
         }
         .emit();
     }
@@ -540,7 +530,7 @@ impl LiquidStakingContract {
                 amount: &U128(amount),
             }
             .emit();
-            
+
             // those funds need to be restaked, so we add them back to epoch request
             self.epoch_requested_stake_amount += amount;
 

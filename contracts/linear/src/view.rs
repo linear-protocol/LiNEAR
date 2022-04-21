@@ -164,7 +164,7 @@ impl LiquidStakingContract {
     pub fn get_reward_fee_fraction(&self) -> Fraction {
         Fraction {
             numerator: 1,
-            denominator: 100
+            denominator: 100,
         }
     }
 

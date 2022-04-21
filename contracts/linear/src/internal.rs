@@ -24,7 +24,7 @@ impl LiquidStakingContract {
         .emit();
     }
 
-    pub(crate) fn assert_can_withdraw(& self, account_id: &AccountId, amount: Balance) {
+    pub(crate) fn assert_can_withdraw(&self, account_id: &AccountId, amount: Balance) {
         require!(amount > 0, ERR_NON_POSITIVE_WITHDRAWAL_AMOUNT);
 
         let account = self.internal_get_account(&account_id);
@@ -45,8 +45,7 @@ impl LiquidStakingContract {
 
         // at least 1 NEAR should be left to cover storage/gas.
         require!(
-            available_balance.saturating_sub(CONTRACT_MIN_RESERVE_BALANCE)
-                >= amount,
+            available_balance.saturating_sub(CONTRACT_MIN_RESERVE_BALANCE) >= amount,
             ERR_NO_ENOUGH_CONTRACT_BALANCE
         );
     }

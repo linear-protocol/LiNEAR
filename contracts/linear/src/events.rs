@@ -282,7 +282,7 @@ mod tests {
         let unstake_amount_to_settle = &U128(0);
         Event::EpochCleanup {
             stake_amount_to_settle,
-            unstake_amount_to_settle
+            unstake_amount_to_settle,
         }
         .emit();
         assert_eq!(
@@ -355,7 +355,7 @@ mod tests {
     fn drain_withdraw_success() {
         let validator_id = &alice();
         let amount = &U128(100);
-        Event::DrainWithdrawSuccess{
+        Event::DrainWithdrawSuccess {
             validator_id,
             amount,
         }
@@ -452,7 +452,7 @@ mod tests {
         Event::BalanceSyncedFromValidator {
             validator_id,
             staked_balance,
-            unstaked_balance
+            unstaked_balance,
         }
         .emit();
         assert_eq!(

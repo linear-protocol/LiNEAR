@@ -24,20 +24,23 @@ impl LiquidStakingContract {
         self.assert_owner();
         fraction.assert_valid();
 
-        if self.beneficiaries.len() == MAX_BENEFICIARIES &&
-            self.beneficiaries.get(&account_id).is_none() {
+        if self.beneficiaries.len() == MAX_BENEFICIARIES
+            && self.beneficiaries.get(&account_id).is_none()
+        {
             env::panic_str(ERR_TOO_MANY_BENEFICIARIES);
         }
 
-        let fraction_sum = self.beneficiaries.values().map(|f| {
-            f.as_f32()
-        }).reduce(|sum, v| {
-            sum + v
-        });
+        let fraction_sum = self
+            .beneficiaries
+            .values()
+            .map(|f| f.as_f32())
+            .reduce(|sum, v| sum + v);
         let fraction_sum = fraction_sum.unwrap_or_default();
 
-        let old_value = self.beneficiaries.get(&account_id)
-            .map(|f| {f.as_f32()})
+        let old_value = self
+            .beneficiaries
+            .get(&account_id)
+            .map(|f| f.as_f32())
             .unwrap_or_default();
 
         require!(

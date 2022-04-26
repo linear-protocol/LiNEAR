@@ -10,8 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,6 +21,12 @@ jobs:
       with:
         node-version: 16.13
         cache: npm
+        
+    - name: Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
         
     # Install dependencies
     - name: Install Dependencies

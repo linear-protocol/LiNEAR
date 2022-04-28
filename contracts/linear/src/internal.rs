@@ -206,10 +206,10 @@ impl LiquidStakingContract {
         );
     }
 
-    pub(crate) fn internal_get_beneficiaries(&self) -> HashMap<AccountId, Fraction> {
-        let mut result: HashMap<AccountId, Fraction> = HashMap::new();
-        for (account_id, fraction) in self.beneficiaries.iter() {
-            result.insert(account_id, fraction);
+    pub(crate) fn internal_get_beneficiaries(&self) -> HashMap<AccountId, u32> {
+        let mut result: HashMap<AccountId, u32> = HashMap::new();
+        for (account_id, percent) in self.beneficiaries.iter() {
+            result.insert(account_id, percent);
         }
 
         return result;
@@ -218,9 +218,9 @@ impl LiquidStakingContract {
     /// When there are rewards, a part of them will be
     /// given to executor, manager or treasury by minting new LiNEAR tokens.
     pub(crate) fn internal_distribute_staking_rewards(&mut self, rewards: Balance) {
-        let hashmap: HashMap<AccountId, Fraction> = self.internal_get_beneficiaries();
-        for (account_id, fraction) in hashmap.iter() {
-            let reward_near_amount: Balance = fraction.multiply(rewards);
+        let hashmap: HashMap<AccountId, u32> = self.internal_get_beneficiaries();
+        for (account_id, percent) in hashmap.iter() {
+            let reward_near_amount: Balance = percent_mul(rewards, *percent);
             // mint extra LiNEAR for him
             self.internal_mint_beneficiary_rewards(&account_id, reward_near_amount);
         }

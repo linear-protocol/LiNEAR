@@ -136,9 +136,6 @@ impl ValidatorPool {
         let mut amount_to_stake: Balance = 0;
 
         for (_, validator) in self.validators.iter() {
-            if validator.pending_release() {
-                continue;
-            }
             let target_amount =
                 self.validator_target_stake_amount(total_staked_near_amount, &validator);
             if validator.staked_amount < target_amount {

@@ -63,6 +63,12 @@ impl LiquidStakingContract {
         self.treasury_id = account_id;
     }
 
+    /// Set whitelist account ID
+    pub fn set_whitelist_contract_id(&mut self, account_id: AccountId) {
+        self.assert_owner();
+        self.whitelist_account_id = Some(account_id);
+    }
+
     // --- Staking Farm ----
 
     /// Add authorized user to the current contract.
@@ -127,6 +133,7 @@ impl LiquidStakingContract {
             beneficiaries: contract.beneficiaries,
             liquidity_pool: contract.liquidity_pool,
             validator_pool: contract.validator_pool,
+            whitelist_account_id: None,  // migrate
             epoch_requested_stake_amount: contract.epoch_requested_stake_amount,
             epoch_requested_unstake_amount: contract.epoch_requested_unstake_amount,
             stake_amount_to_settle: contract.stake_amount_to_settle,

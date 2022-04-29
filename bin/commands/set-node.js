@@ -79,7 +79,7 @@ exports.handler = async function (argv) {
 
   // Add
   // in case the list is too long, we cut it into chunks
-  const chunks = chunkList(nodesToAdd, 10);
+  const chunks = chunkList(nodesToAdd, 5);
   for (const chunkNodes of chunks) {
     await signer.functionCall({
       contractId: address,

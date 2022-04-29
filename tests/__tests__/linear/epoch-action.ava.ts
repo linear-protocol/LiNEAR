@@ -91,6 +91,9 @@ workspace.test('epoch stake', async (test, {root, contract, alice, owner, bob}) 
     {
       validator_id: v1.accountId,
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
   await owner.call(
@@ -99,6 +102,9 @@ workspace.test('epoch stake', async (test, {root, contract, alice, owner, bob}) 
     {
       validator_id: v2.accountId,
       weight: 20
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
   await owner.call(
@@ -107,6 +113,9 @@ workspace.test('epoch stake', async (test, {root, contract, alice, owner, bob}) 
     {
       validator_id: v3.accountId,
       weight: 30
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
 
@@ -179,6 +188,9 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
     {
       validator_id: v1.accountId,
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
   await owner.call(
@@ -187,6 +199,9 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
     {
       validator_id: v2.accountId,
       weight: 20
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
   await owner.call(
@@ -195,6 +210,9 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
     {
       validator_id: v3.accountId,
       weight: 30
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
 
@@ -282,6 +300,9 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, own
     {
       validator_id: v1.accountId,
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
   await owner.call(
@@ -290,6 +311,9 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, own
     {
       validator_id: v2.accountId,
       weight: 20
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
   await owner.call(
@@ -298,6 +322,9 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, own
     {
       validator_id: v3.accountId,
       weight: 30
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
 
@@ -434,6 +461,9 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, owner}) =>
     {
       validator_id: v1.accountId,
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
   await owner.call(
@@ -442,6 +472,9 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, owner}) =>
     {
       validator_id: v2.accountId,
       weight: 20
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
   await owner.call(
@@ -450,7 +483,11 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, owner}) =>
     {
       validator_id: v3.accountId,
       weight: 30
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
+
   );
 
   // user stake

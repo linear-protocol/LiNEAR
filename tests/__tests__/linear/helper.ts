@@ -18,7 +18,9 @@ export function initWorkSpace() {
 
     const contract = await deployLinear(root, owner.accountId);
 
-    return { contract, owner, alice, bob, carol };
+    await initAndSetWhitelist(root, contract, owner, true);
+
+    return { contract, owner, alice, bob, carol, };
   });
 }
 
@@ -57,6 +59,41 @@ export async function createStakingPool (root: NearAccount, id: string) {
       args: {}
     }
   );
+}
+
+let whitelistCount = 1;
+
+export async function initAndSetWhitelist(
+  root: NearAccount, 
+  contract: NearAccount,
+  owner: NearAccount,
+  allowAll = true
+) {
+  const whitelist = await root.createAndDeploy(
+    `whitelist${whitelistCount++}`,
+    'compiled-contracts/mock_whitelist.wasm',
+    {
+      method: 'new',
+    }
+  );
+
+  if (allowAll) {
+    await root.call(
+      whitelist,
+      'allow_all',
+      {}
+    );
+  }
+
+  await owner.call(
+    contract,
+    'set_whitelist_contract_id',
+    {
+      account_id: whitelist.accountId
+    }
+  );
+
+  return whitelist;
 }
 
 function parseError(e: any): string {

@@ -71,6 +71,10 @@ pub const ERR_VALIDATOR_ALREADY_EXIST: &str = "Validator already exists";
 pub const ERR_VALIDATOR_IN_USE: &str = "Validator is in use, cannot remove";
 pub const ERR_NO_ENOUGH_GAS: &str = "No enough gas";
 pub const ERR_BAD_VALIDATOR_LIST: &str = "Bad validator list";
+pub const ERR_VALIDATOR_NOT_WHITELISTED: &str = 
+    "Validator not whitelisted";
+pub const ERR_VALIDATOR_WHITELIST_NOT_SET: &str = 
+    "Validator whitelist not set";
 
 pub const ERR_VALIDATOR_UNSTAKE_AMOUNT: &str = "No enough amount to unstake from validator";
 pub const ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED: &str =

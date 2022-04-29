@@ -112,6 +112,18 @@ pub enum Event<'a> {
         new_stake_shares: &'a U128,
         unstaked_available_epoch_height: u64,
     },
+    // Validators
+    ValidatorAdded {
+        account_id: &'a AccountId,
+        weight: u16
+    },
+    ValidatorUpdated {
+        account_id: &'a AccountId,
+        weight: u16
+    },
+    ValidatorRemoved {
+        account_id: &'a AccountId,
+    },
     // Liquidity Pool
     InstantUnstake {
         account_id: &'a AccountId,
@@ -559,6 +571,49 @@ mod tests {
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"instant_unstake","data":[{"account_id":"alice","unstaked_amount":"98","swapped_stake_shares":"100","new_unstaked_balance":"111","new_stake_shares":"99","fee_amount":"3"}]}"#
+        );
+    }
+
+    #[test]
+    fn validator_added() {
+        let account_id = &alice();
+        let weight: u16 = 10;
+        Event::ValidatorAdded {
+            account_id,
+            weight,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_added","data":[{"account_id":"alice","weight":10}]}"#
+        );
+    }
+
+    #[test]
+    fn validator_updated() {
+        let account_id = &alice();
+        let weight: u16 = 10;
+        Event::ValidatorUpdated{
+            account_id,
+            weight,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_updated","data":[{"account_id":"alice","weight":10}]}"#
+        );
+    }
+
+    #[test]
+    fn validator_removed() {
+        let account_id = &alice();
+        Event::ValidatorRemoved {
+            account_id,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_removed","data":[{"account_id":"alice"}]}"#
         );
     }
 

@@ -50,6 +50,8 @@ pub struct ContractV1_1_0 {
     // --- Validator Pool ---
     /// The validator pool that manage the actions against validators
     pub validator_pool: ValidatorPool,
+    /// The whitelist contract ID, which controls the staking pool whitelist.
+    pub whitelist_account_id: Option<AccountId>,
     /// Amount of NEAR that is requested to stake by all users during the last epoch
     pub epoch_requested_stake_amount: Balance,
     /// Amount of NEAR that is requested to unstake by all users during the last epoch
@@ -98,7 +100,7 @@ pub struct ContractV1_0_0 {
     /// Whether the staking is paused.
     /// When paused, the account unstakes everything (stakes 0) and doesn't restake.
     /// It doesn't affect the staking shares or reward distribution.
-    /// Pausing is useful for node maintenance. Only the owner can pause and resume staking.
+    /// Pausing is useful for contract maintenance. Only the owner can pause and resume staking.
     /// The contract is not paused by default.
     pub paused: bool,
 

@@ -208,8 +208,8 @@ impl LiquidStakingContract {
 
     pub(crate) fn internal_get_beneficiaries(&self) -> HashMap<AccountId, u32> {
         let mut result: HashMap<AccountId, u32> = HashMap::new();
-        for (account_id, percent) in self.beneficiaries.iter() {
-            result.insert(account_id, percent);
+        for (account_id, bps) in self.beneficiaries.iter() {
+            result.insert(account_id, bps);
         }
 
         return result;
@@ -219,8 +219,8 @@ impl LiquidStakingContract {
     /// given to executor, manager or treasury by minting new LiNEAR tokens.
     pub(crate) fn internal_distribute_staking_rewards(&mut self, rewards: Balance) {
         let hashmap: HashMap<AccountId, u32> = self.internal_get_beneficiaries();
-        for (account_id, percent) in hashmap.iter() {
-            let reward_near_amount: Balance = percent_mul(rewards, *percent);
+        for (account_id, bps) in hashmap.iter() {
+            let reward_near_amount: Balance = bps_mul(rewards, *bps);
             // mint extra LiNEAR for him
             self.internal_mint_beneficiary_rewards(&account_id, reward_near_amount);
         }

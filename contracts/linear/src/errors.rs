@@ -18,7 +18,7 @@ pub const ERR_UNREGISTER_POSITIVE_UNSTAKED: &str = "Cannot delete the account be
 // fraction
 pub const ERR_FRACTION_BAD_DENOMINATOR: &str = "Denominator cannot be zero";
 pub const ERR_FRACTION_BAD_NUMERATOR: &str = "Numerator must <= denominator";
-pub const ERR_PERCENT_SUM_ONE: &str = "Percentage sum should be less than 1";
+pub const ERR_BPS_SUM_ONE: &str = "bps sum should be less than 1";
 
 // beneficiary
 pub const ERR_TOO_MANY_BENEFICIARIES: &str = "Too many beneficiaries";

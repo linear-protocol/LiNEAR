@@ -10,7 +10,7 @@ workspace.test('non-owner call beneficiaries', async (test, { contract, alice })
       'set_beneficiary',
       {
         account_id: alice.accountId,
-        percent: 1000
+        bps: 1000
       }
     ),
     'Only owner can perform this action'
@@ -35,7 +35,7 @@ workspace.test('beneficiaries sum > 1', async (test, { contract, owner }) => {
     'set_beneficiary',
     {
       account_id: 'foo',
-      percent: 5000
+      bps: 5000
     }
   );
 
@@ -46,10 +46,10 @@ workspace.test('beneficiaries sum > 1', async (test, { contract, owner }) => {
       'set_beneficiary',
       {
         account_id: 'bar',
-        percent: 6000
+        bps: 6000
       }
     ),
-    'Percentage sum should be less than 1'
+    'bps sum should be less than 1'
   );
 });
 
@@ -60,7 +60,7 @@ workspace.test('too many beneficiaries', async (test, { contract, owner }) => {
       'set_beneficiary',
       {
         account_id: `b${i}`,
-        percent: 100
+        bps: 100
       }
     );
   }
@@ -72,7 +72,7 @@ workspace.test('too many beneficiaries', async (test, { contract, owner }) => {
       'set_beneficiary',
       {
         account_id: 'bar',
-        percent: 100
+        bps: 100
       }
     ),
     'Too many beneficiaries'
@@ -92,7 +92,7 @@ workspace.test('set beneficiaries', async (test, { contract, owner }) => {
     'set_beneficiary',
     {
       account_id: 'foo',
-      percent: 1000
+      bps: 1000
     }
   );
   await owner.call(
@@ -100,7 +100,7 @@ workspace.test('set beneficiaries', async (test, { contract, owner }) => {
     'set_beneficiary',
     {
       account_id: 'bar',
-      percent: 5000
+      bps: 5000
     }
   );
 

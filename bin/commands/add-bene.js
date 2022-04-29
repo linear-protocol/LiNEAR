@@ -19,14 +19,14 @@ exports.builder = yargs => {
     .option('account', {
       describe: 'beneficiary account ID'
     })
-    .option('percent', {
-      describe: 'percentage based on 10000'
+    .option('bps', {
+      describe: 'basis point of 10000'
     })
-    .demandOption(['signer', 'account', 'percent'])
+    .demandOption(['signer', 'account', 'bps'])
 }
 
 exports.handler = async function (argv) {
-  const { address, percent, account } = argv;
+  const { address, bps, account } = argv;
   
   const near = await init(argv.network);
   const signer = await near.account(argv.signer);
@@ -38,7 +38,7 @@ exports.handler = async function (argv) {
     methodName: 'set_beneficiary',
     args: {
       account_id: account,
-      percent: parseInt(percent)
+      bps: parseInt(bps)
     }
   });
 

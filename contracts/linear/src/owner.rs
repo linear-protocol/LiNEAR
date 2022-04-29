@@ -21,7 +21,7 @@ impl LiquidStakingContract {
         self.internal_remove_manager(&manager_id)
     }
 
-    pub fn set_beneficiary(&mut self, account_id: AccountId, percent: u32) {
+    pub fn set_beneficiary(&mut self, account_id: AccountId, bps: u32) {
         self.assert_owner();
 
         if self.beneficiaries.len() == MAX_BENEFICIARIES
@@ -30,11 +30,11 @@ impl LiquidStakingContract {
             env::panic_str(ERR_TOO_MANY_BENEFICIARIES);
         }
 
-        let percent_sum = self
+        let bps_sum = self
             .beneficiaries
             .values()
             .reduce(|sum, v| sum + v);
-        let percent_sum = percent_sum.unwrap_or_default();
+        let bps_sum = bps_sum.unwrap_or_default();
 
         let old_value = self
             .beneficiaries
@@ -42,11 +42,11 @@ impl LiquidStakingContract {
             .unwrap_or_default();
 
         require!(
-            percent_sum - old_value + percent <= FULL_BASIS_POINTS,
-            ERR_PERCENT_SUM_ONE
+            bps_sum - old_value + bps <= FULL_BASIS_POINTS,
+            ERR_BPS_SUM_ONE
         );
 
-        self.beneficiaries.insert(&account_id, &percent);
+        self.beneficiaries.insert(&account_id, &bps);
     }
 
     pub fn remove_beneficiary(&mut self, account_id: AccountId) {

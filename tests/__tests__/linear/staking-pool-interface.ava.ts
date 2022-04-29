@@ -1,4 +1,4 @@
-import { NEAR } from 'near-workspaces-ava';
+import { NEAR, Gas } from 'near-workspaces-ava';
 import { initWorkSpace, assertFailure, epochHeightFastforward } from './helper';
 
 const ERR_UNSTAKED_BALANCE_NOT_AVAILABLE = 'The unstaked balance is not yet available due to unstaking delay';
@@ -235,4 +235,76 @@ workspace.test('unstake and withdraw', async (test, { contract, alice }) => {
     stakeAmount.sub(unstakeAmount).sub(withdrawAmount).toString()
   );
 
+});
+
+workspace.test('late unstake and withdraw', async (test, { contract ,alice }) => {
+  // deposit
+  const deposit = NEAR.parse('10');
+  await alice.call(
+    contract,
+    'deposit',
+    {},
+    { attachedDeposit: deposit },
+  );
+
+  // stake
+  const stakeAmount = NEAR.parse('9');
+  await alice.call(
+    contract,
+    'stake',
+    { amount: stakeAmount.toString() }
+  );
+
+  // call epoch_stake, in order to trigger clean up
+  await alice.call(
+    contract,
+    'epoch_stake',
+    {},
+    {
+      gas: Gas.parse('200 Tgas')
+    }
+  );
+
+  // unstake
+  const unstakeAmount = NEAR.parse('5');
+  await alice.call(
+    contract,
+    'unstake',
+    { amount: unstakeAmount.toString() }
+  ); 
+
+  // withdraw available time should be 5 epoches later
+  const account: any = await contract.view(
+    'get_account_details',
+    {
+      account_id: alice.accountId
+    }
+  );
+
+  test.is(
+    account.unstaked_available_epoch_height,
+    15
+  );
+
+  // cannot withdraw after 4 epoches
+  await epochHeightFastforward(contract, alice);
+
+  await assertFailure(
+    test,
+    alice.call(
+      contract,
+      'withdraw',
+      { amount: unstakeAmount.toString() }
+    ),
+    'The unstaked balance is not yet available due to unstaking delay'
+  );
+
+  // wait for one more epoch
+  await epochHeightFastforward(contract, alice, 1);
+
+  await alice.call(
+    contract,
+    'withdraw',
+    { amount: unstakeAmount.toString() }
+  );
 });

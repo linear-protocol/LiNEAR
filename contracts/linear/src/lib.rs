@@ -37,7 +37,7 @@ use crate::validator_pool::*;
 pub(crate) enum StorageKey {
     Accounts,
     Shares,
-    Beneficiaries,
+    // Beneficiaries,
     Validators,
     Farms,
     // AuthorizedUsers,

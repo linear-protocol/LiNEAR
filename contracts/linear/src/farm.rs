@@ -183,8 +183,7 @@ impl LiquidStakingContract {
         farm_id: u64,
         farm: &mut Farm,
     ) {
-        let (new_user_rps, claim_amount) =
-            self.internal_unclaimed_balance(account, farm_id, farm);
+        let (new_user_rps, claim_amount) = self.internal_unclaimed_balance(account, farm_id, farm);
         account
             .last_farm_reward_per_share
             .insert(farm_id, new_user_rps);

@@ -6,9 +6,7 @@ use crate::*;
 impl LiquidStakingContract {
     /// Please notice ping() is not available for liquid staking.
     /// Keep here for interface consistency.
-    pub fn ping(&mut self) {
-
-    }
+    pub fn ping(&mut self) {}
 
     /// Deposits the attached amount into the inner account of the predecessor.
     #[payable]

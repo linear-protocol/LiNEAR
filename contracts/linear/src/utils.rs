@@ -15,7 +15,7 @@ impl Fraction {
             denominator,
         };
         f.assert_valid();
-        return f;
+        f
     }
 
     pub fn assert_valid(&self) {
@@ -120,5 +120,5 @@ pub(crate) fn staked_amount_from_num_shares_rounded_down(
 /// The absolute diff between left and right is not greater than epsilon.
 /// This is useful when user submit requests that approximaitely equal to the acount's NEAR/LiNEAR balance
 pub(crate) fn abs_diff_eq(left: u128, right: u128, epsilon: u128) -> bool {
-    return left <= right + epsilon && right <= left + epsilon;
+    left <= right + epsilon && right <= left + epsilon
 }

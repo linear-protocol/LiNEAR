@@ -68,7 +68,7 @@ impl LiquidStakingContract {
             ),
         );
 
-        return true;
+        true
     }
 
     pub fn epoch_unstake(&mut self) -> bool {
@@ -120,7 +120,7 @@ impl LiquidStakingContract {
                 GAS_CB_VALIDATOR_UNSTAKED,
             ));
 
-        return true;
+        true
     }
 
     pub fn epoch_update_rewards(&mut self, validator_id: AccountId) {
@@ -362,7 +362,7 @@ impl LiquidStakingContract {
             let mut validator = self
                 .validator_pool
                 .get_validator(&validator_id)
-                .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
+                .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
             validator.on_stake_success(&mut self.validator_pool, amount);
 
             Event::EpochStakeSuccess {
@@ -387,7 +387,7 @@ impl LiquidStakingContract {
         let mut validator = self
             .validator_pool
             .get_validator(&validator_id)
-            .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
+            .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
         if is_promise_success() {
             validator.on_unstake_success(&mut self.validator_pool, amount);
@@ -418,7 +418,7 @@ impl LiquidStakingContract {
         let mut validator = self
             .validator_pool
             .get_validator(&validator_id)
-            .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
+            .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
         if is_promise_success() {
             validator.on_unstake_success(&mut self.validator_pool, amount);
@@ -480,7 +480,7 @@ impl LiquidStakingContract {
         let mut validator = self
             .validator_pool
             .get_validator(&validator_id)
-            .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
+            .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
         validator.on_sync_account_balance(
             &mut self.validator_pool,
@@ -511,7 +511,7 @@ impl LiquidStakingContract {
         let mut validator = self
             .validator_pool
             .get_validator(&validator_id)
-            .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
+            .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
         validator.on_withdraw_failed(&mut self.validator_pool, amount);
 
@@ -533,14 +533,12 @@ impl LiquidStakingContract {
 
             // those funds need to be restaked, so we add them back to epoch request
             self.epoch_requested_stake_amount += amount;
-
-            return;
         } else {
             // withdraw failed, revert
             let mut validator = self
                 .validator_pool
                 .get_validator(&validator_id)
-                .expect(&format!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
+                .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
             validator.on_withdraw_failed(&mut self.validator_pool, amount);
 

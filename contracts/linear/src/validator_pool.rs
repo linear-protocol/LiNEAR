@@ -81,7 +81,7 @@ impl ValidatorPool {
 
         self.total_weight += weight;
 
-        return validator;
+        validator
     }
 
     pub fn remove_validator(&mut self, validator_id: &AccountId) -> Validator {
@@ -98,7 +98,7 @@ impl ValidatorPool {
 
         self.total_weight -= validator.weight;
 
-        return validator;
+        validator
     }
 
     pub fn update_weight(&mut self, validator_id: &AccountId, weight: u16) {
@@ -149,7 +149,7 @@ impl ValidatorPool {
         }
 
         // Note that it's possible that no validator is available
-        return (candidate, amount_to_stake);
+        (candidate, amount_to_stake)
     }
 
     pub fn get_candidate_to_unstake(
@@ -188,7 +188,7 @@ impl ValidatorPool {
             amount_to_unstake = min(amount, candidate.as_ref().unwrap().staked_amount);
         }
 
-        return (candidate, amount_to_unstake);
+        (candidate, amount_to_unstake)
     }
 
     fn validator_target_stake_amount(
@@ -227,7 +227,7 @@ impl ValidatorPool {
 
         // no enough available validators to unstake
         // double the unstake wating time
-        return 2 * NUM_EPOCHS_TO_UNLOCK;
+        2 * NUM_EPOCHS_TO_UNLOCK
     }
 }
 
@@ -257,7 +257,7 @@ impl LiquidStakingContract {
             );
         }
 
-        return results;
+        results
     }
 
     pub fn remove_validator(&mut self, validator_id: AccountId) -> Validator {
@@ -479,12 +479,12 @@ impl Validator {
         self.unstaked_amount -= amount;
         pool.save_validator(self);
 
-        return ext_staking_pool::withdraw(
+        ext_staking_pool::withdraw(
             amount.into(),
             self.account_id.clone(),
             NO_DEPOSIT,
             GAS_EXT_WITHDRAW,
-        );
+        )
     }
 
     pub fn on_withdraw_failed(&mut self, pool: &mut ValidatorPool, amount: Balance) {

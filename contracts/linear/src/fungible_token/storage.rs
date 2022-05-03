@@ -49,7 +49,7 @@ impl LiquidStakingContract {
         &self,
         account_id: &AccountId,
     ) -> Option<StorageBalance> {
-        if let Some(_) = self.accounts.get(account_id) {
+        if self.accounts.get(account_id).is_some() {
             Some(StorageBalance {
                 total: self.storage_balance_bounds().min,
                 available: 0.into(),

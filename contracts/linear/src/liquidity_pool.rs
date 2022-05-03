@@ -85,8 +85,8 @@ impl LiquidityPool {
 
         // Default token IDs
         let token_account_ids: Vec<AccountId> = Vec::from([
-            NEAR_TOKEN_ACCOUNT.parse::<AccountId>().unwrap().clone(),
-            LINEAR_TOKEN_ACCOUNT.parse::<AccountId>().unwrap().clone(),
+            NEAR_TOKEN_ACCOUNT.parse::<AccountId>().unwrap(),
+            LINEAR_TOKEN_ACCOUNT.parse::<AccountId>().unwrap(),
         ]);
 
         Self {
@@ -108,14 +108,14 @@ impl LiquidityPool {
     /// Adds the amounts of tokens to liquidity pool and returns number of shares that this user receives.
     pub fn add_liquidity(&mut self, account_id: &AccountId, amount: Balance, shares: Balance) {
         require!(shares > 0, ERR_NON_POSITIVE_LIQUIDITY_POOL_SHARE);
-        self.mint_shares(&account_id, shares);
+        self.mint_shares(account_id, shares);
         // Add NEAR amount
         self.amounts[0] += amount;
     }
 
     /// Removes given number of shares from the pool and returns amounts to the parent.
     pub fn remove_liquidity(&mut self, account_id: &AccountId, shares: Balance) -> Vec<Balance> {
-        let prev_shares_amount = self.shares.get(&account_id).expect(ERR_ACCOUNT_NO_SHARE);
+        let prev_shares_amount = self.shares.get(account_id).expect(ERR_ACCOUNT_NO_SHARE);
         require!(
             prev_shares_amount >= shares,
             format!(
@@ -133,7 +133,7 @@ impl LiquidityPool {
             result.push(amount);
         }
         self.shares
-            .insert(&account_id, &(prev_shares_amount - shares));
+            .insert(account_id, &(prev_shares_amount - shares));
         log!(
             "{} shares of liquidity removed: receive back {:?}",
             shares,
@@ -221,13 +221,13 @@ impl LiquidityPool {
             return (0, 0);
         }
         // Calculate increased NEAR amount, and decreased LiNEAR amount
-        let stake_shares_value = staked_amount_from_num_shares_rounded_down(stake_shares, &context);
+        let stake_shares_value = staked_amount_from_num_shares_rounded_down(stake_shares, context);
         let (increased_amount, decreased_stake_shares) = if requested_amount >= stake_shares_value {
             (stake_shares_value, stake_shares)
         } else {
             (
                 requested_amount,
-                num_shares_from_staked_amount_rounded_down(requested_amount, &context),
+                num_shares_from_staked_amount_rounded_down(requested_amount, context),
             )
         };
         // Increase NEAR
@@ -307,18 +307,18 @@ impl LiquidityPool {
 
     /// Return shares for the account
     pub fn get_account_shares(&self, account_id: &AccountId) -> ShareBalance {
-        self.shares.get(&account_id).unwrap_or(0)
+        self.shares.get(account_id).unwrap_or(0)
     }
 
     /// Calculate account value in NEAR by shares
     pub fn get_account_value(&self, account_id: &AccountId, context: &Context) -> Balance {
-        let shares = self.get_account_shares(&account_id);
+        let shares = self.get_account_shares(account_id);
         self.get_value_from_shares_rounded_up(shares, context)
     }
 
     /// Calculate account liquidity pool shares ratio in basis points
     pub fn get_account_shares_ratio_in_basis_points(&self, account_id: &AccountId) -> u32 {
-        let shares = self.get_account_shares(&account_id);
+        let shares = self.get_account_shares(account_id);
         if self.shares_total_supply == 0 || shares == 0 {
             0
         } else {
@@ -333,9 +333,9 @@ impl LiquidityPool {
         if shares == 0 {
             return;
         }
-        let prev_shares_amount = self.get_account_shares(&account_id);
+        let prev_shares_amount = self.get_account_shares(account_id);
         self.shares
-            .insert(&account_id, &(prev_shares_amount + shares));
+            .insert(account_id, &(prev_shares_amount + shares));
         self.shares_total_supply += shares;
     }
 
@@ -432,7 +432,7 @@ impl LiquidStakingContract {
             .emit()
         }
 
-        results.iter().map(|amount| amount.clone().into()).collect()
+        results.iter().map(|amount| (*amount).into()).collect()
     }
 
     /// Instant Unstake: swap LiNEAR to NEAR via the Liquidity Pool

@@ -27,7 +27,7 @@ impl LiquidStakingContract {
     pub(crate) fn assert_can_withdraw(&self, account_id: &AccountId, amount: Balance) {
         require!(amount > 0, ERR_NON_POSITIVE_WITHDRAWAL_AMOUNT);
 
-        let account = self.internal_get_account(&account_id);
+        let account = self.internal_get_account(account_id);
         require!(
             account.unstaked >= amount,
             ERR_NO_ENOUGH_UNSTAKED_BALANCE_TO_WITHDRAW
@@ -212,7 +212,7 @@ impl LiquidStakingContract {
             result.insert(account_id, fraction);
         }
 
-        return result;
+        result
     }
 
     /// When there are rewards, a part of them will be
@@ -222,7 +222,7 @@ impl LiquidStakingContract {
         for (account_id, fraction) in hashmap.iter() {
             let reward_near_amount: Balance = fraction.multiply(rewards);
             // mint extra LiNEAR for him
-            self.internal_mint_beneficiary_rewards(&account_id, reward_near_amount);
+            self.internal_mint_beneficiary_rewards(account_id, reward_near_amount);
         }
     }
 
@@ -245,7 +245,7 @@ impl LiquidStakingContract {
             memo: Some("beneficiary rewards"),
         }
         .emit();
-        return shares;
+        shares
     }
 
     /// Returns the number of "stake" shares rounded down corresponding to the given staked balance
@@ -325,7 +325,7 @@ impl LiquidStakingContract {
     /// If the account balances are 0, the account is deleted instead to release storage.
     pub(crate) fn internal_save_account(&mut self, account_id: &AccountId, account: &Account) {
         if account.unstaked > 0 || account.stake_shares > 0 {
-            self.accounts.insert(account_id, &account);
+            self.accounts.insert(account_id, account);
         } else {
             self.accounts.remove(account_id);
         }

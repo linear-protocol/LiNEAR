@@ -79,13 +79,13 @@ impl LiquidStakingContract {
     /// Add authorized token.
     pub fn add_authorized_farm_token(&mut self, token_id: &AccountId) {
         self.assert_owner();
-        self.authorized_farm_tokens.insert(&token_id);
+        self.authorized_farm_tokens.insert(token_id);
     }
 
     /// Remove authorized token.
     pub fn remove_authorized_farm_token(&mut self, token_id: &AccountId) {
         self.assert_owner();
-        self.authorized_farm_tokens.remove(&token_id);
+        self.authorized_farm_tokens.remove(token_id);
     }
 
     // Asserts that the method was called by the owner or authorized user.

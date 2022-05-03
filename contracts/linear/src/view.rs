@@ -181,7 +181,7 @@ impl LiquidStakingContract {
     pub fn get_account(&self, account_id: AccountId) -> HumanReadableAccount {
         let account = self.internal_get_account(&account_id);
         HumanReadableAccount {
-            account_id: account_id.clone(),
+            account_id,
             unstaked_balance: account.unstaked.into(),
             staked_balance: self
                 .staked_amount_from_num_shares_rounded_down(account.stake_shares)
@@ -215,7 +215,7 @@ impl LiquidStakingContract {
 
     /// Return liquidity pool configuration
     pub fn get_liquidity_pool_config(&self) -> LiquidityPoolConfig {
-        return self.liquidity_pool.config.clone();
+        self.liquidity_pool.config.clone()
     }
 
     // --- Staking Farm view methods ---

@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use crate::types::*;
 
 /// Inner account data of a delegate.
-#[derive(BorshDeserialize, BorshSerialize, Debug, PartialEq)]
+#[derive(BorshDeserialize, BorshSerialize, Debug, PartialEq, Default)]
 pub struct Account {
     /// The unstaked balance. It represents the amount the account has on this contract that
     /// can either be staked or withdrawn.
@@ -64,16 +64,4 @@ pub struct AccountDetailsView {
     pub liquidity_pool_share_value: U128,
     /// The liquidity pool share ratio of the total supply in basis points
     pub liquidity_pool_share_ratio_in_basis_points: u32,
-}
-
-impl Default for Account {
-    fn default() -> Self {
-        Self {
-            unstaked: 0,
-            stake_shares: 0,
-            unstaked_available_epoch_height: 0,
-            amounts: HashMap::new(),
-            last_farm_reward_per_share: HashMap::new(),
-        }
-    }
 }

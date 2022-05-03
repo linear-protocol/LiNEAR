@@ -49,6 +49,12 @@ pub struct ValidatorPool {
     total_weight: u16,
 }
 
+impl Default for ValidatorPool {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ValidatorPool {
     pub fn new() -> Self {
         Self {

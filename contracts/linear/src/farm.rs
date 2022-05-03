@@ -165,7 +165,7 @@ impl LiquidStakingContract {
                 .last_farm_reward_per_share
                 .get(&farm_id)
                 .cloned()
-                .unwrap_or(U256::zero());
+                .unwrap_or_else(U256::zero);
             (
                 farm.last_distribution.reward_per_share,
                 (U256::from(account.stake_shares) * (distribution.reward_per_share - user_rps)

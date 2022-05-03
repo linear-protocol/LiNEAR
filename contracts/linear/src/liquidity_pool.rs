@@ -217,7 +217,7 @@ impl LiquidityPool {
     ) -> (Balance, ShareBalance) {
         let stake_shares = self.amounts[1];
         // If no requested amounts or no LiNEAR available, don't rebalance
-        if requested_amount <= 0 || stake_shares <= 0 {
+        if requested_amount == 0 || stake_shares == 0 {
             return (0, 0);
         }
         // Calculate increased NEAR amount, and decreased LiNEAR amount
@@ -526,7 +526,7 @@ impl LiquidStakingContract {
     pub(crate) fn rebalance_liquidity(&mut self) {
         let account_id = env::predecessor_account_id();
         // If no new staking request, skip the rebalance
-        if self.epoch_requested_stake_amount <= 0 {
+        if self.epoch_requested_stake_amount == 0 {
             return;
         }
         // Rebalance in the pool and return actual rebalanced amount and stake shares

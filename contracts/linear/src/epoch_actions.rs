@@ -463,7 +463,7 @@ impl LiquidStakingContract {
 
         validator.on_new_total_balance(&mut self.validator_pool, new_balance);
 
-        if rewards <= 0 {
+        if rewards == 0 {
             return;
         }
 

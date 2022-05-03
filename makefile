@@ -41,6 +41,10 @@ mock-lockup: contracts/mock-lockup
 clean:
 	rm res/*.wasm
 
+lint:
+	cargo fmt -- --check
+	cargo clippy --tests -- -D clippy::all
+
 test: test-unit test-linear test-mock-staking-pool test-mock-fungible-token
 
 test-unit:

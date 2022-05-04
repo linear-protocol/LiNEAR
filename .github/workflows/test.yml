@@ -1,0 +1,54 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # Setup Rust environment
+      - name: Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: Swatinem/rust-cache@v1
+      # Set up Node environment
+      - name: Setup Node
+        uses: actions/setup-node@v3.1.1
+        with:
+          node-version: 16.13
+          cache: npm
+      - name: Install Dependencies
+        run: cd tests && npm install
+      # Run tests
+      - name: Run tests
+        run: make test
+
+  lint:
+    name: clippy and fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # Setup Rust environment
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v1
+      # Run lint
+      - name: Test Format
+        run: cargo fmt -- --check
+      - name: Lint with clippy
+        run: cargo clippy --tests -- -D clippy::all

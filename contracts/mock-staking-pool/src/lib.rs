@@ -227,6 +227,6 @@ impl MockStakingPool {
     }
 
     fn internal_get_staked(&self, account_id: &AccountId) -> u128 {
-        self.staked.get(&account_id).unwrap_or_default()
+        self.staked.get(account_id).unwrap_or_default()
     }
 }

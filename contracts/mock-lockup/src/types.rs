@@ -1,3 +1,9 @@
+#![allow(
+    clippy::assign_op_pattern,
+    clippy::manual_range_contains,
+    clippy::ptr_offset_with_cast
+)]
+
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::json_types::{Base64VecU8, U128, U64};
 use near_sdk::serde::{Deserialize, Serialize};

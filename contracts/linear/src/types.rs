@@ -1,3 +1,9 @@
+#![allow(
+    clippy::assign_op_pattern,
+    clippy::manual_range_contains,
+    clippy::ptr_offset_with_cast
+)]
+
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     Balance, EpochHeight, Gas,

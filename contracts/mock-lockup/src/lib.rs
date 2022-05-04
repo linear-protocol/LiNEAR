@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_arguments)]
+
 //! A smart contract that allows tokens to be locked up.
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};

@@ -156,7 +156,7 @@ impl LiquidStakingContract {
         farm: &mut Farm,
     ) -> (U256, Balance) {
         if let Some(distribution) =
-            self.internal_calculate_distribution(&farm, self.total_share_amount)
+            self.internal_calculate_distribution(farm, self.total_share_amount)
         {
             if distribution.reward_round != farm.last_distribution.reward_round {
                 farm.last_distribution = distribution.clone();
@@ -165,7 +165,7 @@ impl LiquidStakingContract {
                 .last_farm_reward_per_share
                 .get(&farm_id)
                 .cloned()
-                .unwrap_or(U256::zero());
+                .unwrap_or_else(U256::zero);
             (
                 farm.last_distribution.reward_per_share,
                 (U256::from(account.stake_shares) * (distribution.reward_per_share - user_rps)
@@ -181,10 +181,9 @@ impl LiquidStakingContract {
         &mut self,
         account: &mut Account,
         farm_id: u64,
-        mut farm: &mut Farm,
+        farm: &mut Farm,
     ) {
-        let (new_user_rps, claim_amount) =
-            self.internal_unclaimed_balance(&account, farm_id, &mut farm);
+        let (new_user_rps, claim_amount) = self.internal_unclaimed_balance(account, farm_id, farm);
         account
             .last_farm_reward_per_share
             .insert(farm_id, new_user_rps);
@@ -198,12 +197,12 @@ impl LiquidStakingContract {
     }
 
     /// Distribute all rewards for the given user.
-    pub(crate) fn internal_distribute_all_farm_rewards(&mut self, mut account: &mut Account) {
+    pub(crate) fn internal_distribute_all_farm_rewards(&mut self, account: &mut Account) {
         let old_active_farms = self.active_farms.clone();
         self.active_farms = vec![];
         for farm_id in old_active_farms.into_iter() {
             if let Some(mut farm) = self.farms.get(farm_id) {
-                self.internal_distribute_farm_reward(&mut account, farm_id, &mut farm);
+                self.internal_distribute_farm_reward(account, farm_id, &mut farm);
                 self.farms.replace(farm_id, &farm);
                 // Only include active farm
                 if farm.is_active() {
@@ -219,9 +218,9 @@ impl LiquidStakingContract {
         token_id: &AccountId,
         amount: Balance,
     ) {
-        let mut account = self.internal_get_account(&account_id);
+        let mut account = self.internal_get_account(account_id);
         *account.amounts.entry(token_id.clone()).or_default() += amount;
-        self.internal_save_account(&account_id, &account);
+        self.internal_save_account(account_id, &account);
     }
 
     fn internal_claim(
@@ -230,9 +229,9 @@ impl LiquidStakingContract {
         claim_account_id: &AccountId,
         send_account_id: &AccountId,
     ) -> Promise {
-        let mut account = self.internal_get_account(&claim_account_id);
+        let mut account = self.internal_get_account(claim_account_id);
         self.internal_distribute_all_farm_rewards(&mut account);
-        let amount = account.amounts.remove(&token_id).unwrap_or(0);
+        let amount = account.amounts.remove(token_id).unwrap_or(0);
         require!(amount > 0, ERR_NO_FARM_REWARDS);
         log!(
             "{} receives {} of {} from {}",
@@ -241,7 +240,7 @@ impl LiquidStakingContract {
             token_id,
             claim_account_id
         );
-        self.internal_save_account(&claim_account_id, &account);
+        self.internal_save_account(claim_account_id, &account);
         ext_fungible_token::ft_transfer(
             send_account_id.clone(),
             U128(amount),

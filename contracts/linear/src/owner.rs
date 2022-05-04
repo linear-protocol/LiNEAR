@@ -111,14 +111,17 @@ impl LiquidStakingContract {
     #[init(ignore_state)]
     #[private]
     pub fn migrate() -> Self {
-        let contract: ContractV1_0_0 = env::state_read().expect("ERR_NOT_INITIALIZED");
+        let mut contract: ContractV1_0_0 = env::state_read().expect("ERR_NOT_INITIALIZED");
 
-        let mut beneficiaries = UnorderedMap::new(StorageKey::BeneficiariesV2);
-        for (account, fraction) in contract.beneficiaries.iter() {
+        let old_beneficiaries = contract.beneficiaries.to_vec();
+        contract.beneficiaries.clear();
+        let mut new_beneficiaries = UnorderedMap::new(StorageKey::Beneficiaries);
+
+        for (account, fraction) in old_beneficiaries {
             // current beneficiaries denominators are all 10_000,
             // so we can directly take its numerator
             require!(fraction.denominator == FULL_BASIS_POINTS);
-            beneficiaries.insert(&account, &fraction.numerator);
+            new_beneficiaries.insert(&account, &fraction.numerator);
         }
 
         Self {
@@ -130,7 +133,7 @@ impl LiquidStakingContract {
             accounts: contract.accounts,
             paused: contract.paused,
             account_storage_usage: contract.account_storage_usage,
-            beneficiaries: beneficiaries,  // migrate
+            beneficiaries: new_beneficiaries,  // migrate
             liquidity_pool: contract.liquidity_pool,
             validator_pool: contract.validator_pool,
             epoch_requested_stake_amount: contract.epoch_requested_stake_amount,

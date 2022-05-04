@@ -37,13 +37,12 @@ use crate::validator_pool::*;
 pub(crate) enum StorageKey {
     Accounts,
     Shares,
-    // Beneficiaries,
+    Beneficiaries,
     Validators,
     Farms,
     // AuthorizedUsers,
     AuthorizedFarmTokens,
     Managers,
-    BeneficiariesV2,
 }
 
 #[near_bindgen]
@@ -145,7 +144,7 @@ impl LiquidStakingContract {
             accounts: UnorderedMap::new(StorageKey::Accounts),
             paused: false,
             account_storage_usage: 0,
-            beneficiaries: UnorderedMap::new(StorageKey::BeneficiariesV2),
+            beneficiaries: UnorderedMap::new(StorageKey::Beneficiaries),
             liquidity_pool: LiquidityPool::new(LiquidityPoolConfig::default()),
             // Validator Pool
             validator_pool: ValidatorPool::new(),

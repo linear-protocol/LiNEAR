@@ -50,4 +50,5 @@ jobs:
       # Run lint
       - name: Test Format
         run: cargo fmt -- --check
-      - run: cargo clippy --tests -- -D clippy::all
+      - name: Lint with clippy
+        run: cargo clippy --tests -- -D clippy::all

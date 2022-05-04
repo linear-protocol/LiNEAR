@@ -122,3 +122,7 @@ pub(crate) fn staked_amount_from_num_shares_rounded_down(
 pub(crate) fn abs_diff_eq(left: u128, right: u128, epsilon: u128) -> bool {
     left <= right + epsilon && right <= left + epsilon
 }
+
+pub(crate) fn bps_mul(value: u128, points: u32) -> u128 {
+    value * (points as u128) / FULL_BASIS_POINTS as u128
+}

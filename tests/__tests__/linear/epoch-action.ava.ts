@@ -406,10 +406,7 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, own
       'set_beneficiary',
       {
           account_id: owner.accountId,
-          fraction: {
-              numerator: 1,
-              denominator: 10
-          }
+          bps: 1000
       }
   );
 

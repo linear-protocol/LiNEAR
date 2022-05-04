@@ -21,9 +21,8 @@ impl LiquidStakingContract {
         self.internal_remove_manager(&manager_id)
     }
 
-    pub fn set_beneficiary(&mut self, account_id: AccountId, fraction: Fraction) {
+    pub fn set_beneficiary(&mut self, account_id: AccountId, bps: u32) {
         self.assert_owner();
-        fraction.assert_valid();
 
         if self.beneficiaries.len() == MAX_BENEFICIARIES
             && self.beneficiaries.get(&account_id).is_none()
@@ -31,25 +30,23 @@ impl LiquidStakingContract {
             env::panic_str(ERR_TOO_MANY_BENEFICIARIES);
         }
 
-        let fraction_sum = self
+        let bps_sum = self
             .beneficiaries
             .values()
-            .map(|f| f.as_f32())
             .reduce(|sum, v| sum + v);
-        let fraction_sum = fraction_sum.unwrap_or_default();
+        let bps_sum = bps_sum.unwrap_or_default();
 
         let old_value = self
             .beneficiaries
             .get(&account_id)
-            .map(|f| f.as_f32())
             .unwrap_or_default();
 
         require!(
-            fraction_sum - old_value + fraction.as_f32() < 1.0_f32,
-            ERR_FRACTION_SUM_ONE
+            bps_sum - old_value + bps <= FULL_BASIS_POINTS,
+            ERR_BPS_SUM_ONE
         );
 
-        self.beneficiaries.insert(&account_id, &fraction);
+        self.beneficiaries.insert(&account_id, &bps);
     }
 
     pub fn remove_beneficiary(&mut self, account_id: AccountId) {
@@ -120,7 +117,19 @@ impl LiquidStakingContract {
     #[init(ignore_state)]
     #[private]
     pub fn migrate() -> Self {
-        let contract: ContractV1_0_0 = env::state_read().expect("ERR_NOT_INITIALIZED");
+        let mut contract: ContractV1_0_0 = env::state_read().expect("ERR_NOT_INITIALIZED");
+
+        let old_beneficiaries = contract.beneficiaries.to_vec();
+        contract.beneficiaries.clear();
+        let mut new_beneficiaries = UnorderedMap::new(StorageKey::Beneficiaries);
+
+        for (account, fraction) in old_beneficiaries {
+            // current beneficiaries denominators are all 10_000,
+            // so we can directly take its numerator
+            require!(fraction.denominator == FULL_BASIS_POINTS);
+            new_beneficiaries.insert(&account, &fraction.numerator);
+        }
+
         Self {
             owner_id: contract.owner_id,
             managers: contract.managers,
@@ -130,7 +139,7 @@ impl LiquidStakingContract {
             accounts: contract.accounts,
             paused: contract.paused,
             account_storage_usage: contract.account_storage_usage,
-            beneficiaries: contract.beneficiaries,
+            beneficiaries: new_beneficiaries,  // migrate
             liquidity_pool: contract.liquidity_pool,
             validator_pool: contract.validator_pool,
             whitelist_account_id: None,  // migrate

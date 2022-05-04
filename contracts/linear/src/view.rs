@@ -75,7 +75,7 @@ impl LiquidStakingContract {
         self.total_share_amount.into()
     }
 
-    pub fn get_beneficiaries(&self) -> HashMap<AccountId, Fraction> {
+    pub fn get_beneficiaries(&self) -> HashMap<AccountId, u32> {
         self.internal_get_beneficiaries()
     }
 

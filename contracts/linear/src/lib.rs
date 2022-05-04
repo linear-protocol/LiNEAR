@@ -75,7 +75,7 @@ pub struct LiquidStakingContract {
     account_storage_usage: StorageUsage,
 
     /// Beneficiaries for staking rewards.
-    beneficiaries: UnorderedMap<AccountId, Fraction>,
+    beneficiaries: UnorderedMap<AccountId, u32>,
 
     /// The single-direction liquidity pool that enables instant unstake
     liquidity_pool: LiquidityPool,

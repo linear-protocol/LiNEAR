@@ -10,10 +10,7 @@ workspace.test('non-owner call beneficiaries', async (test, { contract, alice })
       'set_beneficiary',
       {
         account_id: alice.accountId,
-        fraction: {
-          numerator: 1,
-          denominator: 10
-        }
+        bps: 1000
       }
     ),
     'Only owner can perform this action'
@@ -38,10 +35,7 @@ workspace.test('beneficiaries sum > 1', async (test, { contract, owner }) => {
     'set_beneficiary',
     {
       account_id: 'foo',
-      fraction: {
-        numerator: 5,
-        denominator: 10
-      }
+      bps: 5000
     }
   );
 
@@ -52,13 +46,10 @@ workspace.test('beneficiaries sum > 1', async (test, { contract, owner }) => {
       'set_beneficiary',
       {
         account_id: 'bar',
-        fraction: {
-          numerator: 6,
-          denominator: 10
-        }
+        bps: 6000
       }
     ),
-    'Fractions sum should be less than 1'
+    'bps sum should be less than 1'
   );
 });
 
@@ -69,10 +60,7 @@ workspace.test('too many beneficiaries', async (test, { contract, owner }) => {
       'set_beneficiary',
       {
         account_id: `b${i}`,
-        fraction: {
-          numerator: 1,
-          denominator: 20
-        }
+        bps: 100
       }
     );
   }
@@ -84,10 +72,7 @@ workspace.test('too many beneficiaries', async (test, { contract, owner }) => {
       'set_beneficiary',
       {
         account_id: 'bar',
-        fraction: {
-          numerator: 1,
-          denominator: 20
-        }
+        bps: 100
       }
     ),
     'Too many beneficiaries'
@@ -107,10 +92,7 @@ workspace.test('set beneficiaries', async (test, { contract, owner }) => {
     'set_beneficiary',
     {
       account_id: 'foo',
-      fraction: {
-        numerator: 1,
-        denominator: 10
-      }
+      bps: 1000
     }
   );
   await owner.call(
@@ -118,10 +100,7 @@ workspace.test('set beneficiaries', async (test, { contract, owner }) => {
     'set_beneficiary',
     {
       account_id: 'bar',
-      fraction: {
-        numerator: 5,
-        denominator: 10
-      }
+      bps: 5000
     }
   );
 
@@ -134,14 +113,8 @@ workspace.test('set beneficiaries', async (test, { contract, owner }) => {
   test.deepEqual(
     twoValues,
     {
-      foo: {
-        numerator: 1,
-        denominator: 10
-      },
-      bar: {
-        numerator: 5,
-        denominator: 10
-      }
+      foo: 1000,
+      bar: 5000
     }
   );
 
@@ -162,10 +135,7 @@ workspace.test('set beneficiaries', async (test, { contract, owner }) => {
   test.deepEqual(
     oneValue,
     {
-      bar: {
-        numerator: 5,
-        denominator: 10
-      }
+      bar: 5000
     }
   );
 });

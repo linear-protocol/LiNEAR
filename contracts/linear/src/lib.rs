@@ -17,6 +17,7 @@ mod fungible_token;
 mod internal;
 mod legacy;
 mod liquidity_pool;
+mod metadata;
 mod owner;
 mod stake;
 mod types;

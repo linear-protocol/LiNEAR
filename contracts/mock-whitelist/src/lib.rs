@@ -1,11 +1,11 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{near_bindgen, AccountId, PanicOnDefault,};
 use near_sdk::collections::LookupSet;
+use near_sdk::{near_bindgen, AccountId, PanicOnDefault};
 
 /// mockup of staking pool, for testing
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
-pub struct MockWhitelist{
+pub struct MockWhitelist {
     whitelist: LookupSet<AccountId>,
     allow_all: bool,
 }

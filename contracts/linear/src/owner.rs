@@ -1,5 +1,5 @@
-use crate::*;
 use crate::legacy::*;
+use crate::*;
 use near_sdk::near_bindgen;
 
 const MAX_BENEFICIARIES: u64 = 10;
@@ -30,16 +30,10 @@ impl LiquidStakingContract {
             env::panic_str(ERR_TOO_MANY_BENEFICIARIES);
         }
 
-        let bps_sum = self
-            .beneficiaries
-            .values()
-            .reduce(|sum, v| sum + v);
+        let bps_sum = self.beneficiaries.values().reduce(|sum, v| sum + v);
         let bps_sum = bps_sum.unwrap_or_default();
 
-        let old_value = self
-            .beneficiaries
-            .get(&account_id)
-            .unwrap_or_default();
+        let old_value = self.beneficiaries.get(&account_id).unwrap_or_default();
 
         require!(
             bps_sum - old_value + bps <= FULL_BASIS_POINTS,
@@ -139,10 +133,10 @@ impl LiquidStakingContract {
             accounts: contract.accounts,
             paused: contract.paused,
             account_storage_usage: contract.account_storage_usage,
-            beneficiaries: new_beneficiaries,  // migrate
+            beneficiaries: new_beneficiaries, // migrate
             liquidity_pool: contract.liquidity_pool,
             validator_pool: contract.validator_pool,
-            whitelist_account_id: None,  // migrate
+            whitelist_account_id: None, // migrate
             epoch_requested_stake_amount: contract.epoch_requested_stake_amount,
             epoch_requested_unstake_amount: contract.epoch_requested_unstake_amount,
             stake_amount_to_settle: contract.stake_amount_to_settle,

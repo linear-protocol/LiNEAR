@@ -165,7 +165,7 @@ impl LiquidStakingContract {
             get_epoch_height() + self.validator_pool.get_num_epoch_to_unstake(amount);
         if self.last_settlement_epoch == get_epoch_height() {
             // The unstake request is received after epoch_cleanup
-            // so actual unstake will happen in the next epoch, 
+            // so actual unstake will happen in the next epoch,
             // which will put withdraw off for one more epoch.
             account.unstaked_available_epoch_height += 1;
         }

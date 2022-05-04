@@ -115,11 +115,11 @@ pub enum Event<'a> {
     // Validators
     ValidatorAdded {
         account_id: &'a AccountId,
-        weight: u16
+        weight: u16,
     },
     ValidatorUpdated {
         account_id: &'a AccountId,
-        weight: u16
+        weight: u16,
     },
     ValidatorRemoved {
         account_id: &'a AccountId,
@@ -578,11 +578,7 @@ mod tests {
     fn validator_added() {
         let account_id = &alice();
         let weight: u16 = 10;
-        Event::ValidatorAdded {
-            account_id,
-            weight,
-        }
-        .emit();
+        Event::ValidatorAdded { account_id, weight }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_added","data":[{"account_id":"alice","weight":10}]}"#
@@ -593,11 +589,7 @@ mod tests {
     fn validator_updated() {
         let account_id = &alice();
         let weight: u16 = 10;
-        Event::ValidatorUpdated{
-            account_id,
-            weight,
-        }
-        .emit();
+        Event::ValidatorUpdated { account_id, weight }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_updated","data":[{"account_id":"alice","weight":10}]}"#
@@ -607,10 +599,7 @@ mod tests {
     #[test]
     fn validator_removed() {
         let account_id = &alice();
-        Event::ValidatorRemoved {
-            account_id,
-        }
-        .emit();
+        Event::ValidatorRemoved { account_id }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_removed","data":[{"account_id":"alice"}]}"#

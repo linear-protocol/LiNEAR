@@ -104,7 +104,7 @@ impl ValidatorPool {
         }
         .emit();
 
-        return validator;
+        validator
     }
 
     pub fn remove_validator(&mut self, validator_id: &AccountId) -> Validator {
@@ -126,7 +126,7 @@ impl ValidatorPool {
         }
         .emit();
 
-        return validator;
+        validator
     }
 
     pub fn update_weight(&mut self, validator_id: &AccountId, weight: u16) {

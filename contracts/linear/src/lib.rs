@@ -21,6 +21,7 @@ mod metadata;
 mod owner;
 mod stake;
 mod types;
+mod upgrade;
 mod utils;
 mod validator_pool;
 mod view;

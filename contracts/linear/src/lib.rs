@@ -17,9 +17,11 @@ mod fungible_token;
 mod internal;
 mod legacy;
 mod liquidity_pool;
+mod metadata;
 mod owner;
 mod stake;
 mod types;
+mod upgrade;
 mod utils;
 mod validator_pool;
 mod view;
@@ -75,7 +77,7 @@ pub struct LiquidStakingContract {
     account_storage_usage: StorageUsage,
 
     /// Beneficiaries for staking rewards.
-    beneficiaries: UnorderedMap<AccountId, Fraction>,
+    beneficiaries: UnorderedMap<AccountId, u32>,
 
     /// The single-direction liquidity pool that enables instant unstake
     liquidity_pool: LiquidityPool,
@@ -83,6 +85,8 @@ pub struct LiquidStakingContract {
     // --- Validator Pool ---
     /// The validator pool that manage the actions against validators
     validator_pool: ValidatorPool,
+    /// The whitelist contract ID, which controls the staking pool whitelist.
+    whitelist_account_id: Option<AccountId>,
     /// Amount of NEAR that is requested to stake by all users during the last epoch
     epoch_requested_stake_amount: Balance,
     /// Amount of NEAR that is requested to unstake by all users during the last epoch
@@ -148,6 +152,7 @@ impl LiquidStakingContract {
             liquidity_pool: LiquidityPool::new(LiquidityPoolConfig::default()),
             // Validator Pool
             validator_pool: ValidatorPool::new(),
+            whitelist_account_id: None,
             epoch_requested_stake_amount: 10 * ONE_NEAR,
             epoch_requested_unstake_amount: 0,
             stake_amount_to_settle: 0,

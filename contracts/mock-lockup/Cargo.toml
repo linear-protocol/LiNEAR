@@ -15,12 +15,3 @@ uint = { version = "0.8.3", default-features = false }
 near-sdk-sim = "3.2.0"
 quickcheck = "0.9"
 quickcheck_macros = "0.9"
-
-[profile.release]
-codegen-units = 1
-# Tell `rustc` to optimize for small code size.
-opt-level = "s"
-lto = true
-debug = false
-panic = "abort"
-overflow-checks = true

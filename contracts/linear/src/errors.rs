@@ -18,7 +18,7 @@ pub const ERR_UNREGISTER_POSITIVE_UNSTAKED: &str = "Cannot delete the account be
 // fraction
 pub const ERR_FRACTION_BAD_DENOMINATOR: &str = "Denominator cannot be zero";
 pub const ERR_FRACTION_BAD_NUMERATOR: &str = "Numerator must <= denominator";
-pub const ERR_FRACTION_SUM_ONE: &str = "Fractions sum should be less than 1";
+pub const ERR_BPS_SUM_ONE: &str = "bps sum should be less than 1";
 
 // beneficiary
 pub const ERR_TOO_MANY_BENEFICIARIES: &str = "Too many beneficiaries";
@@ -71,6 +71,8 @@ pub const ERR_VALIDATOR_ALREADY_EXIST: &str = "Validator already exists";
 pub const ERR_VALIDATOR_IN_USE: &str = "Validator is in use, cannot remove";
 pub const ERR_NO_ENOUGH_GAS: &str = "No enough gas";
 pub const ERR_BAD_VALIDATOR_LIST: &str = "Bad validator list";
+pub const ERR_VALIDATOR_NOT_WHITELISTED: &str = "Validator not whitelisted";
+pub const ERR_VALIDATOR_WHITELIST_NOT_SET: &str = "Validator whitelist not set";
 
 pub const ERR_VALIDATOR_UNSTAKE_AMOUNT: &str = "No enough amount to unstake from validator";
 pub const ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED: &str =

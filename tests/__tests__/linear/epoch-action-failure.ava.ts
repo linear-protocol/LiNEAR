@@ -54,6 +54,9 @@ workspace.test('epoch stake failure', async (test, { root, contract, owner, alic
     {
       validator_id: v1.accountId,
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
 
@@ -93,6 +96,9 @@ workspace.test('unstake failure', async (test, { root, contract, owner, alice })
     {
       validator_id: v1.accountId,
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
 
@@ -150,6 +156,9 @@ workspace.test('withdraw failure', async (test, { root, contract, owner, alice }
     {
       validator_id: v1.accountId,
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
 
@@ -235,6 +244,9 @@ workspace.test('get balance failure', async (test, { root, contract, owner, alic
     {
       validator_id: v1.accountId,
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
 

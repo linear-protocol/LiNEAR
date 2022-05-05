@@ -1,7 +1,8 @@
 const { init } = require("../near");
+const prompts = require('prompts');
 
-exports.command = 'add-bene <address>';
-exports.desc = 'Add beneficiary';
+exports.command = 'set-whitelist <address>';
+exports.desc = 'Set whitelist';
 exports.builder = yargs => {
   yargs
     .positional('address', {
@@ -16,29 +17,32 @@ exports.builder = yargs => {
     .option('signer', {
       describe: 'signer account Id to call contract'
     })
-    .option('account', {
-      describe: 'beneficiary account ID'
+    .option('whitelist', {
+      describe: 'whitelist contract ID'
     })
-    .option('bps', {
-      describe: 'basis point of 10000'
-    })
-    .demandOption(['signer', 'account', 'bps'])
+    .demandOption(['signer', 'whitelist'])
 }
 
 exports.handler = async function (argv) {
-  const { address, bps, account } = argv;
+  const { address, whitelist } = argv;
   
   const near = await init(argv.network);
   const signer = await near.account(argv.signer);
 
-  console.log(`setting ${account} with fraction ${n}/${d}`);
+  console.log(`Setting whitelist to ${whitelist}`);
+
+  const res = await prompts({
+    type: 'confirm',
+    name: 'confirm',
+    message: 'Confirm update?'
+  });
+  if (!res.confirm) return;
 
   await signer.functionCall({
     contractId: address,
-    methodName: 'set_beneficiary',
+    methodName: 'set_whitelist_contract_id',
     args: {
-      account_id: account,
-      bps: parseInt(bps)
+      account_id: whitelist
     }
   });
 

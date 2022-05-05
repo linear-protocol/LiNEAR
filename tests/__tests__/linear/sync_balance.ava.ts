@@ -44,6 +44,9 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
     {
       validator_id: v1.accountId,
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
   await owner.call(
@@ -52,6 +55,9 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
     {
       validator_id: v2.accountId,
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
 
@@ -137,6 +143,9 @@ workspace.test('sync balance', async (test, { root, contract, alice, owner }) =>
     {
       validator_id: v1.accountId,
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
   await owner.call(
@@ -145,6 +154,9 @@ workspace.test('sync balance', async (test, { root, contract, alice, owner }) =>
     {
       validator_id: v2.accountId,
       weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
     }
   );
 

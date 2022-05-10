@@ -1,4 +1,4 @@
-const { init } = require("../near");
+const { init, funcCall } = require("../near");
 
 exports.command = 'add-bene <address>';
 exports.desc = 'Add beneficiary';
@@ -23,24 +23,32 @@ exports.builder = yargs => {
       describe: 'basis point of 10000'
     })
     .demandOption(['signer', 'account', 'bps'])
+    .option('dao', {
+      describe: 'DAO address'
+    })
 }
 
 exports.handler = async function (argv) {
-  const { address, bps, account } = argv;
+  const { address, bps, account, dao } = argv;
   
   const near = await init(argv.network);
   const signer = await near.account(argv.signer);
 
-  console.log(`setting ${account} with fraction ${n}/${d}`);
+  console.log(`setting ${account} with bps ${bps}`);
 
-  await signer.functionCall({
-    contractId: address,
-    methodName: 'set_beneficiary',
-    args: {
-      account_id: account,
-      bps: parseInt(bps)
-    }
-  });
+  const args = {
+    account_id: account,
+    bps: parseInt(bps)
+  };
+
+  await funcCall(
+    signer,
+    dao,
+    `Add beneficiary ${account}`,
+    address,
+    'set_beneficiary',
+    args,
+  );
 
   console.log('done');
 }

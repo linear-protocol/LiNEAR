@@ -25,3 +25,4 @@ compiled-contracts/
 
 # Config files
 nodes-testnet.json
+nodes-stg.json

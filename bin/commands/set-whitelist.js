@@ -1,4 +1,4 @@
-const { init } = require("../near");
+const { init, funcCall } = require("../near");
 const prompts = require('prompts');
 
 exports.command = 'set-whitelist <address>';
@@ -21,10 +21,13 @@ exports.builder = yargs => {
       describe: 'whitelist contract ID'
     })
     .demandOption(['signer', 'whitelist'])
+    .option('dao', {
+      describe: 'DAO address'
+    })
 }
 
 exports.handler = async function (argv) {
-  const { address, whitelist } = argv;
+  const { address, whitelist, dao } = argv;
   
   const near = await init(argv.network);
   const signer = await near.account(argv.signer);
@@ -38,13 +41,17 @@ exports.handler = async function (argv) {
   });
   if (!res.confirm) return;
 
-  await signer.functionCall({
-    contractId: address,
-    methodName: 'set_whitelist_contract_id',
-    args: {
+  await funcCall(
+    signer,
+    dao,
+    `Set whitelist to ${whitelist}`,
+    address,
+    'set_whitelist_contract_id',
+    {
       account_id: whitelist
     }
-  });
+  );
+
 
   console.log('done');
 }

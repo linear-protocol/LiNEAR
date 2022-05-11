@@ -12,7 +12,7 @@ impl LiquidStakingContract {
     #[private]
     pub fn migrate() -> Self {
         let contract: LiquidStakingContract = env::state_read().expect("ERR_NOT_INITIALIZED");
-        return contract;
+        contract
     }
 }
 

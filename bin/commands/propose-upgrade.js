@@ -1,4 +1,4 @@
-const { readFileSync } = require("fs");
+const { readFileSync, appendFileSync } = require("fs");
 const nearAPI = require('near-api-js');
 const { NEAR } = require("near-units");
 const { init } = require("../near");
@@ -33,11 +33,11 @@ exports.builder = yargs => {
 }
 
 exports.handler = async function (argv) {
-  const { address, dao, v } = argv;
+  const { address, dao, v, network } = argv;
   const code = readFileSync(argv.wasm);
   console.log(`Upgrading contract ${address}`);
 
-  const near = await init(argv.network);
+  const near = await init(network);
   const account = await near.account(argv.signer);
 
   // store blob first
@@ -56,6 +56,9 @@ exports.handler = async function (argv) {
   );
   const hash = parseHashReturnValue(outcome);
   console.log('blob hash', hash);
+  
+  // save blob hash to local file
+  appendFileSync(`blobhash-${network}`, hash);
 
   const proposalArgs = {
     proposal: {

@@ -1,4 +1,4 @@
-const { init } = require("../near");
+const { init, funcCall } = require("../near");
 const prompts = require('prompts');
 
 exports.command = 'set-tsry <address>';
@@ -21,10 +21,13 @@ exports.builder = yargs => {
       describe: 'new treasury account ID'
     })
     .demandOption(['signer', 'account'])
+    .option('dao', {
+      describe: 'DAO address'
+    })
 }
 
 exports.handler = async function (argv) {
-  const { address, account } = argv;
+  const { address, account, dao } = argv;
   
   const near = await init(argv.network);
   const signer = await near.account(argv.signer);
@@ -38,13 +41,16 @@ exports.handler = async function (argv) {
   });
   if (!res.confirm) return;
 
-  await signer.functionCall({
-    contractId: address,
-    methodName: 'set_treasury',
-    args: {
+  await funcCall(
+    signer,
+    dao,
+    `Set treasury to ${account}`,
+    address,
+    'set_treasury',
+    {
       account_id: account
     }
-  });
+  );
 
   console.log('done');
 }

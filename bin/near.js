@@ -1,4 +1,5 @@
 const nearAPI = require('near-api-js');
+const { Gas, NEAR } = require("near-units");
 
 const configs = {
   testnet: {
@@ -32,4 +33,81 @@ exports.init = async function (network) {
   const config = configs[network];
   config.keyStore = keyStore;
   return nearAPI.connect(config);
+}
+
+async function funcCallProposal(
+  signer,
+  dao,
+  description,
+  contract,
+  methodName,
+  args,
+  deposit,
+  gas,
+) {
+  deposit = deposit || "0";
+  gas = gas || Gas.parse('100 Tgas');
+
+  console.log('args', args);
+  args = Buffer.from(JSON.stringify(args)).toString('base64');
+  console.log('encoded args', args);
+
+  const proposal = {
+    proposal: {
+      description,
+      kind: {
+        FunctionCall: {
+          receiver_id: contract,
+          actions: [
+            {
+              method_name: methodName,
+              args,
+              deposit,
+              gas,
+            }
+          ]
+        }
+      }
+    }
+  };
+
+  return signer.functionCall({
+    contractId: dao,
+    methodName: 'add_proposal',
+    args: proposal,
+    gas: Gas.parse('200 Tgas'),
+    attachedDeposit: NEAR.parse('1')
+  });
+}
+
+exports.funcCall = async function (
+  signer,
+  dao,
+  description,
+  contract,
+  methodName,
+  args,
+  deposit,
+  gas,
+) {
+  if (!dao) {
+    return signer.functionCall({
+      contractId: contract,
+      methodName,
+      args,
+      gas,
+      attachedDeposit: deposit,
+    });
+  } else {
+    return funcCallProposal(
+      signer,
+      dao,
+      description,
+      contract,
+      methodName,
+      args,
+      deposit,
+      gas,
+    );
+  }
 }

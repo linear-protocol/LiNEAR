@@ -1,6 +1,7 @@
 const fs = require('fs');
 const { init } = require('../near');
 const prompts = require('prompts');
+const { Gas } = require('near-units');
 
 exports.command = 'set-node <address>';
 exports.desc = 'Sync validators to the contract';
@@ -87,7 +88,8 @@ exports.handler = async function (argv) {
       args: {
         validator_ids: chunkNodes.map(n => n.id),
         weights: chunkNodes.map(n => n.weight)
-      }
+      },
+      gas: Gas.parse('250 Tgas')
     });
     console.log(`added ${chunkNodes.length} nodes`);
   }

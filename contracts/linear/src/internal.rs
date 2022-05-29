@@ -329,13 +329,8 @@ impl LiquidStakingContract {
     }
 
     /// Inner method to save the given account for a given account ID.
-    /// If the account balances are 0, the account is deleted instead to release storage.
     pub(crate) fn internal_save_account(&mut self, account_id: &AccountId, account: &Account) {
-        if account.unstaked > 0 || account.stake_shares > 0 {
-            self.accounts.insert(account_id, account);
-        } else {
-            self.accounts.remove(account_id);
-        }
+        self.accounts.insert(account_id, account);
     }
 }
 

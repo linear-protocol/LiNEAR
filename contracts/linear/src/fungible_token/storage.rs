@@ -127,9 +127,12 @@ impl StorageManagement for LiquidStakingContract {
         }
     }
 
+    /// Storage unregister is disabled because staking users don't need
+    /// to deposit but they are allowed to withdraw storage fee with
+    /// the current implementation.
     #[payable]
     fn storage_unregister(&mut self, force: Option<bool>) -> bool {
-        self.internal_storage_unregister(force).is_some()
+        panic!("Storage unregister is not supported yet.");
     }
 
     fn storage_balance_bounds(&self) -> StorageBalanceBounds {

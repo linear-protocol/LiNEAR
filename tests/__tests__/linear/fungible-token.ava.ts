@@ -6,6 +6,7 @@ import {
   ONE_YOCTO,
   epochHeightFastforward,
   deployDex,
+  skip,
 } from './helper';
 
 const ERR_NO_ENOUGH_BALANCE = 'The account doesn\'t have enough balance';
@@ -160,7 +161,7 @@ workspace.test('register LiNEAR with 0.00125Ⓝ storage balance', async (test, {
   );
 });
 
-workspace.test('storage unregister', async (test, {contract, alice, bob}) => {
+skip('storage unregister', async (test, {contract, alice, bob}) => {
   await registerFungibleTokenUser(contract, alice);
   await registerFungibleTokenUser(contract, bob);
 

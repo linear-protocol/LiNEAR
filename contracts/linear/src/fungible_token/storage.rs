@@ -11,6 +11,7 @@ const STORAGE_AMOUNT_BYTES: usize = 125;
 impl LiquidStakingContract {
     /// Internal method that returns the Account ID and the balance in case the account was
     /// unregistered.
+    #[allow(dead_code)]
     pub(crate) fn internal_storage_unregister(
         &mut self,
         force: Option<bool>,

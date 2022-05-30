@@ -13,6 +13,7 @@ pub const ERR_NOT_MANAGER: &str = "Only manager can perform this action";
 
 // account
 pub const ERR_NO_ACCOUNT: &str = "Account not found";
+#[allow(dead_code)]
 pub const ERR_UNREGISTER_POSITIVE_UNSTAKED: &str = "Cannot delete the account because the unstaked amount is not empty. Withdraw your balance first.";
 
 // fraction

@@ -103,8 +103,8 @@ More useful information for developers who're building with LiNEAR
 
 ### $LiNEAR ERC20 contracts on Aurora (bridged via Rainbow Bridge)
 
-- mainnet: [`0x918dbe087040a41b786f0da83190c293dae24749`](https://aurorascan.dev/address/0x918dbe087040a41b786f0da83190c293dae24749)
-- testnet: [`0xe4979cac5d70f01697f795f0ad56bbca05912c44`](https://testnet.aurorascan.dev/address/0xe4979cac5d70f01697f795f0ad56bbca05912c44)
+- mainnet: [`0x918dbe087040a41b786f0da83190c293dae24749`](https://aurorascan.dev/token/0x918dbe087040a41b786f0da83190c293dae24749)
+- testnet: [`0xe4979cac5d70f01697f795f0ad56bbca05912c44`](https://testnet.aurorascan.dev/token/0xe4979cac5d70f01697f795f0ad56bbca05912c44)
 
 Data source: https://github.com/aurora-is-near/bridge-assets/tree/master/tokens
 

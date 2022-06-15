@@ -32,6 +32,7 @@ The [v1.0.0 contract release](https://github.com/linear-protocol/LiNEAR/releases
 
 We adopt unit tests and heavily used the [`workspace-js`](https://github.com/near/workspaces-js) test framework to test the major scenarios and workflow of the LiNEAR smart contract in the [Sandbox](https://docs.near.org/docs/develop/contracts/sandbox) environment. Lint with `rustfmt` and `clippy` is also required when making changes to contract.
 
+- Run `npm i` under `./tests` folder first to set up the environment
 - Run lint with `rustfmt` and `clippy`: `make lint`
 - Run all tests: `make test`
 - Run LiNEAR simulation tests:
@@ -84,3 +85,32 @@ among others.
   This is effectively 1) amount of NEAR that was deposited to this contract but hasn't yet been staked on any validators + 2) amount of NEAR that has already been staked on validators.    
   Note that the amount of NEAR that is pending release or is already released by hasn't been withdrawn is not considered.
 - `stake_share_price`: how much NEAR does one stake share (LiNEAR) worth. equals to : `total_near_amount` / `total_share_amount`.
+
+
+## Information for Developers
+
+More useful information for developers who're building with LiNEAR
+
+### LiNEAR App URLs
+
+- mainnet: `app.linearprotocol.org`
+- testnet: `testnet.linearprotocol.org`
+
+### LiNEAR contract addresses on NEAR: 
+
+- mainnet: `linear-protocol.near`
+- testnet: `linear-protocol.testnet`
+
+### LiNEAR ERC20 contracts on Aurora (bridged via Rainbow Bridge)
+
+- mainnet: `0x918dbe087040a41b786f0da83190c293dae24749`
+- testnet: `0xe4979cac5d70f01697f795f0ad56bbca05912c44`
+
+Data source: https://github.com/aurora-is-near/bridge-assets/tree/master/tokens
+
+### LiNEAR Oracles on Aurora mainnet:
+
+- LINEAR / NEAR: `0x8f975aC6deFD2c9d50c58BABF4B1f880E6dE7996`
+- LINEAR / USD: `0x2eBf49106814Fcd8685ed6c8a7315Ca528CdA232`
+
+More details can be found from Flux docs: https://docs.fluxprotocol.org/docs/live-data-feeds/fpo-live-networks-and-pairs

@@ -108,7 +108,7 @@ More useful information for developers who're building with LiNEAR
 
 Data source: https://github.com/aurora-is-near/bridge-assets/tree/master/tokens
 
-### LiNEAR Oracles
+### $LiNEAR Oracles
 
 Oracles on Aurora mainnet:
 

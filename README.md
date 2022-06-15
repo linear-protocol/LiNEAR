@@ -93,24 +93,24 @@ More useful information for developers who're building with LiNEAR
 
 ### LiNEAR App URLs
 
-- mainnet: `app.linearprotocol.org`
-- testnet: `testnet.linearprotocol.org`
+- mainnet: https://app.linearprotocol.org
+- testnet: https://testnet.linearprotocol.org
 
 ### LiNEAR contract addresses on NEAR: 
 
-- mainnet: `linear-protocol.near`
-- testnet: `linear-protocol.testnet`
+- mainnet: [`linear-protocol.near`](https://explorer.near.org/accounts/linear-protocol.near)
+- testnet: [`linear-protocol.testnet`](https://explorer.testnet.near.org/accounts/linear-protocol.testnet)
 
-### LiNEAR ERC20 contracts on Aurora (bridged via Rainbow Bridge)
+### $LiNEAR ERC20 contracts on Aurora (bridged via Rainbow Bridge)
 
-- mainnet: `0x918dbe087040a41b786f0da83190c293dae24749`
-- testnet: `0xe4979cac5d70f01697f795f0ad56bbca05912c44`
+- mainnet: [`0x918dbe087040a41b786f0da83190c293dae24749`](https://aurorascan.dev/address/0x918dbe087040a41b786f0da83190c293dae24749)
+- testnet: [`0xe4979cac5d70f01697f795f0ad56bbca05912c44`](https://testnet.aurorascan.dev/address/0xe4979cac5d70f01697f795f0ad56bbca05912c44)
 
 Data source: https://github.com/aurora-is-near/bridge-assets/tree/master/tokens
 
-### LiNEAR Oracles on Aurora mainnet:
+### LiNEAR oracles on Aurora mainnet:
 
-- LINEAR / NEAR: `0x8f975aC6deFD2c9d50c58BABF4B1f880E6dE7996`
-- LINEAR / USD: `0x2eBf49106814Fcd8685ed6c8a7315Ca528CdA232`
+- LINEAR / NEAR: [`0x8f975aC6deFD2c9d50c58BABF4B1f880E6dE7996`](https://aurorascan.dev/address/0x8f975aC6deFD2c9d50c58BABF4B1f880E6dE7996)
+- LINEAR / USD: [`0x2eBf49106814Fcd8685ed6c8a7315Ca528CdA232`](https://aurorascan.dev/address/0x2eBf49106814Fcd8685ed6c8a7315Ca528CdA232)
 
-More details can be found from Flux docs: https://docs.fluxprotocol.org/docs/live-data-feeds/fpo-live-networks-and-pairs
+More details can be found from [Flux docs](https://docs.fluxprotocol.org/docs/live-data-feeds/fpo-live-networks-and-pairs)

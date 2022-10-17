@@ -76,7 +76,7 @@ pub enum TransfersInformation {
 
 /// Describes the status of transactions with the staking pool contract or terminated unvesting
 /// amount withdrawal.
-#[derive(BorshDeserialize, BorshSerialize, Deserialize, Serialize, PartialEq)]
+#[derive(BorshDeserialize, BorshSerialize, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(crate = "near_sdk::serde")]
 pub enum TransactionStatus {
     /// There are no transactions in progress.
@@ -164,7 +164,7 @@ pub enum VestingInformation {
 /// Describes the status of transactions with the staking pool contract or terminated unvesting
 /// amount withdrawal.
 #[derive(
-    BorshDeserialize, BorshSerialize, Deserialize, Serialize, PartialEq, Copy, Clone, Debug,
+    BorshDeserialize, BorshSerialize, Deserialize, Serialize, PartialEq, Eq, Copy, Clone, Debug,
 )]
 #[serde(crate = "near_sdk::serde")]
 pub enum TerminationStatus {

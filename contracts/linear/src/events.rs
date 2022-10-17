@@ -607,6 +607,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "test")]
     #[test]
     fn add_liquidity() {
         let account_id = &alice();

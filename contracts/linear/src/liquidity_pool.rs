@@ -363,6 +363,7 @@ impl LiquidityPool {
 #[near_bindgen]
 impl LiquidStakingContract {
     /// Adds NEAR to liquidity pool and returns number of shares that this user receives.
+    #[cfg(feature = "test")]
     #[payable]
     pub fn add_liquidity(&mut self) {
         let account_id = env::predecessor_account_id();

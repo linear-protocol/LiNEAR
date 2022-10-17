@@ -136,6 +136,7 @@ pub enum Event<'a> {
         /// The fee of instant unstake in NEAR
         fee_amount: &'a U128,
     },
+    #[cfg(feature = "test")]
     AddLiquidity {
         account_id: &'a AccountId,
         amount: &'a U128,

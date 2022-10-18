@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use crate::types::*;
 
 /// Inner account data of a delegate.
-#[derive(BorshDeserialize, BorshSerialize, Debug, PartialEq, Default)]
+#[derive(BorshDeserialize, BorshSerialize, Debug, PartialEq, Eq, Default)]
 pub struct Account {
     /// The unstaked balance. It represents the amount the account has on this contract that
     /// can either be staked or withdrawn.

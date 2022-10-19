@@ -1,6 +1,6 @@
 use crate::events::Event;
 use crate::*;
-use near_contract_standards::fungible_token::events::{FtTransfer};
+use near_contract_standards::fungible_token::events::FtTransfer;
 use near_sdk::{assert_one_yocto, collections::LookupMap, log, near_bindgen, Balance, Promise};
 
 // Mocked NEAR and LINEAR token used in Liquidity Pool

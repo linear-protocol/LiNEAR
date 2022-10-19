@@ -548,6 +548,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "test")]
     #[test]
     fn instant_unstake() {
         let account_id = &alice();

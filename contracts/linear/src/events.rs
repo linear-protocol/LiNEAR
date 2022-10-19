@@ -125,6 +125,7 @@ pub enum Event<'a> {
         account_id: &'a AccountId,
     },
     // Liquidity Pool
+    #[cfg(feature = "test")]
     InstantUnstake {
         account_id: &'a AccountId,
         /// The actually received NEAR excluding fees

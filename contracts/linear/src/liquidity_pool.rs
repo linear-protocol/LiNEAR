@@ -438,6 +438,7 @@ impl LiquidStakingContract {
 
     /// Instant Unstake: swap LiNEAR to NEAR via the Liquidity Pool
     /// Notice that total staked NEAR amount and total stake shares won't change here
+    #[cfg(feature = "test")]
     pub fn instant_unstake(
         &mut self,
         stake_shares_in: U128, // LiNEAR amount sent by the account

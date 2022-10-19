@@ -363,6 +363,7 @@ impl LiquidityPool {
 #[near_bindgen]
 impl LiquidStakingContract {
     /// Adds NEAR to liquidity pool and returns number of shares that this user receives.
+    /// We removed this interface from production environment, but still kept it's code for test, because the current online contract has processed this interface. Code can be removed after all liquidity is removed
     #[cfg(feature = "test")]
     #[payable]
     pub fn add_liquidity(&mut self) {
@@ -438,7 +439,8 @@ impl LiquidStakingContract {
 
     /// Instant Unstake: swap LiNEAR to NEAR via the Liquidity Pool
     /// Notice that total staked NEAR amount and total stake shares won't change here
-    #[cfg(feature = "test")]
+    /// We removed this interface from production environment, but still kept it's code for test, because the current online contract has processed this interface. Code can be removed after all liquidity is removed
+    #[cfg(feature = "test")] 
     pub fn instant_unstake(
         &mut self,
         stake_shares_in: U128, // LiNEAR amount sent by the account

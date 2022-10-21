@@ -125,6 +125,10 @@ pub enum Event<'a> {
         account_id: &'a AccountId,
     },
     // Liquidity Pool
+    #[deprecated(
+        since = "1.2.0",
+        note = "Kept for test only because we're retiring the liquidity pool"
+    )]
     #[cfg(feature = "test")]
     InstantUnstake {
         account_id: &'a AccountId,
@@ -137,6 +141,10 @@ pub enum Event<'a> {
         /// The fee of instant unstake in NEAR
         fee_amount: &'a U128,
     },
+    #[deprecated(
+        since = "1.2.0",
+        note = "Kept for test only because we're retiring the liquidity pool"
+    )]
     #[cfg(feature = "test")]
     AddLiquidity {
         account_id: &'a AccountId,

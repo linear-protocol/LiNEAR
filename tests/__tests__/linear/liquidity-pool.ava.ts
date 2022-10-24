@@ -397,7 +397,7 @@ workspace.test('configure liquidity pool', async (test, { contract, owner, alice
   });
   test.is(
     (await getTotalStakedNEAR(contract)).toString(),
-    NEAR.parse("23").toString()   // 10 + 10 + 3 - 4.89535
+    NEAR.parse("23").toString()   // 10 + 10 + 3
   );
 
   // Bob deposits and stakes

@@ -1,6 +1,6 @@
 use crate::events::Event;
 use crate::*;
-use near_contract_standards::fungible_token::events::{FtBurn, FtTransfer};
+use near_contract_standards::fungible_token::events::FtTransfer;
 use near_sdk::{assert_one_yocto, collections::LookupMap, log, near_bindgen, Balance, Promise};
 
 // Mocked NEAR and LINEAR token used in Liquidity Pool
@@ -363,6 +363,11 @@ impl LiquidityPool {
 #[near_bindgen]
 impl LiquidStakingContract {
     /// Adds NEAR to liquidity pool and returns number of shares that this user receives.
+    #[deprecated(
+        since = "1.2.0",
+        note = "Kept for test only because we're retiring the liquidity pool"
+    )]
+    #[cfg(feature = "test")]
     #[payable]
     pub fn add_liquidity(&mut self) {
         let account_id = env::predecessor_account_id();
@@ -437,6 +442,11 @@ impl LiquidStakingContract {
 
     /// Instant Unstake: swap LiNEAR to NEAR via the Liquidity Pool
     /// Notice that total staked NEAR amount and total stake shares won't change here
+    #[deprecated(
+        since = "1.2.0",
+        note = "Kept for test only because we're retiring the liquidity pool"
+    )]
+    #[cfg(feature = "test")]
     pub fn instant_unstake(
         &mut self,
         stake_shares_in: U128, // LiNEAR amount sent by the account
@@ -518,42 +528,6 @@ impl LiquidStakingContract {
         Context {
             total_staked_near_amount: self.total_staked_near_amount,
             total_share_amount: self.total_share_amount,
-        }
-    }
-
-    /// Rebalance NEAR / LiNEAR distribution to make the liqudity pool more efficient
-    /// Automatically swap LiNEAR out with newly staked NEAR
-    pub(crate) fn rebalance_liquidity(&mut self) {
-        let account_id = env::predecessor_account_id();
-        // If no new staking request, skip the rebalance
-        if self.epoch_requested_stake_amount == 0 {
-            return;
-        }
-        // Rebalance in the pool and return actual rebalanced amount and stake shares
-        let (increased_amount, decreased_stake_shares) = self.liquidity_pool.rebalance(
-            self.epoch_requested_stake_amount,
-            &self.internal_get_context(),
-        );
-        // Reverse the staking request, to mitigate the side effect of instant unstake
-        // Decrease staked amount, which now has been moved into liquidity pool
-        self.epoch_requested_stake_amount -= increased_amount;
-        self.total_staked_near_amount -= increased_amount;
-        // Decrease stake shares
-        self.total_share_amount -= decreased_stake_shares;
-
-        if decreased_stake_shares > 0 {
-            Event::RebalanceLiquidity {
-                account_id: &account_id,
-                increased_amount: &U128(increased_amount),
-                burnt_stake_shares: &U128(decreased_stake_shares),
-            }
-            .emit();
-            FtBurn {
-                owner_id: &env::current_account_id(),
-                amount: &U128(decreased_stake_shares),
-                memo: Some("rebalance liquidity"),
-            }
-            .emit();
         }
     }
 }

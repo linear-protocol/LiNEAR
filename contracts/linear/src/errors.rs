@@ -91,6 +91,7 @@ pub const ERR_NON_POSITIVE_EXPECTED_NEAR_AMOUNT: &str =
 
 pub const ERR_NON_POSITIVE_LIQUIDITY_POOL_SHARE: &str =
     "The calculated number of shares received for adding liquidity should be positive";
+#[cfg(feature = "test")]
 pub const ERR_NON_POSITIVE_MIN_RECEIVED_AMOUNT: &str =
     "The expected received NEAR amount should be positive";
 pub const ERR_NON_POSITIVE_RECEIVED_FEE: &str =

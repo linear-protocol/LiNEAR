@@ -125,6 +125,11 @@ pub enum Event<'a> {
         account_id: &'a AccountId,
     },
     // Liquidity Pool
+    #[deprecated(
+        since = "1.2.0",
+        note = "Kept for test only because we're retiring the liquidity pool"
+    )]
+    #[cfg(feature = "test")]
     InstantUnstake {
         account_id: &'a AccountId,
         /// The actually received NEAR excluding fees
@@ -136,6 +141,11 @@ pub enum Event<'a> {
         /// The fee of instant unstake in NEAR
         fee_amount: &'a U128,
     },
+    #[deprecated(
+        since = "1.2.0",
+        note = "Kept for test only because we're retiring the liquidity pool"
+    )]
+    #[cfg(feature = "test")]
     AddLiquidity {
         account_id: &'a AccountId,
         amount: &'a U128,
@@ -146,11 +156,6 @@ pub enum Event<'a> {
         burnt_shares: &'a U128,
         received_near: &'a U128,
         received_linear: &'a U128,
-    },
-    RebalanceLiquidity {
-        account_id: &'a AccountId,
-        increased_amount: &'a U128,
-        burnt_stake_shares: &'a U128,
     },
     LiquidityPoolSwapFee {
         account_id: &'a AccountId,
@@ -551,6 +556,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "test")]
     #[test]
     fn instant_unstake() {
         let account_id = &alice();
@@ -606,6 +612,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "test")]
     #[test]
     fn add_liquidity() {
         let account_id = &alice();
@@ -639,23 +646,6 @@ mod tests {
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"remove_liquidity","data":[{"account_id":"alice","burnt_shares":"98","received_near":"90","received_linear":"9"}]}"#
-        );
-    }
-
-    #[test]
-    fn rebalance_liquidity() {
-        let account_id = &alice();
-        let increased_amount = &U128(100);
-        let burnt_stake_shares = &U128(99);
-        Event::RebalanceLiquidity {
-            account_id,
-            increased_amount,
-            burnt_stake_shares,
-        }
-        .emit();
-        assert_eq!(
-            test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"rebalance_liquidity","data":[{"account_id":"alice","increased_amount":"100","burnt_stake_shares":"99"}]}"#
         );
     }
 

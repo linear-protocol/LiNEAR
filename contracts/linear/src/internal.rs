@@ -124,9 +124,6 @@ impl LiquidStakingContract {
             self.total_staked_near_amount,
             self.total_share_amount
         );
-
-        // Rebalance the liquidity pool if needed
-        self.rebalance_liquidity();
     }
 
     pub(crate) fn internal_unstake(&mut self, amount: u128) {

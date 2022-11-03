@@ -10,10 +10,7 @@ impl LiquidStakingContract {
     /* Internal methods */
     /********************/
     pub(crate) fn assert_running(&self) {
-        require!(
-            !self.paused,
-            ERR_PAUSED
-        );
+        require!(!self.paused, ERR_PAUSED);
     }
 
     pub(crate) fn internal_deposit(&mut self, amount: Balance) {

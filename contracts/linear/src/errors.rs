@@ -7,6 +7,7 @@ pub const ERR_NO_ENOUGH_INIT_DEPOSIT: &str =
 
 // owner
 pub const ERR_NOT_OWNER: &str = "Only owner can perform this action";
+pub const ERR_PAUSED: &str = "The contract is paused now, please try later";
 
 // manager
 pub const ERR_NOT_MANAGER: &str = "Only manager can perform this action";

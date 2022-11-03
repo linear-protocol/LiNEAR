@@ -153,6 +153,8 @@ impl LiquidStakingContract {
     }
 
     pub(crate) fn internal_ft_deposit(&mut self, account_id: &AccountId, amount: ShareBalance) {
+        self.assert_running();
+
         let mut account = self.internal_ft_get_account(account_id);
         let balance = account.stake_shares;
         if let Some(new_balance) = balance.checked_add(amount) {
@@ -168,6 +170,8 @@ impl LiquidStakingContract {
     }
 
     pub(crate) fn internal_ft_withdraw(&mut self, account_id: &AccountId, amount: Balance) {
+        self.assert_running();
+
         let mut account = self.internal_ft_get_account(account_id);
         let balance = account.stake_shares;
         if let Some(new_balance) = balance.checked_sub(amount) {

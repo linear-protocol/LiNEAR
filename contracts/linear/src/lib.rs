@@ -66,10 +66,8 @@ pub struct LiquidStakingContract {
     total_staked_near_amount: Balance,
     /// Persistent map from an account ID to the corresponding account.
     accounts: UnorderedMap<AccountId, Account>,
-    /// [TODO] Whether the staking is paused.
-    /// When paused, the account cannot perform stake or unstake.
+    /// Pause the contract for maintenance, all user interactions are stopped. Only the owner can perform pause and resume.
     /// It doesn't affect the staking shares or reward distribution.
-    /// Pausing is useful for contract maintenance. Only the owner can pause and resume staking.
     /// The contract is not paused by default.
     paused: bool,
 

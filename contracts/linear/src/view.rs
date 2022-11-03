@@ -173,7 +173,7 @@ impl LiquidStakingContract {
     }
 
     /// Returns true if the staking is paused
-    pub fn is_staking_paused(&self) -> bool {
+    pub fn is_paused(&self) -> bool {
         self.paused
     }
 

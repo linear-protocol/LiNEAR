@@ -11,16 +11,19 @@ impl LiquidStakingContract {
     }
 
     pub fn add_manager(&mut self, new_manager_id: AccountId) {
+        self.assert_running();
         self.assert_owner();
         self.internal_add_manager(&new_manager_id);
     }
 
     pub fn remove_manager(&mut self, manager_id: AccountId) -> bool {
+        self.assert_running();
         self.assert_owner();
         self.internal_remove_manager(&manager_id)
     }
 
     pub fn set_beneficiary(&mut self, account_id: AccountId, bps: u32) {
+        self.assert_running();
         self.assert_owner();
 
         if self.beneficiaries.len() == MAX_BENEFICIARIES
@@ -43,18 +46,21 @@ impl LiquidStakingContract {
     }
 
     pub fn remove_beneficiary(&mut self, account_id: AccountId) {
+        self.assert_running();
         self.assert_owner();
         self.beneficiaries.remove(&account_id);
     }
 
     /// Set account ID of the treasury
     pub fn set_treasury(&mut self, account_id: AccountId) {
+        self.assert_running();
         self.assert_owner();
         self.treasury_id = account_id;
     }
 
     /// Set whitelist account ID
     pub fn set_whitelist_contract_id(&mut self, account_id: AccountId) {
+        self.assert_running();
         self.assert_owner();
         self.whitelist_account_id = Some(account_id);
     }
@@ -75,12 +81,14 @@ impl LiquidStakingContract {
 
     /// Add authorized token.
     pub fn add_authorized_farm_token(&mut self, token_id: &AccountId) {
+        self.assert_running();
         self.assert_owner();
         self.authorized_farm_tokens.insert(token_id);
     }
 
     /// Remove authorized token.
     pub fn remove_authorized_farm_token(&mut self, token_id: &AccountId) {
+        self.assert_running();
         self.assert_owner();
         self.authorized_farm_tokens.remove(token_id);
     }
@@ -98,7 +106,20 @@ impl LiquidStakingContract {
     // --- Liquidity Pool ----
 
     pub fn configure_liquidity_pool(&mut self, config: LiquidityPoolConfig) {
+        self.assert_running();
         self.assert_owner();
         self.liquidity_pool.configure(config);
+    }
+
+    // --- Pause ---
+
+    pub fn pause(&mut self) {
+        self.assert_owner();
+        self.paused = true;
+    }
+
+    pub fn resume(&mut self) {
+        self.assert_owner();
+        self.paused = false;
     }
 }

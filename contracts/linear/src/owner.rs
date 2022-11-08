@@ -115,11 +115,13 @@ impl LiquidStakingContract {
 
     pub fn pause(&mut self) {
         self.assert_owner();
+        require!(!self.paused, ERR_ALREADY_PAUSED);
         self.paused = true;
     }
 
     pub fn resume(&mut self) {
         self.assert_owner();
+        require!(self.paused, ERR_NOT_PAUSED);
         self.paused = false;
     }
 }

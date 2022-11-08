@@ -69,7 +69,7 @@ workspace.test('pause/resume could not be called by non-owner', async (test, { c
   );
 });
 
-workspace.test('could not transfer LiNEAR token when paused', async (test, { contract, owner, alice }) => {
+workspace.test('could not perform any actions when paused', async (test, { contract, owner, alice }) => {
   // deposit and stake 10 NEAR
   const stakeAmount = NEAR.parse('10');
   await alice.call(
@@ -85,17 +85,42 @@ workspace.test('could not transfer LiNEAR token when paused', async (test, { con
     {}
   );
 
-  const transferAmount = NEAR.parse('2');
+  // cannot transfer LiNEAR
+
+  const amount = NEAR.parse('2');
   await assertFailure(
     test,
-    transfer(contract, alice, owner, transferAmount),
-    'The contract is paused now, please try later'
+    transfer(contract, alice, owner, amount),
+    'The contract is paused now. Please try later'
   );
 
   await assertFailure(
     test,
-    transferCall(contract, alice, owner, transferAmount, ''),
-    'The contract is paused now, please try later'
+    transferCall(contract, alice, owner, amount, ''),
+    'The contract is paused now. Please try later'
+  );
+
+  // cannot stake/unstake
+
+  await assertFailure(
+    test,
+    alice.call(
+      contract,
+      'deposit_and_stake',
+      {},
+      { attachedDeposit: amount }
+    ),
+    'The contract is paused now. Please try later'
+  );
+
+  await assertFailure(
+    test,
+    alice.call(
+      contract,
+      'unstake_all',
+      {}
+    ),
+    'The contract is paused now. Please try later'
   );
 });
 
@@ -119,7 +144,7 @@ workspace.test('resume contract after pause', async (test, { contract, owner, al
   await assertFailure(
     test,
     transfer(contract, alice, owner, transferAmount),
-    'The contract is paused now, please try later'
+    'The contract is paused now. Please try later'
   );
 
   await owner.call(

@@ -9,8 +9,13 @@ impl LiquidStakingContract {
     /********************/
     /* Internal methods */
     /********************/
+    pub(crate) fn assert_running(&self) {
+        require!(!self.paused, ERR_PAUSED);
+    }
 
     pub(crate) fn internal_deposit(&mut self, amount: Balance) {
+        self.assert_running();
+
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);
         account.unstaked += amount;
@@ -51,6 +56,8 @@ impl LiquidStakingContract {
     }
 
     pub(crate) fn internal_withdraw(&mut self, amount: Balance) {
+        self.assert_running();
+
         let account_id = env::predecessor_account_id();
         self.assert_can_withdraw(&account_id, amount);
 
@@ -68,6 +75,8 @@ impl LiquidStakingContract {
     }
 
     pub(crate) fn internal_stake(&mut self, amount: Balance) {
+        self.assert_running();
+
         require!(amount > 0, ERR_NON_POSITIVE_STAKING_AMOUNT);
 
         let account_id = env::predecessor_account_id();
@@ -127,6 +136,8 @@ impl LiquidStakingContract {
     }
 
     pub(crate) fn internal_unstake(&mut self, amount: u128) {
+        self.assert_running();
+
         require!(amount > 0, ERR_NON_POSITIVE_UNSTAKING_AMOUNT);
 
         let account_id = env::predecessor_account_id();
@@ -237,6 +248,8 @@ impl LiquidStakingContract {
         account_id: &AccountId,
         near_amount: Balance,
     ) -> ShareBalance {
+        self.assert_running();
+
         let shares = self.num_shares_from_staked_amount_rounded_down(near_amount);
         // mint to account
         if self.accounts.get(account_id).is_none() {
@@ -334,10 +347,12 @@ impl LiquidStakingContract {
 // -- manager related methods
 impl LiquidStakingContract {
     pub(crate) fn internal_add_manager(&mut self, manager_id: &AccountId) {
+        self.assert_running();
         self.managers.insert(manager_id);
     }
 
     pub(crate) fn internal_remove_manager(&mut self, manager_id: &AccountId) -> bool {
+        self.assert_running();
         self.managers.remove(manager_id)
     }
 

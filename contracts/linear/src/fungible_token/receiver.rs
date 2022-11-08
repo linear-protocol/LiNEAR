@@ -28,6 +28,8 @@ impl FungibleTokenReceiver for LiquidStakingContract {
         amount: U128,
         msg: String,
     ) -> PromiseOrValue<U128> {
+        self.assert_running();
+
         require!(
             self.authorized_farm_tokens
                 .contains(&env::predecessor_account_id()),

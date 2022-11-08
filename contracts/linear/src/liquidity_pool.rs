@@ -370,6 +370,8 @@ impl LiquidStakingContract {
     #[cfg(feature = "test")]
     #[payable]
     pub fn add_liquidity(&mut self) {
+        self.assert_running();
+
         let account_id = env::predecessor_account_id();
         let amount = env::attached_deposit();
 
@@ -392,6 +394,7 @@ impl LiquidStakingContract {
     /// The parameter `amount` means the value of NEAR to be removed
     #[payable]
     pub fn remove_liquidity(&mut self, amount: U128) -> Vec<U128> {
+        self.assert_running();
         assert_one_yocto();
 
         let account_id = env::predecessor_account_id();
@@ -452,6 +455,8 @@ impl LiquidStakingContract {
         stake_shares_in: U128, // LiNEAR amount sent by the account
         min_amount_out: U128,  // Minimum NEAR amount should be returned
     ) -> U128 {
+        self.assert_running();
+
         let stake_shares_in: ShareBalance = stake_shares_in.into();
         require!(stake_shares_in > 0, ERR_NON_POSITIVE_UNSTAKING_AMOUNT);
         let min_amount_out: Balance = min_amount_out.into();

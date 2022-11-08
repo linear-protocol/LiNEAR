@@ -14,6 +14,7 @@ const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR;
 #[near_bindgen]
 impl LiquidStakingContract {
     pub fn epoch_stake(&mut self) -> bool {
+        self.assert_running();
         // make sure enough gas was given
         let min_gas = GAS_EPOCH_STAKE + GAS_EXT_DEPOSIT_AND_STAKE + GAS_CB_VALIDATOR_STAKED;
         require!(
@@ -72,6 +73,7 @@ impl LiquidStakingContract {
     }
 
     pub fn epoch_unstake(&mut self) -> bool {
+        self.assert_running();
         // make sure enough gas was given
         let min_gas = GAS_EPOCH_UNSTAKE + GAS_EXT_UNSTAKE + GAS_CB_VALIDATOR_UNSTAKED;
         require!(
@@ -124,6 +126,8 @@ impl LiquidStakingContract {
     }
 
     pub fn epoch_update_rewards(&mut self, validator_id: AccountId) {
+        self.assert_running();
+
         let min_gas = GAS_EPOCH_UPDATE_REWARDS + GAS_EXT_GET_BALANCE + GAS_CB_VALIDATOR_GET_BALANCE;
         require!(
             env::prepaid_gas() >= min_gas,
@@ -150,6 +154,7 @@ impl LiquidStakingContract {
     }
 
     pub fn epoch_withdraw(&mut self, validator_id: AccountId) {
+        self.assert_running();
         // make sure enough gas was given
         let min_gas = GAS_EPOCH_WITHDRAW + GAS_EXT_WITHDRAW + GAS_CB_VALIDATOR_WITHDRAW;
         require!(
@@ -216,6 +221,8 @@ impl LiquidStakingContract {
     /// different than we requested.
     /// This method is to sync the actual numbers with the validator.
     pub fn sync_balance_from_validator(&mut self, validator_id: AccountId) {
+        self.assert_running();
+
         let min_gas = GAS_SYNC_BALANCE + GAS_EXT_GET_ACCOUNT + GAS_CB_VALIDATOR_SYNC_BALANCE;
         require!(
             env::prepaid_gas() >= min_gas,
@@ -241,6 +248,7 @@ impl LiquidStakingContract {
     /// The weight of target validator should be set to 0 before calling this.
     /// And a following call to drain_withdraw MUST be made after 4 epoches.
     pub fn drain_unstake(&mut self, validator_id: AccountId) {
+        self.assert_running();
         self.assert_manager();
 
         // make sure enough gas was given
@@ -288,6 +296,7 @@ impl LiquidStakingContract {
 
     /// Withdraw from a drained validator
     pub fn drain_withdraw(&mut self, validator_id: AccountId) {
+        self.assert_running();
         self.assert_manager();
 
         // make sure enough gas was given

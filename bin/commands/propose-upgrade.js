@@ -78,7 +78,7 @@ exports.handler = async function (argv) {
     contractId: dao,
     methodName: 'add_proposal',
     args: proposalArgs,
-    attachedDeposit: NEAR.parse('1')
+    attachedDeposit: NEAR.parse('0.1')
   })
 
   console.log('proposed!');

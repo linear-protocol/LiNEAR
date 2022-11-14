@@ -76,7 +76,7 @@ async function funcCallProposal(
     methodName: 'add_proposal',
     args: proposal,
     gas: Gas.parse('200 Tgas'),
-    attachedDeposit: NEAR.parse('1')
+    attachedDeposit: NEAR.parse('0.1')
   });
 }
 

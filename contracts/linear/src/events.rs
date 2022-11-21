@@ -1,4 +1,10 @@
-use near_sdk::{json_types::U128, log, serde::Serialize, serde_json::json, AccountId};
+use near_sdk::{
+    json_types::{I128, U128},
+    log,
+    serde::Serialize,
+    serde_json::json,
+    AccountId,
+};
 
 const EVENT_STANDARD: &str = "linear";
 const EVENT_STANDARD_VERSION: &str = "1.0.0";
@@ -123,6 +129,16 @@ pub enum Event<'a> {
     },
     ValidatorRemoved {
         account_id: &'a AccountId,
+    },
+    ValidatorStakeRequested {
+        account_id: &'a AccountId,
+        amount: &'a U128,
+        new_requested_stake_amount: &'a I128,
+    },
+    ValidatorUnstakeRequested {
+        account_id: &'a AccountId,
+        amount: &'a U128,
+        new_requested_stake_amount: &'a I128,
     },
     // Liquidity Pool
     #[deprecated(

@@ -586,7 +586,7 @@ impl Validator {
 
     fn sync_base_stake_amount(&mut self, pool: &mut ValidatorPool, new_total_balance: Balance) {
         let old_total_balance = self.staked_amount + self.unstaked_amount;
-        // If no balance, or no base stake amount set, not need to update base stake amount
+        // If no balance, or no base stake amount set, no need to update base stake amount
         if old_total_balance != 0 && self.base_stake_amount != 0 {
             let old_base_stake_amount = self.base_stake_amount;
             self.base_stake_amount = (U256::from(old_base_stake_amount)

@@ -58,7 +58,7 @@ trait WhitelistCallback {
 pub struct ValidatorPool {
     validators: UnorderedMap<AccountId, Validator>,
     total_weight: u16,
-    toal_base_stake_amount: Balance,
+    total_base_stake_amount: Balance,
 }
 
 impl Default for ValidatorPool {
@@ -72,7 +72,7 @@ impl ValidatorPool {
         Self {
             validators: UnorderedMap::new(StorageKey::Validators),
             total_weight: 0,
-            toal_base_stake_amount: 0,
+            total_base_stake_amount: 0,
         }
     }
 
@@ -122,7 +122,7 @@ impl ValidatorPool {
         );
 
         self.total_weight -= validator.weight;
-        self.toal_base_stake_amount -= validator.base_stake_amount;
+        self.total_base_stake_amount -= validator.base_stake_amount;
 
         Event::ValidatorRemoved {
             account_id: validator_id,
@@ -161,7 +161,8 @@ impl ValidatorPool {
 
         let old_base_stake_amount = validator.base_stake_amount;
         validator.base_stake_amount = amount;
-        self.toal_base_stake_amount = self.toal_base_stake_amount + amount - old_base_stake_amount;
+        self.total_base_stake_amount =
+            self.total_base_stake_amount + amount - old_base_stake_amount;
         self.validators.insert(validator_id, &validator);
 
         Event::ValidatorUpdated {
@@ -254,7 +255,7 @@ impl ValidatorPool {
         let dynamic_stake_amount = if validator.weight == 0 {
             0
         } else {
-            (total_staked_near_amount - self.toal_base_stake_amount) * (validator.weight as u128)
+            (total_staked_near_amount - self.total_base_stake_amount) * (validator.weight as u128)
                 / (self.total_weight as u128)
         };
         validator.base_stake_amount + dynamic_stake_amount
@@ -519,6 +520,9 @@ impl Validator {
     }
 
     pub fn on_new_total_balance(&mut self, pool: &mut ValidatorPool, new_total_balance: Balance) {
+        // sync base stake amount
+        self.sync_base_stake_amount(pool, new_total_balance);
+        // update staked amount
         self.staked_amount = new_total_balance - self.unstaked_amount;
         pool.save_validator(self);
     }
@@ -570,11 +574,28 @@ impl Validator {
             )
         );
 
+        // sync base stake amount
+        self.sync_base_stake_amount(pool, new_total_balance);
+
         // update balance
         self.staked_amount = staked_balance;
         self.unstaked_amount = unstaked_balance;
 
         pool.save_validator(self);
+    }
+
+    fn sync_base_stake_amount(&mut self, pool: &mut ValidatorPool, new_total_balance: Balance) {
+        let old_total_balance = self.staked_amount + self.unstaked_amount;
+        // If no balance, or no base stake amount set, not need to update base stake amount
+        if old_total_balance != 0 && self.base_stake_amount != 0 {
+            let old_base_stake_amount = self.base_stake_amount;
+            self.base_stake_amount = (U256::from(old_base_stake_amount)
+                * U256::from(new_total_balance)
+                / U256::from(old_total_balance))
+            .as_u128();
+            pool.total_base_stake_amount =
+                pool.total_base_stake_amount + self.base_stake_amount - old_base_stake_amount;
+        }
     }
 
     pub fn withdraw(&mut self, pool: &mut ValidatorPool, amount: Balance) -> Promise {

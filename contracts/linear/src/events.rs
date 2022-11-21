@@ -597,7 +597,12 @@ mod tests {
         let account_id = &alice();
         let base_stake_amount = &U128(50000);
         let weight: u16 = 10;
-        Event::ValidatorUpdated { account_id, base_stake_amount, weight }.emit();
+        Event::ValidatorUpdated {
+            account_id,
+            base_stake_amount,
+            weight,
+        }
+        .emit();
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_updated","data":[{"account_id":"alice","base_stake_amount":"50000","weight":10}]}"#

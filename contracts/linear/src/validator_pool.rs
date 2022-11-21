@@ -693,7 +693,9 @@ mod tests {
 
         // set foo's base stake amount to 200
         validator_pool.update_base_stake_amount(&foo.account_id, 200 * ONE_NEAR);
-        foo = validator_pool.get_validator(&AccountId::new_unchecked("foo".to_string())).unwrap();
+        foo = validator_pool
+            .get_validator(&AccountId::new_unchecked("foo".to_string()))
+            .unwrap();
 
         // manually set staked amounts
         foo.staked_amount = 150 * ONE_NEAR; // target is 400
@@ -809,7 +811,9 @@ mod tests {
 
         // set foo's base stake amount to 200
         validator_pool.update_base_stake_amount(&foo.account_id, 200 * ONE_NEAR);
-        foo = validator_pool.get_validator(&AccountId::new_unchecked("foo".to_string())).unwrap();
+        foo = validator_pool
+            .get_validator(&AccountId::new_unchecked("foo".to_string()))
+            .unwrap();
 
         // manually set staked amounts
         foo.staked_amount = 100 * ONE_NEAR; // target is 250
@@ -855,7 +859,8 @@ mod tests {
 
         // in case no unstaking is needed
 
-        let (candidate, _) = validator_pool.get_candidate_to_unstake(100 * ONE_NEAR, 400 * ONE_NEAR);
+        let (candidate, _) =
+            validator_pool.get_candidate_to_unstake(100 * ONE_NEAR, 400 * ONE_NEAR);
         assert!(candidate.is_none());
     }
 }

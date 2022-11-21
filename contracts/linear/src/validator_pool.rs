@@ -58,6 +58,7 @@ trait WhitelistCallback {
 pub struct ValidatorPool {
     validators: UnorderedMap<AccountId, Validator>,
     total_weight: u16,
+    toal_base_stake_amount: Balance,
 }
 
 impl Default for ValidatorPool {
@@ -71,6 +72,7 @@ impl ValidatorPool {
         Self {
             validators: UnorderedMap::new(StorageKey::Validators),
             total_weight: 0,
+            toal_base_stake_amount: 0,
         }
     }
 
@@ -148,38 +150,22 @@ impl ValidatorPool {
         .emit();
     }
 
-    /// Request stake to validator with specific amount
-    pub fn request_stake(&mut self, validator_id: &AccountId, amount: Balance) {
+    /// Update base stake amount of the validator
+    pub fn update_base_stake_amount(&mut self, validator_id: &AccountId, amount: Balance) {
         let mut validator = self
             .validators
             .get(validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST);
 
-        validator.requested_stake_amount += amount as i128;
+        let old_base_stake_amount = validator.base_stake_amount;
+        validator.base_stake_amount = amount;
+        self.toal_base_stake_amount = self.toal_base_stake_amount + amount - old_base_stake_amount;
         self.validators.insert(validator_id, &validator);
 
-        Event::ValidatorStakeRequested {
+        Event::ValidatorBaseStakeAmountUpdated {
             account_id: validator_id,
-            amount: &amount.into(),
-            new_requested_stake_amount: &validator.requested_stake_amount.into(),
-        }
-        .emit();
-    }
-
-    /// Request unstake from validator with specific amount
-    pub fn request_unstake(&mut self, validator_id: &AccountId, amount: Balance) {
-        let mut validator = self
-            .validators
-            .get(validator_id)
-            .expect(ERR_VALIDATOR_NOT_EXIST);
-
-        validator.requested_stake_amount -= amount as i128;
-        self.validators.insert(validator_id, &validator);
-
-        Event::ValidatorUnstakeRequested {
-            account_id: validator_id,
-            amount: &amount.into(),
-            new_requested_stake_amount: &validator.requested_stake_amount.into(),
+            old_base_stake_amount: &old_base_stake_amount.into(),
+            new_base_stake_amount: &validator.base_stake_amount.into(),
         }
         .emit();
     }
@@ -263,11 +249,13 @@ impl ValidatorPool {
         total_staked_near_amount: Balance,
         validator: &Validator,
     ) -> Balance {
-        if validator.weight == 0 {
+        let dynamic_stake_amount = if validator.weight == 0 {
             0
         } else {
-            total_staked_near_amount * (validator.weight as u128) / (self.total_weight as u128)
-        }
+            (total_staked_near_amount - self.toal_base_stake_amount) * (validator.weight as u128)
+                / (self.total_weight as u128)
+        };
+        validator.base_stake_amount + dynamic_stake_amount
     }
 
     pub fn get_num_epoch_to_unstake(&self, amount: u128) -> EpochHeight {
@@ -372,23 +360,13 @@ impl LiquidStakingContract {
         self.validator_pool.update_weight(&validator_id, weight);
     }
 
-    pub fn request_stake(&mut self, validator_ids: Vec<AccountId>, amounts: Vec<U128>) {
+    pub fn update_base_stake_amount(&mut self, validator_ids: Vec<AccountId>, amounts: Vec<U128>) {
         self.assert_running();
         self.assert_manager();
         require!(validator_ids.len() == amounts.len(), ERR_BAD_VALIDATOR_LIST);
         for i in 0..validator_ids.len() {
             self.validator_pool
-                .request_stake(&validator_ids[i], amounts[i].into());
-        }
-    }
-
-    pub fn request_unstake(&mut self, validator_ids: Vec<AccountId>, amounts: Vec<U128>) {
-        self.assert_running();
-        self.assert_manager();
-        require!(validator_ids.len() == amounts.len(), ERR_BAD_VALIDATOR_LIST);
-        for i in 0..validator_ids.len() {
-            self.validator_pool
-                .request_unstake(&validator_ids[i], amounts[i].into());
+                .update_base_stake_amount(&validator_ids[i], amounts[i].into());
         }
     }
 
@@ -423,10 +401,8 @@ pub struct Validator {
     pub staked_amount: Balance,
     pub unstaked_amount: Balance,
 
-    /// The requested stake amount on this validator.
-    /// - If positive, it means we need stake to this validator.
-    /// - If negative, it means we need to unstake from this validator.
-    pub requested_stake_amount: i128,
+    /// The requested base stake amount on this validator.
+    pub base_stake_amount: Balance,
 
     /// the epoch num when latest unstake action happened on this validator
     pub unstake_fired_epoch: EpochHeight,
@@ -440,6 +416,7 @@ pub struct Validator {
 pub struct ValidatorInfo {
     pub account_id: AccountId,
     pub weight: u16,
+    pub base_stake_amount: U128,
     pub staked_amount: U128,
     pub unstaked_amount: U128,
     pub pending_release: bool,
@@ -450,7 +427,7 @@ impl Validator {
         Self {
             account_id,
             weight,
-            requested_stake_amount: 0,
+            base_stake_amount: 0,
             staked_amount: 0,
             unstaked_amount: 0,
             unstake_fired_epoch: 0,
@@ -462,6 +439,7 @@ impl Validator {
         ValidatorInfo {
             account_id: self.account_id.clone(),
             weight: self.weight,
+            base_stake_amount: self.base_stake_amount.into(),
             staked_amount: self.staked_amount.into(),
             unstaked_amount: self.unstaked_amount.into(),
             pending_release: self.pending_release(),

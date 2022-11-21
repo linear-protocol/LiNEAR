@@ -76,6 +76,19 @@ workspace.test('not manager', async (test, { contract, alice, root, owner }) => 
     ),
     errMsg
   );
+
+  await assertFailure(
+    test,
+    alice.call(
+      contract,
+      'update_base_stake_amount',
+      {
+        validator_ids: ['foo'],
+        amounts: [NEAR.parse("25,000")]
+      }
+    ),
+    errMsg
+  );
 });
 
 workspace.test('add validator', async (test, context) => {
@@ -420,5 +433,73 @@ workspace.test('update weight', async (test, context) => {
   test.is(
     await contract.view('get_total_weight'),
     35
+  );
+});
+
+workspace.test('update base stake amount', async (test, context) => {
+  const { root, owner, contract } = context;
+  const manager = await setManager(root, contract, owner);
+
+  // add foo, bar
+  await manager.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: 'foo',
+      weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+  await manager.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: 'bar',
+      weight: 20
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+
+  // update base stake amount of foo and bar
+  const amounts = [
+    NEAR.parse("20000").toString(),
+    NEAR.parse("50000").toString()
+  ];
+  await manager.call(
+    contract,
+    'update_base_stake_amount',
+    {
+      validator_ids: [
+        'foo',
+        'bar'
+      ],
+      amounts
+    }
+  );
+
+  const foo: any = await contract.view(
+    'get_validator',
+    {
+      validator_id: 'foo'
+    }
+  );
+  test.is(
+    foo.base_stake_amount,
+    amounts[0]
+  );
+
+  const bar: any = await contract.view(
+    'get_validator',
+    {
+      validator_id: 'bar'
+    }
+  );
+  test.is(
+    bar.base_stake_amount,
+    amounts[1]
   );
 });

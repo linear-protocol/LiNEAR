@@ -146,6 +146,7 @@ impl ValidatorPool {
 
         Event::ValidatorUpdated {
             account_id: validator_id,
+            base_stake_amount: &validator.base_stake_amount.into(),
             weight,
         }
         .emit();
@@ -163,10 +164,10 @@ impl ValidatorPool {
         self.toal_base_stake_amount = self.toal_base_stake_amount + amount - old_base_stake_amount;
         self.validators.insert(validator_id, &validator);
 
-        Event::ValidatorBaseStakeAmountUpdated {
+        Event::ValidatorUpdated {
             account_id: validator_id,
-            old_base_stake_amount: &old_base_stake_amount.into(),
-            new_base_stake_amount: &validator.base_stake_amount.into(),
+            base_stake_amount: &amount.into(),
+            weight: validator.weight,
         }
         .emit();
     }

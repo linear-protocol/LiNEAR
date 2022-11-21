@@ -23,8 +23,7 @@ function assertValidatorHelper(
     stakedAmount: string,
     unstakedAmount: string
   ) {
-    const v: any = await owner.call(
-      contract,
+    const v: any = await contract.view(
       'get_validator',
       {
         validator_id: validator.accountId

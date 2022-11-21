@@ -265,9 +265,11 @@ impl LiquidStakingContract {
 
         // make sure the validator:
         // 1. has weight set to 0
-        // 2. not in pending release
-        // 3. has not unstaked balance (because this part is from user's unstake request)
+        // 2. has base stake amount set to 0
+        // 3. not in pending release
+        // 4. has not unstaked balance (because this part is from user's unstake request)
         require!(validator.weight == 0, ERR_NON_ZERO_WEIGHT);
+        require!(validator.base_stake_amount == 0, ERR_NON_ZERO_BASE_STAKE_AMOUNT);
         require!(
             !validator.pending_release(),
             ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED
@@ -313,9 +315,11 @@ impl LiquidStakingContract {
 
         // make sure the validator:
         // 1. has weight set to 0
-        // 2. has no staked balance
-        // 3. not pending release
+        // 2. has base stake amount set to 0
+        // 3. has no staked balance
+        // 4. not pending release
         require!(validator.weight == 0, ERR_NON_ZERO_WEIGHT);
+        require!(validator.base_stake_amount == 0, ERR_NON_ZERO_BASE_STAKE_AMOUNT);
         require!(validator.staked_amount == 0, ERR_NON_ZERO_STAKED_AMOUNT);
         require!(
             !validator.pending_release(),

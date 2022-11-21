@@ -122,6 +122,7 @@ impl ValidatorPool {
         );
 
         self.total_weight -= validator.weight;
+        self.toal_base_stake_amount -= validator.base_stake_amount;
 
         Event::ValidatorRemoved {
             account_id: validator_id,

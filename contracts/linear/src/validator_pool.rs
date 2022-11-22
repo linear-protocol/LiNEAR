@@ -720,6 +720,8 @@ mod tests {
             .get_validator(&AccountId::new_unchecked("foo".to_string()))
             .unwrap();
 
+        // 1. total stake amount >= total base stake amount
+
         // manually set staked amounts
         foo.staked_amount = 150 * ONE_NEAR; // target is 400
         bar.staked_amount = 200 * ONE_NEAR; // target is 200
@@ -755,6 +757,21 @@ mod tests {
         assert_eq!(amount, 200 * ONE_NEAR);
 
         // reset staked amount
+        foo.staked_amount = 500 * ONE_NEAR; // target is 400
+        bar.staked_amount = 300 * ONE_NEAR; // target is 200
+        zoo.staked_amount = 500 * ONE_NEAR; // target is 400
+        validator_pool.validators.insert(&foo.account_id, &foo);
+        validator_pool.validators.insert(&bar.account_id, &bar);
+        validator_pool.validators.insert(&zoo.account_id, &zoo);
+
+        // in case no staking is needed
+
+        let (candidate, _) = validator_pool.get_candidate_to_stake(100 * ONE_NEAR, 1000 * ONE_NEAR);
+        assert!(candidate.is_none());
+
+        // 2. total stake amount < total base stake amount
+
+        // reset staked amount
         foo.staked_amount = 0; // target is 100
         bar.staked_amount = 20 * ONE_NEAR; // target is 0
         zoo.staked_amount = 30 * ONE_NEAR; // target is 0
@@ -772,18 +789,29 @@ mod tests {
         assert_eq!(candidate.unwrap().account_id, foo.account_id);
         assert_eq!(amount, 50 * ONE_NEAR);
 
+        // set bar's base stake amount to 100
+        validator_pool.update_base_stake_amount(&bar.account_id, 100 * ONE_NEAR);
+        bar = validator_pool
+            .get_validator(&AccountId::new_unchecked("bar".to_string()))
+            .unwrap();
+
         // reset staked amount
-        foo.staked_amount = 500 * ONE_NEAR; // target is 400
-        bar.staked_amount = 300 * ONE_NEAR; // target is 200
-        zoo.staked_amount = 500 * ONE_NEAR; // target is 400
+        foo.staked_amount = 75 * ONE_NEAR; // target is 100
+        bar.staked_amount = 20 * ONE_NEAR; // target is 50
+        zoo.staked_amount = 5 * ONE_NEAR; // target is 0
         validator_pool.validators.insert(&foo.account_id, &foo);
         validator_pool.validators.insert(&bar.account_id, &bar);
         validator_pool.validators.insert(&zoo.account_id, &zoo);
 
-        // in case no staking is needed
+        // we have currently 150 in total, 100 already staked, 50 to stake,
+        // the total stake amount is less than total base stake amount, satisfay base stake amount first.
+        // thus bar is the most unbalanced one.
 
-        let (candidate, _) = validator_pool.get_candidate_to_stake(100 * ONE_NEAR, 1000 * ONE_NEAR);
-        assert!(candidate.is_none());
+        let (candidate, amount) =
+            validator_pool.get_candidate_to_stake(50 * ONE_NEAR, 150 * ONE_NEAR);
+        assert!(candidate.is_some());
+        assert_eq!(candidate.unwrap().account_id, bar.account_id);
+        assert_eq!(amount, 30 * ONE_NEAR);
     }
 
     #[test]
@@ -856,6 +884,8 @@ mod tests {
             .get_validator(&AccountId::new_unchecked("foo".to_string()))
             .unwrap();
 
+        // 1. total stake amount >= total base stake amount
+
         // manually set staked amounts
         foo.staked_amount = 100 * ONE_NEAR; // target is 250
         bar.staked_amount = 100 * ONE_NEAR; // target is 50
@@ -891,6 +921,22 @@ mod tests {
         assert_eq!(amount, 100 * ONE_NEAR);
 
         // reset staked amount
+        foo.staked_amount = 100 * ONE_NEAR;
+        bar.staked_amount = 50 * ONE_NEAR;
+        zoo.staked_amount = 100 * ONE_NEAR;
+        validator_pool.validators.insert(&foo.account_id, &foo);
+        validator_pool.validators.insert(&bar.account_id, &bar);
+        validator_pool.validators.insert(&zoo.account_id, &zoo);
+
+        // in case no unstaking is needed
+
+        let (candidate, _) =
+            validator_pool.get_candidate_to_unstake(100 * ONE_NEAR, 400 * ONE_NEAR);
+        assert!(candidate.is_none());
+
+        // 2. total stake amount < total base stake amount
+
+        // reset staked amount
         foo.staked_amount = 100 * ONE_NEAR; // target is 200
         bar.staked_amount = 150 * ONE_NEAR; // target is 0
         zoo.staked_amount = 200 * ONE_NEAR; // target is 0
@@ -908,18 +954,29 @@ mod tests {
         assert_eq!(candidate.unwrap().account_id, zoo.account_id);
         assert_eq!(amount, 200 * ONE_NEAR);
 
+        // set bar's base stake amount to 100
+        validator_pool.update_base_stake_amount(&bar.account_id, 100 * ONE_NEAR);
+        bar = validator_pool
+            .get_validator(&AccountId::new_unchecked("bar".to_string()))
+            .unwrap();
+
         // reset staked amount
-        foo.staked_amount = 100 * ONE_NEAR;
-        bar.staked_amount = 50 * ONE_NEAR;
-        zoo.staked_amount = 100 * ONE_NEAR;
+        foo.staked_amount = 100 * ONE_NEAR; // target is 100
+        bar.staked_amount = 150 * ONE_NEAR; // target is 50
+        zoo.staked_amount = 50 * ONE_NEAR; // target is 0
         validator_pool.validators.insert(&foo.account_id, &foo);
         validator_pool.validators.insert(&bar.account_id, &bar);
         validator_pool.validators.insert(&zoo.account_id, &zoo);
 
-        // in case no unstaking is needed
+        // we have currently 300 already staked, 150 to unstake, target total 150,
+        // the total stake amount is less than total base stake amount, satisfay base stake amount first,
+        // thus bar is the most unbalanced one.
 
-        let (candidate, _) =
-            validator_pool.get_candidate_to_unstake(100 * ONE_NEAR, 400 * ONE_NEAR);
-        assert!(candidate.is_none());
+        let (candidate, amount) =
+            validator_pool.get_candidate_to_unstake(150 * ONE_NEAR, 150 * ONE_NEAR);
+        assert!(candidate.is_some());
+        // to avoid blocking unstake, more amount than the delta (100 NEAR) will be unstaked.
+        assert_eq!(amount, 150 * ONE_NEAR);
+        assert_eq!(candidate.unwrap().account_id, bar.account_id);
     }
 }

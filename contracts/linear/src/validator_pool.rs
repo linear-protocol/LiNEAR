@@ -3,11 +3,10 @@ use crate::events::Event;
 use crate::types::*;
 use crate::utils::*;
 use crate::*;
-use near_sdk::is_promise_success;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     collections::UnorderedMap,
-    ext_contract,
+    ext_contract, is_promise_success,
     json_types::U128,
     near_bindgen, require, AccountId, Balance, EpochHeight, Promise,
 };

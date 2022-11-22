@@ -243,103 +243,6 @@ impl LiquidStakingContract {
                 GAS_CB_VALIDATOR_SYNC_BALANCE,
             ));
     }
-
-    /// This method is designed to drain a validator.
-    /// The weight of target validator should be set to 0 before calling this.
-    /// And a following call to drain_withdraw MUST be made after 4 epoches.
-    pub fn drain_unstake(&mut self, validator_id: AccountId) {
-        self.assert_running();
-        self.assert_manager();
-
-        // make sure enough gas was given
-        let min_gas = GAS_DRAIN_UNSTAKE + GAS_EXT_UNSTAKE + GAS_CB_VALIDATOR_UNSTAKED;
-        require!(
-            env::prepaid_gas() >= min_gas,
-            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
-        );
-
-        let mut validator = self
-            .validator_pool
-            .get_validator(&validator_id)
-            .expect(ERR_VALIDATOR_NOT_EXIST);
-
-        // make sure the validator:
-        // 1. has weight set to 0
-        // 2. not in pending release
-        // 3. has not unstaked balance (because this part is from user's unstake request)
-        require!(validator.weight == 0, ERR_NON_ZERO_WEIGHT);
-        require!(
-            !validator.pending_release(),
-            ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED
-        );
-        require!(validator.unstaked_amount == 0, ERR_NON_ZERO_UNSTAKED_AMOUNT);
-
-        let unstake_amount = validator.staked_amount;
-
-        Event::DrainUnstakeAttempt {
-            validator_id: &validator_id,
-            amount: &U128(unstake_amount),
-        }
-        .emit();
-
-        // perform actual unstake
-        validator
-            .unstake(&mut self.validator_pool, unstake_amount)
-            .then(ext_self_action_cb::validator_drain_unstaked_callback(
-                validator.account_id,
-                unstake_amount,
-                env::current_account_id(),
-                NO_DEPOSIT,
-                GAS_CB_VALIDATOR_UNSTAKED,
-            ));
-    }
-
-    /// Withdraw from a drained validator
-    pub fn drain_withdraw(&mut self, validator_id: AccountId) {
-        self.assert_running();
-        self.assert_manager();
-
-        // make sure enough gas was given
-        let min_gas = GAS_DRAIN_WITHDRAW + GAS_EXT_WITHDRAW + GAS_CB_VALIDATOR_WITHDRAW;
-        require!(
-            env::prepaid_gas() >= min_gas,
-            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
-        );
-
-        let mut validator = self
-            .validator_pool
-            .get_validator(&validator_id)
-            .expect(ERR_VALIDATOR_NOT_EXIST);
-
-        // make sure the validator:
-        // 1. has weight set to 0
-        // 2. has no staked balance
-        // 3. not pending release
-        require!(validator.weight == 0, ERR_NON_ZERO_WEIGHT);
-        require!(validator.staked_amount == 0, ERR_NON_ZERO_STAKED_AMOUNT);
-        require!(
-            !validator.pending_release(),
-            ERR_VALIDATOR_WITHDRAW_WHEN_LOCKED
-        );
-
-        let amount = validator.unstaked_amount;
-
-        Event::DrainWithdrawAttempt {
-            validator_id: &validator_id,
-            amount: &U128(amount),
-        }
-        .emit();
-
-        validator.withdraw(&mut self.validator_pool, amount).then(
-            ext_self_action_cb::validator_drain_withdraw_callback(
-                validator.account_id.clone(),
-                amount,
-                env::current_account_id(),
-                NO_DEPOSIT,
-                GAS_CB_VALIDATOR_WITHDRAW,
-            ),
-        );
-    }
 }
 
 /// -- callbacks
@@ -350,15 +253,11 @@ trait EpochActionCallbacks {
 
     fn validator_unstaked_callback(&mut self, validator_id: AccountId, amount: Balance);
 
-    fn validator_drain_unstaked_callback(&mut self, validator_id: AccountId, amount: Balance);
-
     fn validator_get_balance_callback(&mut self, validator_id: AccountId);
 
     fn validator_get_account_callback(&mut self, validator_id: AccountId);
 
     fn validator_withdraw_callback(&mut self, validator_id: AccountId, amount: Balance);
-
-    fn validator_drain_withdraw_callback(&mut self, validator_id: AccountId, amount: Balance);
 }
 
 /// callbacks
@@ -415,33 +314,6 @@ impl LiquidStakingContract {
             validator.on_unstake_failed(&mut self.validator_pool, amount);
 
             Event::EpochUnstakeFailed {
-                validator_id: &validator_id,
-                amount: &U128(amount),
-            }
-            .emit();
-        }
-    }
-
-    #[private]
-    pub fn validator_drain_unstaked_callback(&mut self, validator_id: AccountId, amount: Balance) {
-        let mut validator = self
-            .validator_pool
-            .get_validator(&validator_id)
-            .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
-
-        if is_promise_success() {
-            validator.on_unstake_success(&mut self.validator_pool, amount);
-
-            Event::DrainUnstakeSuccess {
-                validator_id: &validator_id,
-                amount: &U128(amount),
-            }
-            .emit();
-        } else {
-            // unstake failed, revert
-            validator.on_unstake_failed(&mut self.validator_pool, amount);
-
-            Event::DrainUnstakeFailed {
                 validator_id: &validator_id,
                 amount: &U128(amount),
             }
@@ -529,33 +401,5 @@ impl LiquidStakingContract {
             amount: &U128(amount),
         }
         .emit();
-    }
-
-    #[private]
-    pub fn validator_drain_withdraw_callback(&mut self, validator_id: AccountId, amount: Balance) {
-        if is_promise_success() {
-            Event::DrainWithdrawSuccess {
-                validator_id: &validator_id,
-                amount: &U128(amount),
-            }
-            .emit();
-
-            // those funds need to be restaked, so we add them back to epoch request
-            self.epoch_requested_stake_amount += amount;
-        } else {
-            // withdraw failed, revert
-            let mut validator = self
-                .validator_pool
-                .get_validator(&validator_id)
-                .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
-
-            validator.on_withdraw_failed(&mut self.validator_pool, amount);
-
-            Event::DrainWithdrawFailed {
-                validator_id: &validator_id,
-                amount: &U128(amount),
-            }
-            .emit();
-        }
     }
 }

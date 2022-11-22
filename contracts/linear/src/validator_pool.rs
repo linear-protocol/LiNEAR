@@ -247,6 +247,7 @@ impl ValidatorPool {
         (candidate, amount_to_unstake)
     }
 
+    /// target stake amount = base stake amount + dynamic stake amount proportional to weight
     fn validator_target_stake_amount(
         &self,
         total_staked_near_amount: Balance,
@@ -404,7 +405,7 @@ pub struct Validator {
     pub staked_amount: Balance,
     pub unstaked_amount: Balance,
 
-    /// The requested base stake amount on this validator.
+    /// The base stake amount on this validator.
     pub base_stake_amount: Balance,
 
     /// the epoch num when latest unstake action happened on this validator

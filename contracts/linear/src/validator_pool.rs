@@ -247,19 +247,41 @@ impl ValidatorPool {
         (candidate, amount_to_unstake)
     }
 
-    /// target stake amount = base stake amount + dynamic stake amount proportional to weight
+    /// **formula: target stake amount = base stake amount + dynamic stake amount.**
+    ///
+    /// In this model, we ensure the sum of target stake amount is equal to the total staked amount,
+    /// and prioritize base stake amount over dynamic stake amount.
+    ///
+    /// If total staked NEAR amount >= total base stake amount,
+    /// 1. satisfy the base stake amount set by validator manager;
+    /// 2. calculate dynamic stake amount proportional to weight
+    ///
+    /// If total staked NEAR amount < total base stake amount,
+    /// 1. set dynamic stake amount to 0;
+    /// 2. calculate the base stake amount proportionally
     fn validator_target_stake_amount(
         &self,
         total_staked_near_amount: Balance,
         validator: &Validator,
     ) -> Balance {
-        let dynamic_stake_amount = if validator.weight == 0 {
-            0
+        let base_stake_amount = if total_staked_near_amount >= self.total_base_stake_amount {
+            validator.base_stake_amount
         } else {
-            (total_staked_near_amount - self.total_base_stake_amount) * (validator.weight as u128)
-                / (self.total_weight as u128)
+            (U256::from(validator.base_stake_amount) * U256::from(total_staked_near_amount)
+                / U256::from(self.total_base_stake_amount))
+            .as_u128()
         };
-        validator.base_stake_amount + dynamic_stake_amount
+        // If not enough staked NEAR, satisfy the base stake amount first (set dynmaic stake amount to 0)
+        let dynamic_stake_amount =
+            if validator.weight == 0 || total_staked_near_amount <= self.total_base_stake_amount {
+                0
+            } else {
+                (U256::from(total_staked_near_amount - self.total_base_stake_amount)
+                    * U256::from(validator.weight)
+                    / U256::from(self.total_weight))
+                .as_u128()
+            };
+        base_stake_amount + dynamic_stake_amount
     }
 
     pub fn get_num_epoch_to_unstake(&self, amount: u128) -> EpochHeight {
@@ -724,13 +746,31 @@ mod tests {
         validator_pool.validators.insert(&zoo.account_id, &zoo);
 
         // we have currently 800 in total, 500 already staked, 200 to stake,
-        // each weight point should be 150, thus zoo is the most unbalanced one.
+        // each weight point should be 150, thus foo is the most unbalanced one.
 
         let (candidate, amount) =
             validator_pool.get_candidate_to_stake(200 * ONE_NEAR, 800 * ONE_NEAR);
         assert!(candidate.is_some());
         assert_eq!(candidate.unwrap().account_id, foo.account_id);
         assert_eq!(amount, 200 * ONE_NEAR);
+
+        // reset staked amount
+        foo.staked_amount = 0; // target is 100
+        bar.staked_amount = 20 * ONE_NEAR; // target is 0
+        zoo.staked_amount = 30 * ONE_NEAR; // target is 0
+        validator_pool.validators.insert(&foo.account_id, &foo);
+        validator_pool.validators.insert(&bar.account_id, &bar);
+        validator_pool.validators.insert(&zoo.account_id, &zoo);
+
+        // we have currently 100 in total, 50 already staked, 50 to stake,
+        // the total stake amount is less than total base stake amount, satisfay base stake amount first.
+        // thus foo is the most unbalanced one.
+
+        let (candidate, amount) =
+            validator_pool.get_candidate_to_stake(50 * ONE_NEAR, 100 * ONE_NEAR);
+        assert!(candidate.is_some());
+        assert_eq!(candidate.unwrap().account_id, foo.account_id);
+        assert_eq!(amount, 50 * ONE_NEAR);
 
         // reset staked amount
         foo.staked_amount = 500 * ONE_NEAR; // target is 400
@@ -849,6 +889,24 @@ mod tests {
         assert!(candidate.is_some());
         assert_eq!(candidate.unwrap().account_id, bar.account_id);
         assert_eq!(amount, 100 * ONE_NEAR);
+
+        // reset staked amount
+        foo.staked_amount = 100 * ONE_NEAR; // target is 200
+        bar.staked_amount = 150 * ONE_NEAR; // target is 0
+        zoo.staked_amount = 200 * ONE_NEAR; // target is 0
+        validator_pool.validators.insert(&foo.account_id, &foo);
+        validator_pool.validators.insert(&bar.account_id, &bar);
+        validator_pool.validators.insert(&zoo.account_id, &zoo);
+
+        // we have currently 450 already staked, 250 to unstake, target total 200,
+        // the total stake amount is less than total base stake amount, satisfay base stake amount first,
+        // thus zoo is the most unbalanced one.
+
+        let (candidate, amount) =
+            validator_pool.get_candidate_to_unstake(200 * ONE_NEAR, 200 * ONE_NEAR);
+        assert!(candidate.is_some());
+        assert_eq!(candidate.unwrap().account_id, zoo.account_id);
+        assert_eq!(amount, 200 * ONE_NEAR);
 
         // reset staked amount
         foo.staked_amount = 100 * ONE_NEAR;

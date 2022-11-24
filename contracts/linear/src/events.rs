@@ -112,6 +112,32 @@ pub enum Event<'a> {
         new_stake_shares: &'a U128,
         unstaked_available_epoch_height: u64,
     },
+    // Staking Pool Interface for Base Staking
+    BaseDeposit {
+        account_id: &'a AccountId,
+        amount: &'a U128,
+        new_unstaked_balance: &'a U128,
+    },
+    BaseWithdraw {
+        account_id: &'a AccountId,
+        amount: &'a U128,
+        new_unstaked_balance: &'a U128,
+    },
+    BaseStake {
+        account_id: &'a AccountId,
+        staked_amount: &'a U128,
+        minted_stake_shares: &'a U128,
+        new_unstaked_balance: &'a U128,
+        new_stake_shares: &'a U128,
+    },
+    BaseUnstake {
+        account_id: &'a AccountId,
+        unstaked_amount: &'a U128,
+        burnt_stake_shares: &'a U128,
+        new_unstaked_balance: &'a U128,
+        new_stake_shares: &'a U128,
+        unstaked_available_epoch_height: u64,
+    },
     // Validators
     ValidatorAdded {
         account_id: &'a AccountId,

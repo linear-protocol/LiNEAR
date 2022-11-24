@@ -378,12 +378,12 @@ impl LiquidStakingContract {
         account.unstaked += amount;
         self.internal_save_base_account(&account_id, &account);
 
-        // Event::Deposit {
-        //     account_id: &account_id,
-        //     amount: &U128(amount),
-        //     new_unstaked_balance: &U128(account.unstaked),
-        // }
-        // .emit();
+        Event::BaseDeposit {
+            account_id: &account_id,
+            amount: &U128(amount),
+            new_unstaked_balance: &U128(account.unstaked),
+        }
+        .emit();
     }
 
     pub(crate) fn assert_can_base_withdraw(&self, account_id: &AccountId, amount: Balance) {
@@ -422,12 +422,12 @@ impl LiquidStakingContract {
         account.unstaked -= amount;
         self.internal_save_base_account(&account_id, &account);
 
-        // Event::Withdraw {
-        //     account_id: &account_id,
-        //     amount: &U128(amount),
-        //     new_unstaked_balance: &U128(account.unstaked),
-        // }
-        // .emit();
+        Event::BaseWithdraw {
+            account_id: &account_id,
+            amount: &U128(amount),
+            new_unstaked_balance: &U128(account.unstaked),
+        }
+        .emit();
         Promise::new(account_id).transfer(amount);
     }
 
@@ -468,14 +468,14 @@ impl LiquidStakingContract {
         // Increase requested stake amount within the current epoch
         self.epoch_requested_stake_amount += stake_amount;
 
-        // Event::Stake {
-        //     account_id: &account_id,
-        //     staked_amount: &U128(charge_amount),
-        //     minted_stake_shares: &U128(num_shares),
-        //     new_unstaked_balance: &U128(account.unstaked),
-        //     new_stake_shares: &U128(account.stake_shares),
-        // }
-        // .emit();
+        Event::BaseStake {
+            account_id: &account_id,
+            staked_amount: &U128(charge_amount),
+            minted_stake_shares: &U128(num_shares),
+            new_unstaked_balance: &U128(account.unstaked),
+            new_stake_shares: &U128(account.stake_shares),
+        }
+        .emit();
     }
 
     pub(crate) fn internal_base_unstake(&mut self, amount: u128) {
@@ -531,15 +531,15 @@ impl LiquidStakingContract {
         // Increase requested unstake amount within the current epoch
         self.epoch_requested_unstake_amount += unstake_amount;
 
-        // Event::Unstake {
-        //     account_id: &account_id,
-        //     unstaked_amount: &U128(receive_amount),
-        //     burnt_stake_shares: &U128(num_shares),
-        //     new_unstaked_balance: &U128(account.unstaked),
-        //     new_stake_shares: &U128(account.stake_shares),
-        //     unstaked_available_epoch_height: account.unstaked_available_epoch_height,
-        // }
-        // .emit();
+        Event::BaseUnstake {
+            account_id: &account_id,
+            unstaked_amount: &U128(receive_amount),
+            burnt_stake_shares: &U128(num_shares),
+            new_unstaked_balance: &U128(account.unstaked),
+            new_stake_shares: &U128(account.stake_shares),
+            unstaked_available_epoch_height: account.unstaked_available_epoch_height,
+        }
+        .emit();
     }
 
     /// Returns the number of "stake" shares rounded down corresponding to the given staked balance

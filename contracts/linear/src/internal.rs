@@ -555,13 +555,13 @@ impl LiquidStakingContract {
         &self,
         amount: Balance,
     ) -> ShareBalance {
-        require!(
-            self.total_base_staked_near_amount > 0,
-            ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE
-        );
-        (U256::from(self.total_base_stake_share) * U256::from(amount)
-            / U256::from(self.total_base_staked_near_amount))
-        .as_u128()
+        if self.total_base_staked_near_amount == 0 {
+            0
+        } else {
+            (U256::from(self.total_base_stake_share) * U256::from(amount)
+                / U256::from(self.total_base_staked_near_amount))
+            .as_u128()
+        }
     }
 
     /// Returns the number of "stake" shares rounded up corresponding to the given staked balance
@@ -572,14 +572,14 @@ impl LiquidStakingContract {
         &self,
         amount: Balance,
     ) -> ShareBalance {
-        require!(
-            self.total_base_staked_near_amount > 0,
-            ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE
-        );
-        ((U256::from(self.total_base_staked_near_amount) * U256::from(amount)
-            + U256::from(self.total_base_staked_near_amount - 1))
-            / U256::from(self.total_base_staked_near_amount))
-        .as_u128()
+        if self.total_base_staked_near_amount == 0 {
+            0
+        } else {
+            ((U256::from(self.total_base_stake_share) * U256::from(amount)
+                + U256::from(self.total_base_staked_near_amount - 1))
+                / U256::from(self.total_base_staked_near_amount))
+            .as_u128()
+        }
     }
 
     /// Returns the staked amount rounded down corresponding to the given number of "stake" shares.
@@ -587,13 +587,13 @@ impl LiquidStakingContract {
         &self,
         num_shares: ShareBalance,
     ) -> Balance {
-        require!(
-            self.total_base_staked_near_amount > 0,
-            ERR_NON_POSITIVE_TOTAL_STAKE_SHARES
-        );
-        (U256::from(self.total_base_staked_near_amount) * U256::from(num_shares)
-            / U256::from(self.total_base_staked_near_amount))
-        .as_u128()
+        if self.total_base_stake_share == 0 {
+            0
+        } else {
+            (U256::from(self.total_base_staked_near_amount) * U256::from(num_shares)
+                / U256::from(self.total_base_stake_share))
+            .as_u128()
+        }
     }
 
     /// Returns the staked amount rounded up corresponding to the given number of "stake" shares.
@@ -603,14 +603,14 @@ impl LiquidStakingContract {
         &self,
         num_shares: ShareBalance,
     ) -> Balance {
-        require!(
-            self.total_base_staked_near_amount > 0,
-            ERR_NON_POSITIVE_TOTAL_STAKE_SHARES
-        );
-        ((U256::from(self.total_base_staked_near_amount) * U256::from(num_shares)
-            + U256::from(self.total_base_staked_near_amount - 1))
-            / U256::from(self.total_base_staked_near_amount))
-        .as_u128()
+        if self.total_base_stake_share == 0 {
+            0
+        } else {
+            ((U256::from(self.total_base_staked_near_amount) * U256::from(num_shares)
+                + U256::from(self.total_base_stake_share - 1))
+                / U256::from(self.total_base_stake_share))
+            .as_u128()
+        }
     }
 
     /// Inner method to get the given base account or a new default value account.

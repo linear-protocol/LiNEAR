@@ -82,12 +82,13 @@ impl FungibleTokenCore for LiquidStakingContract {
     }
 
     fn ft_total_supply(&self) -> U128 {
-        self.total_share_amount.into()
+        (self.total_share_amount + self.total_base_stake_share).into()
     }
 
     fn ft_balance_of(&self, account_id: AccountId) -> U128 {
         let account = self.internal_get_account(&account_id);
-        account.stake_shares.into()
+        let base_account = self.internal_get_base_account(&account_id);
+        (account.stake_shares + base_account.stake_shares).into()
     }
 }
 

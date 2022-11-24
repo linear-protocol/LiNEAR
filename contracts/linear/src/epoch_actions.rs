@@ -29,9 +29,10 @@ impl LiquidStakingContract {
             return false;
         }
 
-        let (candidate, amount_to_stake) = self
-            .validator_pool
-            .get_candidate_to_stake(self.stake_amount_to_settle, self.total_staked_near_amount);
+        let (candidate, amount_to_stake) = self.validator_pool.get_candidate_to_stake(
+            self.stake_amount_to_settle,
+            self.get_total_staked_balance().into(),
+        );
 
         if candidate.is_none() {
             log!("no candidate found to stake {}", amount_to_stake);
@@ -88,9 +89,10 @@ impl LiquidStakingContract {
             return false;
         }
 
-        let (candidate, amount_to_unstake) = self
-            .validator_pool
-            .get_candidate_to_unstake(self.unstake_amount_to_settle, self.total_staked_near_amount);
+        let (candidate, amount_to_unstake) = self.validator_pool.get_candidate_to_unstake(
+            self.unstake_amount_to_settle,
+            self.get_total_staked_balance().into(),
+        );
         if candidate.is_none() {
             log!("no candidate found to unstake {}", amount_to_unstake);
             return false;
@@ -342,13 +344,18 @@ impl LiquidStakingContract {
         }
         .emit();
 
+        let old_total_base_stake_amount = self.validator_pool.get_total_base_stake_amount();
         validator.on_new_total_balance(&mut self.validator_pool, new_balance);
 
         if rewards == 0 {
             return;
         }
 
-        self.total_staked_near_amount += rewards;
+        let base_rewards =
+            self.validator_pool.get_total_base_stake_amount() - old_total_base_stake_amount;
+        self.total_base_staked_near_amount += base_rewards;
+
+        self.total_staked_near_amount += rewards - base_rewards;
         self.internal_distribute_staking_rewards(rewards);
     }
 

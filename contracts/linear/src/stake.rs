@@ -69,3 +69,36 @@ impl LiquidStakingContract {
         self.internal_unstake(amount);
     }
 }
+
+/// -- Base staking change methods
+#[near_bindgen]
+impl LiquidStakingContract {
+    /// Base stake NEAR which will be managed with validators' base stake amount
+    pub fn base_deposit_and_stake(&mut self) {
+        let amount = env::attached_deposit();
+        self.internal_base_deposit(amount);
+        self.internal_base_stake(amount);
+    }
+
+    pub fn base_withdraw_all(&mut self) {
+        let account_id = env::predecessor_account_id();
+        let account = self.internal_get_base_account(&account_id);
+        self.internal_base_withdraw(account.unstaked);
+    }
+
+    pub fn base_withdraw(&mut self, amount: U128) {
+        let amount: Balance = amount.into();
+        self.internal_base_withdraw(amount);
+    }
+
+    pub fn base_unstake_all(&mut self) {
+        let account_id = env::predecessor_account_id();
+        let account = self.internal_get_base_account(&account_id);
+        self.internal_unstake(account.stake_shares);
+    }
+
+    pub fn base_unstake(&mut self, amount: U128) {
+        let amount: Balance = amount.into();
+        self.internal_base_unstake(amount);
+    }
+}

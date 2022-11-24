@@ -45,6 +45,7 @@ pub(crate) enum StorageKey {
     // AuthorizedUsers,
     AuthorizedFarmTokens,
     Managers,
+    BatchStakeAccounts,
 }
 
 #[near_bindgen]
@@ -109,6 +110,14 @@ pub struct LiquidStakingContract {
     /// Authorized tokens for farms.
     /// Required because any contract can call method with ft_transfer_call, so must verify that contract will accept it.
     authorized_farm_tokens: UnorderedSet<AccountId>,
+
+    // --- Base Staking ---
+    /// Base staking accounts, mapping from account ID to the account
+    base_stake_accounts: UnorderedMap<AccountId, Account>,
+    /// Total amount of staked NEAR as base stake amount
+    total_base_staked_near_amount: Balance,
+    /// Total amount of base stake share
+    total_base_stake_share: ShareBalance,
 }
 
 #[near_bindgen]
@@ -161,6 +170,10 @@ impl LiquidStakingContract {
             active_farms: Vec::new(),
             // authorized_users: UnorderedSet::new(StorageKey::AuthorizedUsers),
             authorized_farm_tokens: UnorderedSet::new(StorageKey::AuthorizedFarmTokens),
+            // Base Staking
+            base_stake_accounts: UnorderedMap::new(StorageKey::BatchStakeAccounts),
+            total_base_staked_near_amount: 0,
+            total_base_stake_share: 0,
         };
         this.internal_add_manager(&owner_id);
         this.measure_account_storage_usage();

@@ -149,7 +149,7 @@ impl LiquidStakingContract {
 
     /// Returns the total staking balance.
     pub fn get_total_staked_balance(&self) -> U128 {
-        self.total_staked_near_amount.into()
+        (self.total_staked_near_amount + self.total_base_staked_near_amount).into()
     }
 
     /// Returns account ID of the staking pool owner.

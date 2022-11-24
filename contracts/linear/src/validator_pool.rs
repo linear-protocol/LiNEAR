@@ -173,6 +173,10 @@ impl ValidatorPool {
         .emit();
     }
 
+    pub fn get_total_base_stake_amount(&self) -> Balance {
+        self.total_base_stake_amount
+    }
+
     pub fn get_validators(&self, offset: u64, limit: u64) -> Vec<Validator> {
         let keys = self.validators.keys_as_vector();
         (offset..std::cmp::min(offset + limit, keys.len()))

@@ -441,12 +441,12 @@ impl LiquidStakingContract {
 
         // Calculate the number of "stake" shares that the account will receive for staking the
         // given amount.
-        let num_shares = self.batch_num_shares_from_staked_amount_rounded_down(amount);
+        let num_shares = self.base_num_shares_from_staked_amount_rounded_down(amount);
         require!(num_shares > 0, ERR_NON_POSITIVE_CALCULATED_STAKING_SHARE);
         // The amount of tokens the account will be charged from the unstaked balance.
         // Rounded down to avoid overcharging the account to guarantee that the account can always
         // unstake at least the same amount as staked.
-        let charge_amount = self.batch_staked_amount_from_num_shares_rounded_down(num_shares);
+        let charge_amount = self.base_staked_amount_from_num_shares_rounded_down(num_shares);
         require!(charge_amount > 0, ERR_NON_POSITIVE_CALCULATED_STAKED_AMOUNT);
 
         require!(
@@ -460,7 +460,7 @@ impl LiquidStakingContract {
         // The staked amount that will be added to the total to guarantee the "stake" share price
         // never decreases. The difference between `stake_amount` and `charge_amount` is paid
         // from the allocated STAKE_SHARE_PRICE_GUARANTEE_FUND.
-        let stake_amount = self.batch_staked_amount_from_num_shares_rounded_up(num_shares);
+        let stake_amount = self.base_staked_amount_from_num_shares_rounded_up(num_shares);
 
         self.total_base_staked_near_amount += stake_amount;
         self.total_base_stake_share += num_shares;
@@ -492,7 +492,7 @@ impl LiquidStakingContract {
         );
         // Calculate the number of shares required to unstake the given amount.
         // NOTE: The number of shares the account will pay is rounded up.
-        let num_shares = self.batch_num_shares_from_staked_amount_rounded_up(amount);
+        let num_shares = self.base_num_shares_from_staked_amount_rounded_up(amount);
         require!(num_shares > 0, ERR_NON_POSITIVE_CALCULATED_UNSTAKING_SHARE);
         require!(
             account.stake_shares >= num_shares,
@@ -501,7 +501,7 @@ impl LiquidStakingContract {
 
         // Calculating the amount of tokens the account will receive by unstaking the corresponding
         // number of "stake" shares, rounding up.
-        let receive_amount = self.batch_staked_amount_from_num_shares_rounded_up(num_shares);
+        let receive_amount = self.base_staked_amount_from_num_shares_rounded_up(num_shares);
         require!(
             receive_amount > 0,
             ERR_NON_POSITIVE_CALCULATED_STAKED_AMOUNT
@@ -523,7 +523,7 @@ impl LiquidStakingContract {
         // The amount tokens that will be unstaked from the total to guarantee the "stake" share
         // price never decreases. The difference between `receive_amount` and `unstake_amount` is
         // paid from the allocated STAKE_SHARE_PRICE_GUARANTEE_FUND.
-        let unstake_amount = self.batch_staked_amount_from_num_shares_rounded_down(num_shares);
+        let unstake_amount = self.base_staked_amount_from_num_shares_rounded_down(num_shares);
 
         self.total_base_staked_near_amount -= unstake_amount;
         self.total_base_stake_share -= num_shares;
@@ -551,7 +551,7 @@ impl LiquidStakingContract {
     /// (total_staked + amount) * total_shares = total_staked * (total_shares + num_shares)
     /// amount * total_shares = total_staked * num_shares
     /// num_shares = amount * total_shares / total_staked
-    pub(crate) fn batch_num_shares_from_staked_amount_rounded_down(
+    pub(crate) fn base_num_shares_from_staked_amount_rounded_down(
         &self,
         amount: Balance,
     ) -> ShareBalance {
@@ -568,7 +568,7 @@ impl LiquidStakingContract {
     /// amount.
     ///
     /// Rounding up division of `a / b` is done using `(a + b - 1) / b`.
-    pub(crate) fn batch_num_shares_from_staked_amount_rounded_up(
+    pub(crate) fn base_num_shares_from_staked_amount_rounded_up(
         &self,
         amount: Balance,
     ) -> ShareBalance {
@@ -583,7 +583,7 @@ impl LiquidStakingContract {
     }
 
     /// Returns the staked amount rounded down corresponding to the given number of "stake" shares.
-    pub(crate) fn batch_staked_amount_from_num_shares_rounded_down(
+    pub(crate) fn base_staked_amount_from_num_shares_rounded_down(
         &self,
         num_shares: ShareBalance,
     ) -> Balance {
@@ -599,7 +599,7 @@ impl LiquidStakingContract {
     /// Returns the staked amount rounded up corresponding to the given number of "stake" shares.
     ///
     /// Rounding up division of `a / b` is done using `(a + b - 1) / b`.
-    pub(crate) fn batch_staked_amount_from_num_shares_rounded_up(
+    pub(crate) fn base_staked_amount_from_num_shares_rounded_up(
         &self,
         num_shares: ShareBalance,
     ) -> Balance {

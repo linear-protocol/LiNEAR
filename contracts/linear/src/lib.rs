@@ -45,7 +45,7 @@ pub(crate) enum StorageKey {
     // AuthorizedUsers,
     AuthorizedFarmTokens,
     Managers,
-    BatchStakeAccounts,
+    BaseStakeAccounts,
 }
 
 #[near_bindgen]
@@ -171,7 +171,7 @@ impl LiquidStakingContract {
             // authorized_users: UnorderedSet::new(StorageKey::AuthorizedUsers),
             authorized_farm_tokens: UnorderedSet::new(StorageKey::AuthorizedFarmTokens),
             // Base Staking
-            base_stake_accounts: UnorderedMap::new(StorageKey::BatchStakeAccounts),
+            base_stake_accounts: UnorderedMap::new(StorageKey::BaseStakeAccounts),
             total_base_staked_near_amount: 0,
             total_base_stake_share: 0,
         };

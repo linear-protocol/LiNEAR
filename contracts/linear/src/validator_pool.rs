@@ -391,7 +391,7 @@ impl LiquidStakingContract {
         self.validator_pool.update_weight(&validator_id, weight);
     }
 
-    pub fn update_base_stake_amount(&mut self, validator_ids: Vec<AccountId>, amounts: Vec<U128>) {
+    pub fn update_base_stake_amounts(&mut self, validator_ids: Vec<AccountId>, amounts: Vec<U128>) {
         self.assert_running();
         self.assert_manager();
         require!(validator_ids.len() == amounts.len(), ERR_BAD_VALIDATOR_LIST);

@@ -81,7 +81,7 @@ workspace.test('not manager', async (test, { contract, alice, root, owner }) => 
     test,
     alice.call(
       contract,
-      'update_base_stake_amount',
+      'update_base_stake_amounts',
       {
         validator_ids: ['foo'],
         amounts: [NEAR.parse("25,000")]
@@ -471,7 +471,7 @@ workspace.test('update base stake amount', async (test, context) => {
   ];
   await manager.call(
     contract,
-    'update_base_stake_amount',
+    'update_base_stake_amounts',
     {
       validator_ids: [
         'foo',

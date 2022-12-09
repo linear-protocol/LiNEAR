@@ -117,10 +117,15 @@ pub enum Event<'a> {
         account_id: &'a AccountId,
         weight: u16,
     },
-    ValidatorUpdated {
+    ValidatorWeightUpdated {
         account_id: &'a AccountId,
-        base_stake_amount: &'a U128,
-        weight: u16,
+        old_weight: u16,
+        new_weight: u16,
+    },
+    ValidatorBaseStakeAmountUpdated {
+        account_id: &'a AccountId,
+        old_base_stake_amount: &'a U128,
+        new_base_stake_amount: &'a U128,
     },
     ValidatorRemoved {
         account_id: &'a AccountId,
@@ -593,19 +598,36 @@ mod tests {
     }
 
     #[test]
-    fn validator_updated() {
+    fn validator_weight_updated() {
         let account_id = &alice();
-        let base_stake_amount = &U128(50000);
-        let weight: u16 = 10;
-        Event::ValidatorUpdated {
+        let old_weight: u16 = 10;
+        let new_weight: u16 = 20;
+        Event::ValidatorWeightUpdated {
             account_id,
-            base_stake_amount,
-            weight,
+            old_weight,
+            new_weight,
         }
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_updated","data":[{"account_id":"alice","base_stake_amount":"50000","weight":10}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_weight_updated","data":[{"account_id":"alice","old_weight":10,"new_weight":20}]}"#
+        );
+    }
+
+    #[test]
+    fn validator_base_stake_amount_updated() {
+        let account_id = &alice();
+        let old_base_stake_amount = &U128(0);
+        let new_base_stake_amount = &U128(50000);
+        Event::ValidatorBaseStakeAmountUpdated {
+            account_id,
+            old_base_stake_amount,
+            new_base_stake_amount,
+        }
+        .emit();
+        assert_eq!(
+            test_utils::get_logs()[0],
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_base_stake_amount_updated","data":[{"account_id":"alice","old_base_stake_amount":"0","new_base_stake_amount":"50000"}]}"#
         );
     }
 

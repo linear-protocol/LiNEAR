@@ -138,16 +138,17 @@ impl ValidatorPool {
             .get(validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST);
 
+        let old_weight = validator.weight;
         // update total weight
-        self.total_weight = self.total_weight + weight - validator.weight;
+        self.total_weight = self.total_weight + weight - old_weight;
 
         validator.weight = weight;
         self.validators.insert(validator_id, &validator);
 
-        Event::ValidatorUpdated {
+        Event::ValidatorWeightUpdated {
             account_id: validator_id,
-            base_stake_amount: &validator.base_stake_amount.into(),
-            weight,
+            old_weight,
+            new_weight: weight,
         }
         .emit();
     }
@@ -160,15 +161,17 @@ impl ValidatorPool {
             .expect(ERR_VALIDATOR_NOT_EXIST);
 
         let old_base_stake_amount = validator.base_stake_amount;
-        validator.base_stake_amount = amount;
+        // update total base stake amount
         self.total_base_stake_amount =
             self.total_base_stake_amount + amount - old_base_stake_amount;
+
+        validator.base_stake_amount = amount;
         self.validators.insert(validator_id, &validator);
 
-        Event::ValidatorUpdated {
+        Event::ValidatorBaseStakeAmountUpdated {
             account_id: validator_id,
-            base_stake_amount: &amount.into(),
-            weight: validator.weight,
+            old_base_stake_amount: &old_base_stake_amount.into(),
+            new_base_stake_amount: &amount.into(),
         }
         .emit();
     }

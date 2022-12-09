@@ -145,7 +145,7 @@ impl ValidatorPool {
         validator.weight = weight;
         self.validators.insert(validator_id, &validator);
 
-        Event::ValidatorWeightUpdated {
+        Event::ValidatorUpdatedWeight {
             account_id: validator_id,
             old_weight,
             new_weight: weight,
@@ -168,7 +168,7 @@ impl ValidatorPool {
         validator.base_stake_amount = amount;
         self.validators.insert(validator_id, &validator);
 
-        Event::ValidatorBaseStakeAmountUpdated {
+        Event::ValidatorUpdatedBaseStakeAmount {
             account_id: validator_id,
             old_base_stake_amount: &old_base_stake_amount.into(),
             new_base_stake_amount: &amount.into(),

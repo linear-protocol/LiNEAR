@@ -117,12 +117,12 @@ pub enum Event<'a> {
         account_id: &'a AccountId,
         weight: u16,
     },
-    ValidatorWeightUpdated {
+    ValidatorUpdatedWeight {
         account_id: &'a AccountId,
         old_weight: u16,
         new_weight: u16,
     },
-    ValidatorBaseStakeAmountUpdated {
+    ValidatorUpdatedBaseStakeAmount {
         account_id: &'a AccountId,
         old_base_stake_amount: &'a U128,
         new_base_stake_amount: &'a U128,
@@ -598,11 +598,11 @@ mod tests {
     }
 
     #[test]
-    fn validator_weight_updated() {
+    fn validator_updated_weight() {
         let account_id = &alice();
         let old_weight: u16 = 10;
         let new_weight: u16 = 20;
-        Event::ValidatorWeightUpdated {
+        Event::ValidatorUpdatedWeight {
             account_id,
             old_weight,
             new_weight,
@@ -610,16 +610,16 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_weight_updated","data":[{"account_id":"alice","old_weight":10,"new_weight":20}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_updated_weight","data":[{"account_id":"alice","old_weight":10,"new_weight":20}]}"#
         );
     }
 
     #[test]
-    fn validator_base_stake_amount_updated() {
+    fn validator_updated_base_stake_amount() {
         let account_id = &alice();
         let old_base_stake_amount = &U128(0);
         let new_base_stake_amount = &U128(50000);
-        Event::ValidatorBaseStakeAmountUpdated {
+        Event::ValidatorUpdatedBaseStakeAmount {
             account_id,
             old_base_stake_amount,
             new_base_stake_amount,
@@ -627,7 +627,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_base_stake_amount_updated","data":[{"account_id":"alice","old_base_stake_amount":"0","new_base_stake_amount":"50000"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_updated_base_stake_amount","data":[{"account_id":"alice","old_base_stake_amount":"0","new_base_stake_amount":"50000"}]}"#
         );
     }
 

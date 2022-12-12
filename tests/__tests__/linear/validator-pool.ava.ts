@@ -1,6 +1,6 @@
 import { Gas, NEAR } from "near-units";
 import { NearAccount } from "near-workspaces-ava";
-import { assertFailure, initAndSetWhitelist, initWorkSpace, } from "./helper";
+import { assertFailure, initAndSetWhitelist, initWorkSpace, updateBaseStakeAmounts, } from "./helper";
 
 const workspace = initWorkSpace();
 
@@ -79,13 +79,11 @@ workspace.test('not manager', async (test, { contract, alice, root, owner }) => 
 
   await assertFailure(
     test,
-    alice.call(
+    updateBaseStakeAmounts(
       contract,
-      'update_base_stake_amounts',
-      {
-        validator_ids: ['foo'],
-        amounts: [NEAR.parse("25,000")]
-      }
+      alice,
+      ['foo'],
+      [NEAR.parse("25,000")]
     ),
     errMsg
   );
@@ -466,19 +464,17 @@ workspace.test('update base stake amount', async (test, context) => {
 
   // update base stake amount of foo and bar
   const amounts = [
-    NEAR.parse("20000").toString(),
-    NEAR.parse("50000").toString()
+    NEAR.parse("20000"),
+    NEAR.parse("50000")
   ];
-  await manager.call(
+  await updateBaseStakeAmounts(
     contract,
-    'update_base_stake_amounts',
-    {
-      validator_ids: [
-        'foo',
-        'bar'
-      ],
-      amounts
-    }
+    manager,
+    [
+      'foo',
+      'bar'
+    ],
+    amounts
   );
 
   const foo: any = await contract.view(
@@ -489,7 +485,7 @@ workspace.test('update base stake amount', async (test, context) => {
   );
   test.is(
     foo.base_stake_amount,
-    amounts[0]
+    amounts[0].toString()
   );
 
   const bar: any = await contract.view(
@@ -500,6 +496,6 @@ workspace.test('update base stake amount', async (test, context) => {
   );
   test.is(
     bar.base_stake_amount,
-    amounts[1]
+    amounts[1].toString()
   );
 });

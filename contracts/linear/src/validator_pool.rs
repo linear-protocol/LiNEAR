@@ -274,7 +274,7 @@ impl ValidatorPool {
                 / U256::from(self.total_base_stake_amount))
             .as_u128()
         };
-        // If not enough staked NEAR, satisfy the base stake amount first (set dynmaic stake amount to 0)
+        // If not enough staked NEAR, satisfy the base stake amount first (set dynamic stake amount to 0)
         let dynamic_stake_amount =
             if validator.weight == 0 || total_staked_near_amount <= self.total_base_stake_amount {
                 0

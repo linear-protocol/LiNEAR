@@ -241,7 +241,12 @@ export async function setManager(root: NearAccount, contract: NearAccount, owner
   return manager;
 }
 
-export async function updateBaseStakeAmounts(contract: NearAccount, manager: NearAccount, validator_ids: string[], amounts: NEAR[]) {
+export async function updateBaseStakeAmounts(
+  contract: NearAccount,
+  manager: NearAccount,
+  validator_ids: string[],
+  amounts: NEAR[]
+) {
   await manager.call(
     contract,
     'update_base_stake_amounts',

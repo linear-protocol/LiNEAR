@@ -1,5 +1,12 @@
 import { NearAccount, NEAR, Gas } from "near-workspaces-ava";
-import { assertFailure, initWorkSpace, createStakingPool, setManager, assertValidatorAmountHelper, updateBaseStakeAmounts } from "./helper";
+import {
+  assertFailure,
+  initWorkSpace,
+  createStakingPool,
+  setManager,
+  assertValidatorAmountHelper,
+  updateBaseStakeAmounts
+} from "./helper";
 
 const workspace = initWorkSpace();
 
@@ -274,7 +281,7 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
    * Steps to drain a validator
    * 1. set weight to 0
    * 2. set base stake amount to 0
-   * 2. call drain_unstake
+   * 3. call drain_unstake
    * 4. call drain_withdraw
    */
 

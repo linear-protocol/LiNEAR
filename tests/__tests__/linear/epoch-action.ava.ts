@@ -1,5 +1,12 @@
 import { Gas, NEAR, NearAccount, stake, } from "near-workspaces-ava";
-import { assertFailure, initWorkSpace, createStakingPool, updateBaseStakeAmounts, setManager, assertValidatorAmountHelper } from "./helper";
+import {
+  assertFailure,
+  initWorkSpace,
+  createStakingPool,
+  updateBaseStakeAmounts,
+  setManager,
+  assertValidatorAmountHelper
+} from "./helper";
 
 const workspace = initWorkSpace();
 

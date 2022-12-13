@@ -1,47 +1,7 @@
 import { NearAccount, NEAR, Gas } from "near-workspaces-ava";
-import { assertFailure, initWorkSpace, createStakingPool, setManager } from "./helper";
+import { assertFailure, initWorkSpace, createStakingPool, setManager, assertValidatorAmountHelper, updateBaseStakeAmounts } from "./helper";
 
 const workspace = initWorkSpace();
-
-function assertValidatorAmountHelper (
-  test: any,
-  contract: NearAccount,
-  owner: NearAccount
-) {
-  return async function (
-    validator: NearAccount, 
-    stakedAmount: string,
-    unstakedAmount: string
-  ) {
-    // 1. make sure validator has correct balance
-    test.is(
-      await validator.view('get_account_staked_balance', { account_id: contract.accountId }),
-      NEAR.parse(stakedAmount).toString()
-    );
-    test.is(
-      await validator.view('get_account_unstaked_balance', { account_id: contract.accountId }),
-      NEAR.parse(unstakedAmount).toString()
-    );
-
-    // 2. make sure contract validator object is synced
-    const v: any = await contract.view(
-      'get_validator',
-      {
-        validator_id: validator.accountId
-      }
-    );
-    const staked = NEAR.from(v.staked_amount);
-    const unstaked = NEAR.from(v.unstaked_amount);
-    test.is(
-      staked.toString(),
-      NEAR.parse(stakedAmount).toString()
-    );
-    test.is(
-      unstaked.toString(),
-      NEAR.parse(unstakedAmount).toString()
-    );
-  }
-}
 
 async function stakeAll (signer: NearAccount, contract: NearAccount) {
   let run = true;
@@ -101,6 +61,18 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
     }
   );
 
+  // update base stake amount to 20 NEAR
+  await updateBaseStakeAmounts(
+    contract,
+    manager,
+    [
+      v1.accountId,
+    ],
+    [
+      NEAR.parse("20")
+    ]
+  );
+
   // user stake
   await alice.call(
     contract,
@@ -147,6 +119,34 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
     }
   );
 
+  // 2. cannot drain unstake when base stake amount > 0
+  await assertFailure(
+    test,
+    manager.call(
+      contract,
+      'drain_unstake',
+      {
+        validator_id: v1.accountId
+      },
+      {
+        gas: Gas.parse('200 Tgas')
+      }
+    ),
+    'Validator base stake amount must be zero for drain operation'
+  );
+
+  // update base stake amount to 0 NEAR
+  await updateBaseStakeAmounts(
+    contract,
+    manager,
+    [
+      v1.accountId,
+    ],
+    [
+      NEAR.parse("0")
+    ]
+  );
+
   // fast-forward
   await owner.call(
     contract,
@@ -174,7 +174,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
   await assertValidator(v1, '10', '50');
 
-  // -- 2. cannot drain unstake when pending release
+  // -- 3. cannot drain unstake when pending release
   await assertFailure(
     test,
     manager.call(
@@ -197,7 +197,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
     { epoch: 15 }
   );
 
-  // -- 3. cannot drain unstake when unstaked balance > 0
+  // -- 4. cannot drain unstake when unstaked balance > 0
   await assertFailure(
     test,
     manager.call(
@@ -245,6 +245,18 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
     }
   );
 
+  // update base stake amount of v1 to 20 NEAR
+  await updateBaseStakeAmounts(
+    contract,
+    manager,
+    [
+      v1.accountId,
+    ],
+    [
+      NEAR.parse("20")
+    ]
+  );
+
   // user stake
   await alice.call(
     contract,
@@ -261,8 +273,9 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
   /**
    * Steps to drain a validator
    * 1. set weight to 0
+   * 2. set base stake amount to 0
    * 2. call drain_unstake
-   * 3. call drain_withdraw
+   * 4. call drain_withdraw
    */
 
   await manager.call(
@@ -272,6 +285,18 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
       validator_id: v1.accountId,
       weight: 0
     }
+  );
+
+  // reset base stake amount to 0 NEAR
+  await updateBaseStakeAmounts(
+    contract,
+    manager,
+    [
+      v1.accountId,
+    ],
+    [
+      NEAR.parse("0")
+    ]
   );
 
   await manager.call(
@@ -306,7 +331,7 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
   // make sure v1 is drained
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
   await assertValidator(v1, '0', '0');
-  await assertValidator(v2, '30', '0');
+  await assertValidator(v2, '20', '0');
 
   // restake and make sure funds are re-distributed
   await stakeAll(bob, contract);

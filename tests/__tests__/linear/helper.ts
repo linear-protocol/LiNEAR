@@ -251,3 +251,51 @@ export async function updateBaseStakeAmounts(contract: NearAccount, manager: Nea
     }
   );
 }
+
+export function assertValidatorAmountHelper (
+  test: any,
+  contract: NearAccount,
+  owner: NearAccount
+) {
+  return async function (
+    validator: NearAccount,
+    stakedAmount: string,
+    unstakedAmount: string,
+    baseStakeAmount?: string,
+  ) {
+    // 1. make sure validator has correct balance
+    test.is(
+      await validator.view('get_account_staked_balance', { account_id: contract.accountId }),
+      NEAR.parse(stakedAmount).toString()
+    );
+    test.is(
+      await validator.view('get_account_unstaked_balance', { account_id: contract.accountId }),
+      NEAR.parse(unstakedAmount).toString()
+    );
+
+    // 2. make sure contract validator object is synced
+    const v: any = await contract.view(
+      'get_validator',
+      {
+        validator_id: validator.accountId
+      }
+    );
+    const staked = NEAR.from(v.staked_amount);
+    const unstaked = NEAR.from(v.unstaked_amount);
+    test.is(
+      staked.toString(),
+      NEAR.parse(stakedAmount).toString()
+    );
+    test.is(
+      unstaked.toString(),
+      NEAR.parse(unstakedAmount).toString()
+    );
+    if (baseStakeAmount) {
+      const baseStaked = NEAR.from(v.base_stake_amount);
+      test.is(
+        baseStaked.toString(),
+        NEAR.parse(baseStakeAmount).toString()
+      );
+    }
+  }
+}

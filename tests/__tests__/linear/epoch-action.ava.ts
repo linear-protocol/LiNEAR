@@ -362,7 +362,7 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
   await unstakeAll(owner, contract);
 
   // validators should have target stake amount based on weights + base stake amounts
-  // - 1st epoch_unstake() unstaked 12 NEAR from validator v1
+  // - 1st epoch_unstake() unstaked 12 NEAR from validator v1; however, the expectation is to only unstake 10 NEAR (base stake amount) from the validator
   await assertValidator(v1, '6', '14', '0');   // target = 6 (weighted); delta = 18 - 6 = 12;
   await assertValidator(v2, '22', '18', '0');  // target = 12 (weighted); delta = 22 - 12 = 10;
   await assertValidator(v3, '6', '54', '0');   // target = 18 (weighted); delta = 6 - 18 = -12;

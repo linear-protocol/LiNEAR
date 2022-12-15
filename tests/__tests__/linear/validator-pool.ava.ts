@@ -1,6 +1,6 @@
 import { Gas, NEAR } from "near-units";
 import { NearAccount } from "near-workspaces-ava";
-import { assertFailure, initAndSetWhitelist, initWorkSpace, } from "./helper";
+import { assertFailure, initAndSetWhitelist, initWorkSpace, updateBaseStakeAmounts, } from "./helper";
 
 const workspace = initWorkSpace();
 
@@ -73,6 +73,17 @@ workspace.test('not manager', async (test, { contract, alice, root, owner }) => 
         validator_id: 'foo',
         weight: 10
       }
+    ),
+    errMsg
+  );
+
+  await assertFailure(
+    test,
+    updateBaseStakeAmounts(
+      contract,
+      alice,
+      ['foo'],
+      [NEAR.parse("25,000")]
     ),
     errMsg
   );
@@ -420,5 +431,71 @@ workspace.test('update weight', async (test, context) => {
   test.is(
     await contract.view('get_total_weight'),
     35
+  );
+});
+
+workspace.test('update base stake amount', async (test, context) => {
+  const { root, owner, contract } = context;
+  const manager = await setManager(root, contract, owner);
+
+  // add foo, bar
+  await manager.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: 'foo',
+      weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+  await manager.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: 'bar',
+      weight: 20
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+
+  // update base stake amount of foo and bar
+  const amounts = [
+    NEAR.parse("20000"),
+    NEAR.parse("50000")
+  ];
+  await updateBaseStakeAmounts(
+    contract,
+    manager,
+    [
+      'foo',
+      'bar'
+    ],
+    amounts
+  );
+
+  const foo: any = await contract.view(
+    'get_validator',
+    {
+      validator_id: 'foo'
+    }
+  );
+  test.is(
+    foo.base_stake_amount,
+    amounts[0].toString()
+  );
+
+  const bar: any = await contract.view(
+    'get_validator',
+    {
+      validator_id: 'bar'
+    }
+  );
+  test.is(
+    bar.base_stake_amount,
+    amounts[1].toString()
   );
 });

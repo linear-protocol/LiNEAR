@@ -17,10 +17,10 @@ impl LiquidStakingContract {
 
     /// Deposits the attached amount into the inner account of the predecessor and stakes it.
     #[payable]
-    pub fn deposit_and_stake(&mut self) {
+    pub fn deposit_and_stake(&mut self) -> U128 {
         let amount = env::attached_deposit();
         self.internal_deposit(amount);
-        self.internal_stake(amount);
+        self.internal_stake(amount).into()
     }
 
     /// Withdraws the entire unstaked balance from the predecessor account.
@@ -47,9 +47,9 @@ impl LiquidStakingContract {
 
     /// Stakes the given amount from the inner account of the predecessor.
     /// The inner account should have enough unstaked balance.
-    pub fn stake(&mut self, amount: U128) {
+    pub fn stake(&mut self, amount: U128) -> U128 {
         let amount: Balance = amount.into();
-        self.internal_stake(amount);
+        self.internal_stake(amount).into()
     }
 
     /// Unstakes all staked balance from the inner account of the predecessor.

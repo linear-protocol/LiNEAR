@@ -74,7 +74,7 @@ impl LiquidStakingContract {
         Promise::new(account_id).transfer(amount);
     }
 
-    pub(crate) fn internal_stake(&mut self, amount: Balance) {
+    pub(crate) fn internal_stake(&mut self, amount: Balance) -> ShareBalance {
         self.assert_running();
 
         require!(amount > 0, ERR_NON_POSITIVE_STAKING_AMOUNT);
@@ -133,6 +133,8 @@ impl LiquidStakingContract {
             self.total_staked_near_amount,
             self.total_share_amount
         );
+
+        num_shares
     }
 
     pub(crate) fn internal_unstake(&mut self, amount: u128) {

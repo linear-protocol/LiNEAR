@@ -16,11 +16,12 @@ impl LiquidStakingContract {
     }
 
     /// Deposits the attached amount into the inner account of the predecessor and stakes it.
+    /// - (since v1.3.0) Returns the received LiNEAR amount
     #[payable]
-    pub fn deposit_and_stake(&mut self) {
+    pub fn deposit_and_stake(&mut self) -> U128 {
         let amount = env::attached_deposit();
         self.internal_deposit(amount);
-        self.internal_stake(amount);
+        self.internal_stake(amount).into()
     }
 
     /// Withdraws the entire unstaked balance from the predecessor account.
@@ -39,17 +40,19 @@ impl LiquidStakingContract {
     }
 
     /// Stakes all available unstaked balance from the inner account of the predecessor.
-    pub fn stake_all(&mut self) {
+    /// - (since v1.3.0) Returns the received LiNEAR amount
+    pub fn stake_all(&mut self) -> U128 {
         let account_id = env::predecessor_account_id();
         let account = self.internal_get_account(&account_id);
-        self.internal_stake(account.unstaked);
+        self.internal_stake(account.unstaked).into()
     }
 
     /// Stakes the given amount from the inner account of the predecessor.
     /// The inner account should have enough unstaked balance.
-    pub fn stake(&mut self, amount: U128) {
+    /// - (since v1.3.0) Returns the received LiNEAR amount
+    pub fn stake(&mut self, amount: U128) -> U128 {
         let amount: Balance = amount.into();
-        self.internal_stake(amount);
+        self.internal_stake(amount).into()
     }
 
     /// Unstakes all staked balance from the inner account of the predecessor.

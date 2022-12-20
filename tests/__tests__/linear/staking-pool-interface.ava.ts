@@ -37,10 +37,14 @@ workspace.test('deposit first and stake later', async (test, {contract, alice}) 
 
   // stake
   const stakeAmount = NEAR.parse('9');
-  await alice.call(
+  let receivedLinearAmount = await alice.call(
     contract,
     'stake',
     { amount: stakeAmount.toString() }
+  );
+  test.is(
+    stakeAmount.toString(),
+    receivedLinearAmount.toString(),
   );
 
   test.is(
@@ -53,10 +57,14 @@ workspace.test('deposit first and stake later', async (test, {contract, alice}) 
   );
 
   // stake all
-  await alice.call(
+  receivedLinearAmount = await alice.call(
     contract,
     'stake_all',
     {}
+  );
+  test.is(
+    deposit.sub(stakeAmount).toString(),
+    receivedLinearAmount.toString(),
   );
 
   test.is(
@@ -72,11 +80,15 @@ workspace.test('deposit first and stake later', async (test, {contract, alice}) 
 workspace.test('deposit and stake', async (test, {contract, alice}) => {
   // deposit and stake
   const stakeAmount = NEAR.parse('10');
-  await alice.call(
+  const receivedLinearAmount = await alice.call(
     contract,
     'deposit_and_stake',
     {},
     { attachedDeposit: stakeAmount },
+  );
+  test.is(
+    stakeAmount.toString(),
+    receivedLinearAmount.toString(),
   );
 
   test.is(

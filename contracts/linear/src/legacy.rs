@@ -2,15 +2,42 @@
 //! when upgrading contract.
 use crate::account::Account;
 use crate::types::*;
+use crate::validator_pool::Validator;
 use crate::Farm;
 use crate::Fraction;
 use crate::LiquidityPool;
+use crate::StorageKey;
 use crate::ValidatorPool;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     collections::{UnorderedMap, UnorderedSet, Vector},
     near_bindgen, AccountId, Balance, EpochHeight, StorageUsage,
 };
+
+/// There's no root state change in v1.3.0
+/// ContractV1_3_0
+///
+/// The Validator struct has added `base_stake_amount` in v1.3.0
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct ValidatorV1_3_0 {
+    pub account_id: AccountId,
+    pub weight: u16,
+
+    pub staked_amount: Balance,
+    pub unstaked_amount: Balance,
+
+    /// The base stake amount on this validator.
+    pub base_stake_amount: Balance,
+
+    /// the epoch num when latest unstake action happened on this validator
+    pub unstake_fired_epoch: EpochHeight,
+    /// this is to save the last value of unstake_fired_epoch,
+    /// so that when unstake revert we can restore it
+    pub last_unstake_fired_epoch: EpochHeight,
+}
+
+/// There's no any state change in v1.2.0, but it retired built-in liquidity pool
+/// ContractV1_2_0
 
 #[near_bindgen]
 #[derive(BorshSerialize, BorshDeserialize)]
@@ -49,7 +76,7 @@ pub struct ContractV1_1_0 {
 
     // --- Validator Pool ---
     /// The validator pool that manage the actions against validators
-    pub validator_pool: ValidatorPool,
+    pub validator_pool: ValidatorPoolV1_0_0,
     /// The whitelist contract ID, which controls the staking pool whitelist.
     pub whitelist_account_id: Option<AccountId>,
     /// Amount of NEAR that is requested to stake by all users during the last epoch
@@ -115,7 +142,7 @@ pub struct ContractV1_0_0 {
 
     // --- Validator Pool ---
     /// The validator pool that manage the actions against validators
-    pub validator_pool: ValidatorPool,
+    pub validator_pool: ValidatorPoolV1_0_0,
     /// Amount of NEAR that is requested to stake by all users during the last epoch
     pub epoch_requested_stake_amount: Balance,
     /// Amount of NEAR that is requested to unstake by all users during the last epoch
@@ -140,4 +167,61 @@ pub struct ContractV1_0_0 {
     /// Authorized tokens for farms.
     /// Required because any contract can call method with ft_transfer_call, so must verify that contract will accept it.
     pub authorized_farm_tokens: UnorderedSet<AccountId>,
+}
+
+/// A pool of validators.
+/// The main function of this struct is to
+/// store validator info and calculate the best candidate to stake/unstake.
+#[derive(BorshSerialize, BorshDeserialize)]
+pub struct ValidatorPoolV1_0_0 {
+    validators: UnorderedMap<AccountId, ValidatorV1_0_0>,
+    total_weight: u16,
+}
+
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct ValidatorV1_0_0 {
+    pub account_id: AccountId,
+    pub weight: u16,
+
+    pub staked_amount: Balance,
+    pub unstaked_amount: Balance,
+
+    /// the epoch num when latest unstake action happened on this validator
+    pub unstake_fired_epoch: EpochHeight,
+    /// this is to save the last value of unstake_fired_epoch,
+    /// so that when unstake revert we can restore it
+    pub last_unstake_fired_epoch: EpochHeight,
+}
+
+/// --- ValidatorPool state migration --
+impl ValidatorPoolV1_0_0 {
+    pub fn migrate(&mut self) -> ValidatorPool {
+        // migrate old validators into the new structure
+        let mut new_validators: UnorderedMap<AccountId, Validator> =
+            UnorderedMap::new(StorageKey::ValidatorsV2);
+        let old_validators = self.validators.values_as_vector();
+        for v in old_validators.iter() {
+            new_validators.insert(
+                &v.account_id.clone(),
+                &Validator {
+                    account_id: v.account_id,
+                    weight: v.weight,
+                    staked_amount: v.staked_amount,
+                    unstaked_amount: v.unstaked_amount,
+                    base_stake_amount: 0,
+                    unstake_fired_epoch: v.unstake_fired_epoch,
+                    last_unstake_fired_epoch: v.last_unstake_fired_epoch,
+                },
+            );
+        }
+
+        // remove old map
+        self.validators.clear();
+
+        ValidatorPool {
+            validators: new_validators,
+            total_weight: self.total_weight,
+            total_base_stake_amount: 0,
+        }
+    }
 }

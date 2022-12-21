@@ -56,9 +56,9 @@ trait WhitelistCallback {
 /// store validator info and calculate the best candidate to stake/unstake.
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct ValidatorPool {
-    validators: UnorderedMap<AccountId, Validator>,
-    total_weight: u16,
-    total_base_stake_amount: Balance,
+    pub validators: UnorderedMap<AccountId, Validator>,
+    pub total_weight: u16,
+    pub total_base_stake_amount: Balance,
 }
 
 impl Default for ValidatorPool {

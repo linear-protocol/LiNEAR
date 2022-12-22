@@ -276,7 +276,7 @@ impl ValidatorPoolV1_0_0 {
                     weight: v.weight,
                     staked_amount: v.staked_amount,
                     unstaked_amount: v.unstaked_amount,
-                    base_stake_amount: 0,
+                    base_stake_amount: 0, // 0 by default
                     unstake_fired_epoch: v.unstake_fired_epoch,
                     last_unstake_fired_epoch: v.last_unstake_fired_epoch,
                 },

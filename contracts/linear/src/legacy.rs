@@ -2,8 +2,7 @@
 //! when upgrading contract.
 use crate::account::Account;
 use crate::types::*;
-use crate::validator_pool::VValidator;
-use crate::validator_pool::Validator;
+use crate::validator_pool::{VValidator, Validator};
 use crate::Farm;
 use crate::Fraction;
 use crate::LiquidityPool;
@@ -238,15 +237,6 @@ pub struct ContractV1_0_0 {
     pub authorized_farm_tokens: UnorderedSet<AccountId>,
 }
 
-/// A pool of validators.
-/// The main function of this struct is to
-/// store validator info and calculate the best candidate to stake/unstake.
-#[derive(BorshSerialize, BorshDeserialize)]
-pub struct ValidatorPoolV1_0_0 {
-    validators: UnorderedMap<AccountId, ValidatorV1_0_0>,
-    total_weight: u16,
-}
-
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct ValidatorV1_0_0 {
     pub account_id: AccountId,
@@ -274,6 +264,15 @@ impl ValidatorV1_0_0 {
             last_unstake_fired_epoch: self.last_unstake_fired_epoch,
         }
     }
+}
+
+/// A pool of validators.
+/// The main function of this struct is to
+/// store validator info and calculate the best candidate to stake/unstake.
+#[derive(BorshSerialize, BorshDeserialize)]
+pub struct ValidatorPoolV1_0_0 {
+    validators: UnorderedMap<AccountId, ValidatorV1_0_0>,
+    total_weight: u16,
 }
 
 /// --- ValidatorPool state migration --

@@ -26,7 +26,7 @@ async function upgrade(contract: NearAccount, owner: NearAccount) {
     "upgrade",
     readFileSync("compiled-contracts/linear.wasm"),
     {
-      gas: Gas.parse("200 Tgas"),
+      gas: Gas.parse("300 Tgas"),
     }
   );
 }

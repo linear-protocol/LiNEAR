@@ -280,7 +280,7 @@ impl ValidatorPoolV1_0_0 {
     pub fn migrate(&mut self) -> ValidatorPool {
         // migrate old validators into the new structure
         let mut new_validators: UnorderedMap<AccountId, VValidator> =
-            UnorderedMap::new(StorageKey::ValidatorsV2);
+            UnorderedMap::new(StorageKey::ValidatorsV1);
         let old_validators = self.validators.values_as_vector();
         for v in old_validators.iter() {
             new_validators.insert(&v.account_id.clone(), &v.into_validator().into());

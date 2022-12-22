@@ -2,6 +2,7 @@
 //! when upgrading contract.
 use crate::account::Account;
 use crate::types::*;
+use crate::validator_pool::VValidator;
 use crate::validator_pool::Validator;
 use crate::Farm;
 use crate::Fraction;
@@ -261,26 +262,29 @@ pub struct ValidatorV1_0_0 {
     pub last_unstake_fired_epoch: EpochHeight,
 }
 
+impl ValidatorV1_0_0 {
+    pub fn into_validator(self) -> Validator {
+        Validator {
+            account_id: self.account_id,
+            weight: self.weight,
+            staked_amount: self.staked_amount,
+            unstaked_amount: self.unstaked_amount,
+            base_stake_amount: 0, // 0 by default
+            unstake_fired_epoch: self.unstake_fired_epoch,
+            last_unstake_fired_epoch: self.last_unstake_fired_epoch,
+        }
+    }
+}
+
 /// --- ValidatorPool state migration --
 impl ValidatorPoolV1_0_0 {
     pub fn migrate(&mut self) -> ValidatorPool {
         // migrate old validators into the new structure
-        let mut new_validators: UnorderedMap<AccountId, Validator> =
+        let mut new_validators: UnorderedMap<AccountId, VValidator> =
             UnorderedMap::new(StorageKey::ValidatorsV2);
         let old_validators = self.validators.values_as_vector();
         for v in old_validators.iter() {
-            new_validators.insert(
-                &v.account_id.clone(),
-                &Validator {
-                    account_id: v.account_id,
-                    weight: v.weight,
-                    staked_amount: v.staked_amount,
-                    unstaked_amount: v.unstaked_amount,
-                    base_stake_amount: 0, // 0 by default
-                    unstake_fired_epoch: v.unstake_fired_epoch,
-                    last_unstake_fired_epoch: v.last_unstake_fired_epoch,
-                },
-            );
+            new_validators.insert(&v.account_id.clone(), &v.into_validator().into());
         }
 
         // remove old map

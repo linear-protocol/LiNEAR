@@ -1,5 +1,6 @@
 use crate::errors::*;
 use crate::events::Event;
+use crate::legacy::ValidatorV1_0_0;
 use crate::types::*;
 use crate::utils::*;
 use crate::*;
@@ -56,9 +57,9 @@ trait WhitelistCallback {
 /// store validator info and calculate the best candidate to stake/unstake.
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct ValidatorPool {
-    validators: UnorderedMap<AccountId, Validator>,
-    total_weight: u16,
-    total_base_stake_amount: Balance,
+    pub validators: UnorderedMap<AccountId, VValidator>,
+    pub total_weight: u16,
+    pub total_base_stake_amount: Balance,
 }
 
 impl Default for ValidatorPool {
@@ -81,11 +82,14 @@ impl ValidatorPool {
     }
 
     pub fn get_validator(&self, validator_id: &AccountId) -> Option<Validator> {
-        self.validators.get(validator_id)
+        self.validators
+            .get(validator_id)
+            .map(|v| v.into_validator())
     }
 
     pub fn save_validator(&mut self, validator: &Validator) {
-        self.validators.insert(&validator.account_id, validator);
+        self.validators
+            .insert(&validator.account_id, &(validator.clone().into()));
     }
 
     pub fn add_validator(&mut self, validator_id: &AccountId, weight: u16) -> Validator {
@@ -96,7 +100,8 @@ impl ValidatorPool {
 
         let validator = Validator::new(validator_id.clone(), weight);
 
-        self.validators.insert(validator_id, &validator);
+        self.validators
+            .insert(validator_id, &validator.clone().into());
 
         self.total_weight += weight;
 
@@ -113,7 +118,8 @@ impl ValidatorPool {
         let validator = self
             .validators
             .remove(validator_id)
-            .expect(ERR_VALIDATOR_NOT_EXIST);
+            .expect(ERR_VALIDATOR_NOT_EXIST)
+            .into_validator();
 
         // make sure this validator is not used at all
         require!(
@@ -136,14 +142,15 @@ impl ValidatorPool {
         let mut validator = self
             .validators
             .get(validator_id)
-            .expect(ERR_VALIDATOR_NOT_EXIST);
+            .expect(ERR_VALIDATOR_NOT_EXIST)
+            .into_validator();
 
         let old_weight = validator.weight;
         // update total weight
         self.total_weight = self.total_weight + weight - old_weight;
 
         validator.weight = weight;
-        self.validators.insert(validator_id, &validator);
+        self.validators.insert(validator_id, &validator.into());
 
         Event::ValidatorUpdatedWeight {
             account_id: validator_id,
@@ -158,7 +165,8 @@ impl ValidatorPool {
         let mut validator = self
             .validators
             .get(validator_id)
-            .expect(ERR_VALIDATOR_NOT_EXIST);
+            .expect(ERR_VALIDATOR_NOT_EXIST)
+            .into_validator();
 
         let old_base_stake_amount = validator.base_stake_amount;
         // update total base stake amount
@@ -166,7 +174,7 @@ impl ValidatorPool {
             self.total_base_stake_amount + amount - old_base_stake_amount;
 
         validator.base_stake_amount = amount;
-        self.validators.insert(validator_id, &validator);
+        self.validators.insert(validator_id, &validator.into());
 
         Event::ValidatorUpdatedBaseStakeAmount {
             account_id: validator_id,
@@ -192,6 +200,7 @@ impl ValidatorPool {
         let mut amount_to_stake: Balance = 0;
 
         for (_, validator) in self.validators.iter() {
+            let validator = validator.into_validator();
             let target_amount =
                 self.validator_target_stake_amount(total_staked_near_amount, &validator);
             if validator.staked_amount < target_amount {
@@ -220,6 +229,7 @@ impl ValidatorPool {
         let mut amount_to_unstake: Balance = 0;
 
         for (_, validator) in self.validators.iter() {
+            let validator = validator.into_validator();
             if validator.pending_release() {
                 continue;
             }
@@ -291,6 +301,7 @@ impl ValidatorPool {
         let mut available_amount: Balance = 0;
         let mut total_staked_amount: Balance = 0;
         for validator in self.validators.values() {
+            let validator = validator.into_validator();
             total_staked_amount += validator.staked_amount;
 
             if !validator.pending_release() && validator.staked_amount > 0 {
@@ -600,6 +611,27 @@ impl LiquidStakingContract {
     }
 }
 
+#[derive(BorshSerialize, BorshDeserialize)]
+pub enum VValidator {
+    V0(ValidatorV1_0_0),
+    Current(Validator),
+}
+
+impl VValidator {
+    pub fn into_validator(self) -> Validator {
+        match self {
+            VValidator::V0(v) => v.into_validator(),
+            VValidator::Current(v) => v,
+        }
+    }
+}
+
+impl From<Validator> for VValidator {
+    fn from(v: Validator) -> Self {
+        VValidator::Current(v)
+    }
+}
+
 /// struct for staking pool validator
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
 #[serde(crate = "near_sdk::serde")]
@@ -845,9 +877,15 @@ mod tests {
         foo.staked_amount = 100 * ONE_NEAR; // target is 150
         bar.staked_amount = 200 * ONE_NEAR; // target is 150
         zoo.staked_amount = 200 * ONE_NEAR; // target is 300
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 600 in total, 500 already staked, 100 to stake,
         // each weight point should be 150, thus zoo is the most unbalanced one.
@@ -862,9 +900,15 @@ mod tests {
         foo.staked_amount = 0; // target is 150
         bar.staked_amount = 200 * ONE_NEAR; // target is 150
         zoo.staked_amount = 300 * ONE_NEAR; // target is 150
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 600 in total, 500 already staked, 100 to stake,
         // each weight point should be 150, thus zoo is the most unbalanced one.
@@ -879,9 +923,15 @@ mod tests {
         foo.staked_amount = 200 * ONE_NEAR; // target is 150
         bar.staked_amount = 200 * ONE_NEAR; // target is 150
         zoo.staked_amount = 300 * ONE_NEAR; // target is 300
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // in case no staking is needed
 
@@ -909,9 +959,15 @@ mod tests {
         foo.staked_amount = 150 * ONE_NEAR; // target is 400
         bar.staked_amount = 200 * ONE_NEAR; // target is 200
         zoo.staked_amount = 200 * ONE_NEAR; // target is 400
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 1000 in total, 550 already staked, 250 to stake,
         // each weight point should be 200, thus foo is the most unbalanced one.
@@ -926,9 +982,15 @@ mod tests {
         foo.staked_amount = 0; // target is 350
         bar.staked_amount = 200 * ONE_NEAR; // target is 150
         zoo.staked_amount = 300 * ONE_NEAR; // target is 300
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 800 in total, 500 already staked, 200 to stake,
         // each weight point should be 150, thus foo is the most unbalanced one.
@@ -943,9 +1005,15 @@ mod tests {
         foo.staked_amount = 500 * ONE_NEAR; // target is 400
         bar.staked_amount = 300 * ONE_NEAR; // target is 200
         zoo.staked_amount = 500 * ONE_NEAR; // target is 400
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // in case no staking is needed
 
@@ -958,9 +1026,15 @@ mod tests {
         foo.staked_amount = 0; // target is 100
         bar.staked_amount = 20 * ONE_NEAR; // target is 0
         zoo.staked_amount = 30 * ONE_NEAR; // target is 0
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 100 in total, 50 already staked, 50 to stake,
         // the total stake amount is less than total base stake amount, satisfay base stake amount first.
@@ -982,9 +1056,15 @@ mod tests {
         foo.staked_amount = 75 * ONE_NEAR; // target is 100
         bar.staked_amount = 20 * ONE_NEAR; // target is 50
         zoo.staked_amount = 5 * ONE_NEAR; // target is 0
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 150 in total, 100 already staked, 50 to stake,
         // the total stake amount is less than total base stake amount, satisfay base stake amount first.
@@ -1009,9 +1089,15 @@ mod tests {
         foo.staked_amount = 100 * ONE_NEAR; // target is 100
         bar.staked_amount = 100 * ONE_NEAR; // target is 100
         zoo.staked_amount = 210 * ONE_NEAR; // target is 200
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 510 already staked, 110 to unstake, target total 400,
         // each weight point should be 100, thus zoo is the most unbalanced one.
@@ -1026,9 +1112,15 @@ mod tests {
         foo.staked_amount = 100; // target is 100
         bar.staked_amount = 200 * ONE_NEAR; // target is 100
         zoo.staked_amount = 200 * ONE_NEAR; // target is 200
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 500 already staked, 100 to unstake, target total 400,
         // each weight point should be 100, thus bar is the most unbalanced one.
@@ -1043,9 +1135,15 @@ mod tests {
         foo.staked_amount = 100;
         bar.staked_amount = 100;
         zoo.staked_amount = 100;
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // in case no unstaking is needed
 
@@ -1073,9 +1171,15 @@ mod tests {
         foo.staked_amount = 100 * ONE_NEAR; // target is 250
         bar.staked_amount = 100 * ONE_NEAR; // target is 50
         zoo.staked_amount = 210 * ONE_NEAR; // target is 100
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 510 already staked, 110 to unstake, target total 400,
         // each weight point should be 50, thus zoo is the most unbalanced one.
@@ -1090,9 +1194,15 @@ mod tests {
         foo.staked_amount = 100 * ONE_NEAR; // target is 250
         bar.staked_amount = 200 * ONE_NEAR; // target is 50
         zoo.staked_amount = 200 * ONE_NEAR; // target is 100
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 500 already staked, 100 to unstake, target total 400,
         // each weight point should be 50, thus bar is the most unbalanced one.
@@ -1107,9 +1217,15 @@ mod tests {
         foo.staked_amount = 100 * ONE_NEAR;
         bar.staked_amount = 50 * ONE_NEAR;
         zoo.staked_amount = 100 * ONE_NEAR;
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // in case no unstaking is needed
 
@@ -1123,9 +1239,15 @@ mod tests {
         foo.staked_amount = 100 * ONE_NEAR; // target is 200
         bar.staked_amount = 150 * ONE_NEAR; // target is 0
         zoo.staked_amount = 200 * ONE_NEAR; // target is 0
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 450 already staked, 250 to unstake, target total 200,
         // the total stake amount is less than total base stake amount, satisfay base stake amount first,
@@ -1147,9 +1269,15 @@ mod tests {
         foo.staked_amount = 100 * ONE_NEAR; // target is 100
         bar.staked_amount = 150 * ONE_NEAR; // target is 50
         zoo.staked_amount = 50 * ONE_NEAR; // target is 0
-        validator_pool.validators.insert(&foo.account_id, &foo);
-        validator_pool.validators.insert(&bar.account_id, &bar);
-        validator_pool.validators.insert(&zoo.account_id, &zoo);
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 300 already staked, 150 to unstake, target total 150,
         // the total stake amount is less than total base stake amount, satisfay base stake amount first,

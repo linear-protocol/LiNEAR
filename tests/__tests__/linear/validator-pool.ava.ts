@@ -45,8 +45,9 @@ workspace.test('not manager', async (test, { contract, alice, root, owner }) => 
       contract,
       'add_validators',
       {
-        validator_ids: ['foo'],
-        weights: [10]
+        validator_id_to_weight: {
+          'foo': 10
+        }
       }
     ),
     errMsg
@@ -151,8 +152,10 @@ workspace.test('bulk add a few validators', async (test, context) => {
     contract,
     'add_validators',
     {
-      validator_ids: ['foo', 'bar'],
-      weights: [10, 20]
+      validator_id_to_weight: {
+        'foo': 10,
+        'bar': 20,
+      }
     },
     {
       gas: Gas.parse('100 Tgas')
@@ -190,12 +193,16 @@ workspace.test('bulk add a lot validators', async (test, context) => {
     const validators = Array.from({ length: 5 }, (_, j) => `validator-${i}-${j}`);
     const weights = validators.map(_ => 1);
 
+    const validatorToWeight = {};
+    for (let k = 0; k < validators.length; k++) {
+      validatorToWeight[validators[k]] = weights[k];
+    }
+
     await manager.call(
       contract,
       'add_validators',
       {
-        validator_ids: validators,
-        weights
+        validator_id_to_weight: validatorToWeight
       },
       {
         gas: Gas.parse('300 Tgas')
@@ -247,8 +254,9 @@ workspace.test('whitelist', async (test, context) => {
     contract,
     'add_validators',
     {
-      validator_ids: ['bar'],
-      weights: [1]
+      validator_id_to_weight: {
+        'bar': 1
+      }
     },
     {
       gas: Gas.parse('100 Tgas')
@@ -269,8 +277,9 @@ workspace.test('whitelist', async (test, context) => {
     contract,
     'add_validators',
     {
-      validator_ids: ['foo'],
-      weights: [1]
+      validator_id_to_weight: {
+        'foo': 1
+      }
     },
     {
       gas: Gas.parse('100 Tgas')
@@ -426,6 +435,42 @@ workspace.test('update weight', async (test, context) => {
     {
       validator_id: 'bar',
       weight: 5
+    }
+  );
+  test.is(
+    await contract.view('get_total_weight'),
+    35
+  );
+});
+
+workspace.test('update weights', async (test, context) => {
+  const { root, owner, contract } = context;
+  const manager = await setManager(root, contract, owner);
+
+  // add foo, bar
+  await manager.call(
+    contract,
+    'add_validators',
+    {
+      validator_id_to_weight: {
+        'foo': 10,
+        'bar': 20,
+      }
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+
+  // update foo
+  await manager.call(
+    contract,
+    'update_weights',
+    {
+      validator_id_to_weight: {
+        'foo': 30,
+        'bar': 5,
+      }
     }
   );
   test.is(

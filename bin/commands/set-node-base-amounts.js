@@ -47,8 +47,8 @@ exports.handler = async function (argv) {
     }
 
     // use yoctoNEAR instead of NEAR in config to take into account staking rewards
-    if (node.base_stake_amount != null && currentNodes[node.id].base != null 
-      && node.base_stake_amount.toString() !== currentNodes[node.id].base.toString()) {
+    if (node.base != null && currentNodes[node.id].base_stake_amount != null
+      && node.base.toString() !== currentNodes[node.id].base_stake_amount.toString()) {
       nodesToUpdateBaseStakeAmount.push(node);        
     }
 

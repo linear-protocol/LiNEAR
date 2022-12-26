@@ -447,9 +447,9 @@ impl LiquidStakingContract {
 
 #[ext_contract(ext_self_validator_drain_cb)]
 trait ValidatorDrainCallbacks {
-    fn validator_drain_unstaked_callback(&mut self, validator_id: AccountId, amount: Balance);
+    fn validator_drain_unstaked_callback(&mut self, validator_id: AccountId, amount: U128);
 
-    fn validator_drain_withdraw_callback(&mut self, validator_id: AccountId, amount: Balance);
+    fn validator_drain_withdraw_callback(&mut self, validator_id: AccountId, amount: U128);
 }
 
 #[near_bindgen]
@@ -503,7 +503,7 @@ impl LiquidStakingContract {
             .then(
                 ext_self_validator_drain_cb::validator_drain_unstaked_callback(
                     validator.account_id,
-                    unstake_amount,
+                    unstake_amount.into(),
                     env::current_account_id(),
                     NO_DEPOSIT,
                     GAS_CB_VALIDATOR_UNSTAKED,
@@ -555,7 +555,7 @@ impl LiquidStakingContract {
         validator.withdraw(&mut self.validator_pool, amount).then(
             ext_self_validator_drain_cb::validator_drain_withdraw_callback(
                 validator.account_id.clone(),
-                amount,
+                amount.into(),
                 env::current_account_id(),
                 NO_DEPOSIT,
                 GAS_CB_VALIDATOR_WITHDRAW,
@@ -564,7 +564,8 @@ impl LiquidStakingContract {
     }
 
     #[private]
-    pub fn validator_drain_unstaked_callback(&mut self, validator_id: AccountId, amount: Balance) {
+    pub fn validator_drain_unstaked_callback(&mut self, validator_id: AccountId, amount: U128) {
+        let amount = amount.into();
         let mut validator = self
             .validator_pool
             .get_validator(&validator_id)
@@ -591,7 +592,8 @@ impl LiquidStakingContract {
     }
 
     #[private]
-    pub fn validator_drain_withdraw_callback(&mut self, validator_id: AccountId, amount: Balance) {
+    pub fn validator_drain_withdraw_callback(&mut self, validator_id: AccountId, amount: U128) {
+        let amount = amount.into();
         if is_promise_success() {
             Event::DrainWithdrawSuccess {
                 validator_id: &validator_id,

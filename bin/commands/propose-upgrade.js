@@ -49,7 +49,7 @@ exports.handler = async function (argv) {
           'store_blob',
           code,
           100000000000000,
-          "5851280000000000000000000"
+          "6185190000000000000000000"
         )
       ]
     }

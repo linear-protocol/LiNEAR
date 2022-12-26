@@ -62,7 +62,7 @@ impl LiquidStakingContract {
         candidate.deposit_and_stake(amount_to_stake).then(
             ext_self_action_cb::validator_staked_callback(
                 candidate.account_id.clone(),
-                amount_to_stake,
+                amount_to_stake.into(),
                 env::current_account_id(),
                 NO_DEPOSIT,
                 GAS_CB_VALIDATOR_STAKED,
@@ -116,7 +116,7 @@ impl LiquidStakingContract {
             .unstake(&mut self.validator_pool, amount_to_unstake)
             .then(ext_self_action_cb::validator_unstaked_callback(
                 candidate.account_id,
-                amount_to_unstake,
+                amount_to_unstake.into(),
                 env::current_account_id(),
                 NO_DEPOSIT,
                 GAS_CB_VALIDATOR_UNSTAKED,
@@ -178,7 +178,7 @@ impl LiquidStakingContract {
         validator.withdraw(&mut self.validator_pool, amount).then(
             ext_self_action_cb::validator_withdraw_callback(
                 validator.account_id.clone(),
-                amount,
+                amount.into(),
                 env::current_account_id(),
                 NO_DEPOSIT,
                 GAS_CB_VALIDATOR_WITHDRAW,
@@ -249,15 +249,15 @@ impl LiquidStakingContract {
 
 #[ext_contract(ext_self_action_cb)]
 trait EpochActionCallbacks {
-    fn validator_staked_callback(&mut self, validator_id: AccountId, amount: Balance);
+    fn validator_staked_callback(&mut self, validator_id: AccountId, amount: U128);
 
-    fn validator_unstaked_callback(&mut self, validator_id: AccountId, amount: Balance);
+    fn validator_unstaked_callback(&mut self, validator_id: AccountId, amount: U128);
 
     fn validator_get_balance_callback(&mut self, validator_id: AccountId);
 
     fn validator_get_account_callback(&mut self, validator_id: AccountId);
 
-    fn validator_withdraw_callback(&mut self, validator_id: AccountId, amount: Balance);
+    fn validator_withdraw_callback(&mut self, validator_id: AccountId, amount: U128);
 }
 
 /// callbacks
@@ -265,7 +265,8 @@ trait EpochActionCallbacks {
 #[near_bindgen]
 impl LiquidStakingContract {
     #[private]
-    pub fn validator_staked_callback(&mut self, validator_id: AccountId, amount: Balance) {
+    pub fn validator_staked_callback(&mut self, validator_id: AccountId, amount: U128) {
+        let amount = amount.into();
         if is_promise_success() {
             let mut validator = self
                 .validator_pool
@@ -291,7 +292,8 @@ impl LiquidStakingContract {
     }
 
     #[private]
-    pub fn validator_unstaked_callback(&mut self, validator_id: AccountId, amount: Balance) {
+    pub fn validator_unstaked_callback(&mut self, validator_id: AccountId, amount: U128) {
+        let amount = amount.into();
         let mut validator = self
             .validator_pool
             .get_validator(&validator_id)
@@ -378,7 +380,8 @@ impl LiquidStakingContract {
     }
 
     #[private]
-    pub fn validator_withdraw_callback(&mut self, validator_id: AccountId, amount: Balance) {
+    pub fn validator_withdraw_callback(&mut self, validator_id: AccountId, amount: U128) {
+        let amount = amount.into();
         if is_promise_success() {
             Event::EpochWithdrawSuccess {
                 validator_id: &validator_id,

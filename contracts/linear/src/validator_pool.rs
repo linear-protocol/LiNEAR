@@ -407,7 +407,8 @@ impl LiquidStakingContract {
         self.assert_manager();
         require!(validator_ids.len() == weights.len(), ERR_BAD_VALIDATOR_LIST);
         for i in 0..validator_ids.len() {
-            self.validator_pool.update_weight(&validator_ids[i], weights[i]);
+            self.validator_pool
+                .update_weight(&validator_ids[i], weights[i]);
         }
     }
 

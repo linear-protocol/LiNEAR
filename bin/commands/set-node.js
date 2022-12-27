@@ -82,14 +82,12 @@ exports.handler = async function (argv) {
   // in case the list is too long, we cut it into chunks
   const chunks = chunkList(nodesToAdd, 5);
   for (const chunkNodes of chunks) {
-    const idToWeight = chunkNodes.reduce(
-      (m, v) => m[v.id] = v.weight,
-      {});
     await signer.functionCall({
       contractId: address,
       methodName: 'add_validators',
       args: {
-        validator_id_to_weight: idToWeight,
+        validator_ids: chunkNodes.map(n => n.id),
+        weights: chunkNodes.map(n => n.weight)
       },
       gas: Gas.parse('250 Tgas')
     });

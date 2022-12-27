@@ -94,16 +94,12 @@ skip('upgrade contract from v1.2.0 to v1.3.0 on testnet', async (test, context) 
     const weights = names.map(_ => 1);
     const validators = await Promise.all(names.map(name => createStakingPool(root, name)));
 
-    const validatorToWeight = {};
-    for (let k = 0; k < validators.length; k++) {
-      validatorToWeight[validators[k].accountId] = weights[k];
-    }
-
     await manager.call(
       contract,
       'add_validators',
       {
-        validator_id_to_weight: validatorToWeight
+        validator_ids: validators.map(v => v.accountId),
+        weights
       },
       {
         gas: Gas.parse('300 Tgas')

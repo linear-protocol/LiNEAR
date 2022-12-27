@@ -12,7 +12,6 @@ use near_sdk::{
     near_bindgen, require, AccountId, Balance, EpochHeight, Promise,
 };
 use std::cmp::min;
-use std::collections::HashMap;
 
 const STAKE_SMALL_CHANGE_AMOUNT: Balance = ONE_NEAR;
 const UNSTAKE_FACTOR: u128 = 2;
@@ -341,11 +340,12 @@ impl LiquidStakingContract {
         self.add_whitelisted_validator(&validator_id, weight);
     }
 
-    pub fn add_validators(&mut self, validator_id_to_weight: HashMap<AccountId, u16>) {
+    pub fn add_validators(&mut self, validator_ids: Vec<AccountId>, weights: Vec<u16>) {
         self.assert_running();
         self.assert_manager();
-        for (validator_id, weight) in validator_id_to_weight {
-            self.add_whitelisted_validator(&validator_id, weight);
+        require!(validator_ids.len() == weights.len(), ERR_BAD_VALIDATOR_LIST);
+        for i in 0..validator_ids.len() {
+            self.add_whitelisted_validator(&validator_ids[i], weights[i]);
         }
     }
 
@@ -402,11 +402,12 @@ impl LiquidStakingContract {
         self.validator_pool.update_weight(&validator_id, weight);
     }
 
-    pub fn update_weights(&mut self, validator_id_to_weight: HashMap<AccountId, u16>) {
+    pub fn update_weights(&mut self, validator_ids: Vec<AccountId>, weights: Vec<u16>) {
         self.assert_running();
         self.assert_manager();
-        for (validator_id, weight) in validator_id_to_weight {
-            self.validator_pool.update_weight(&validator_id, weight);
+        require!(validator_ids.len() == weights.len(), ERR_BAD_VALIDATOR_LIST);
+        for i in 0..validator_ids.len() {
+            self.validator_pool.update_weight(&validator_ids[i], weights[i]);
         }
     }
 

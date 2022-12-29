@@ -434,6 +434,38 @@ workspace.test('update weight', async (test, context) => {
   );
 });
 
+workspace.test('update weights', async (test, context) => {
+  const { root, owner, contract } = context;
+  const manager = await setManager(root, contract, owner);
+
+  // add foo, bar
+  await manager.call(
+    contract,
+    'add_validators',
+    {
+      validator_ids: ['foo', 'bar'],
+      weights: [10, 20]
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+
+  // update foo
+  await manager.call(
+    contract,
+    'update_weights',
+    {
+      validator_ids: ['foo', 'bar'],
+      weights: [30, 5]
+    }
+  );
+  test.is(
+    await contract.view('get_total_weight'),
+    35
+  );
+});
+
 workspace.test('update base stake amount', async (test, context) => {
   const { root, owner, contract } = context;
   const manager = await setManager(root, contract, owner);

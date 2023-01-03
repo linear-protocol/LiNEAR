@@ -50,6 +50,7 @@ clean:
 lint:
 	cargo fmt -- --check
 	cargo clippy --tests -- -D clippy::all
+	npx cspell --words-only --unique "**"
 
 test: test-unit test-linear test-mock-staking-pool test-mock-fungible-token
 

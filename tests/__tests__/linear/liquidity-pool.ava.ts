@@ -488,7 +488,7 @@ workspace.test('liquidity pool misconfiguration', async (test, { contract, owner
   );
 });
 
-workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 1.0, liquidity > 10K)',
+workspace.test('issue: panic if remove account total liquidity (LiNEAR price > 1.0, liquidity > 10K)',
   async (test, { contract, owner, alice, bob, carol }) => {
 
   // Alice deposits and stakes to avoid empty stake shares
@@ -498,7 +498,7 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
     amount: NEAR.parse('40')
   });
 
-  // Add 0.5N epoch rewards, pirce becomes 1.01
+  // Add 0.5N epoch rewards, price becomes 1.01
   await owner.call(
     contract,
     'add_epoch_rewards',

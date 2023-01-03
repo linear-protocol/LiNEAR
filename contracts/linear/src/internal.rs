@@ -46,7 +46,7 @@ impl LiquidStakingContract {
         // Note that account locked balance should not be included.
         let available_balance = env::account_balance()
             .checked_sub(self.liquidity_pool.amounts[0])
-            .expect(ERR_INCONSISTANT_BALANCE);
+            .expect(ERR_INCONSISTENT_BALANCE);
 
         // at least 1 NEAR should be left to cover storage/gas.
         require!(

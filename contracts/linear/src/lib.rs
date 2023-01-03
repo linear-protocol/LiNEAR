@@ -101,7 +101,7 @@ pub struct LiquidStakingContract {
     // --- Staking Farm ---
     /// Farm tokens.
     farms: Vector<Farm>,
-    /// Active farms: indicies into `farms`.
+    /// Active farms: indices into `farms`.
     active_farms: Vec<u64>,
     /// Authorized users, allowed to add farms.
     /// This is done to prevent farm spam with random tokens.
@@ -121,7 +121,7 @@ impl LiquidStakingContract {
     /// It prevents inflating the price of the share too much.
     #[init]
     pub fn new(owner_id: AccountId) -> Self {
-        require!(!env::state_exists(), ERR_ALREADY_INITIALZED);
+        require!(!env::state_exists(), ERR_ALREADY_INITIALIZED);
         require!(
             env::account_locked_balance() == 0,
             ERR_ACCOUNT_STAKING_WHILE_INIT

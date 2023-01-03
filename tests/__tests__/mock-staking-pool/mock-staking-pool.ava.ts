@@ -16,7 +16,7 @@ const workspace = Workspace.init(async ({root}) => {
   return {contract, alice};
 });
 
-workspace.test('check balance after initlization', async (test, {contract, alice}) => {
+workspace.test('check balance after initialization', async (test, {contract, alice}) => {
   // await root.call(contract, 'set_status', {message: 'lol'});
   test.is(
     await contract.view('get_account_staked_balance', {account_id: alice}),

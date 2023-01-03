@@ -13,7 +13,7 @@ const DENOMINATOR: u128 = 1_000_000_000_000_000_000_000_000;
 
 /// Amount of gas for fungible token transfers.
 const GAS_FOR_FT_TRANSFER: Gas = Gas(10 * TGAS);
-/// hotfix_insuffient_gas_for_mft_resolve_transfer, increase from 5T to 20T
+/// hotfix_insufficient_gas_for_mft_resolve_transfer, increase from 5T to 20T
 const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(20 * TGAS);
 /// Gas for calling `get_owner` method.
 const GAS_FOR_GET_OWNER: Gas = Gas(10 * TGAS);

@@ -220,6 +220,56 @@ impl ValidatorPool {
         (candidate, amount_to_stake)
     }
 
+    pub fn get_candidate_to_unstake_v1(
+        &self,
+        amount: Balance,
+        total_staked_near_amount: Balance,
+    ) -> (Option<Validator>, Balance) {
+        let mut validator_target_delta: Vec<(Validator, u128, u128)> = self
+            .validators
+            .iter()
+            .map(|(_, v)| v.into_validator())
+            // remove pending release nodes
+            .filter(|v| !v.pending_release())
+            .filter_map(|v| {
+                let target_amount =
+                    self.validator_target_stake_amount(total_staked_near_amount, &v);
+                if v.staked_amount > target_amount {
+                    let delta = v.staked_amount - target_amount;
+                    Some((v, target_amount, delta))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        if validator_target_delta.is_empty() {
+            (None, 0)
+        } else {
+            // sort by deltas
+            validator_target_delta.sort_by(|a, b| a.2.cmp(&(b.2)));
+
+            let p = validator_target_delta.partition_point(|(_, _, delta)| delta < &amount);
+            if p < validator_target_delta.len() {
+                (Some(validator_target_delta.remove(p).0), amount)
+            } else {
+                let index = validator_target_delta
+                    .iter()
+                    .position(|(_, target, _)| target / 2 >= amount);
+                match index {
+                    Some(index) => {
+                        let (v, target, _) = validator_target_delta.remove(index);
+                        (Some(v), min(target / 2, amount))
+                    }
+                    None => {
+                        let (v, target, _) = validator_target_delta.pop().unwrap();
+                        (Some(v), target / 2)
+                    }
+                }
+            }
+        }
+    }
+
     pub fn get_candidate_to_unstake(
         &self,
         amount: Balance,

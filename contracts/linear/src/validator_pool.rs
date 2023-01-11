@@ -263,7 +263,7 @@ impl ValidatorPool {
                     v.account_id,
                     min(
                         target_amount / 2,
-                        v.staked_amount - v.base_stake_amount // do not touch base stake amounts
+                        v.staked_amount - v.base_stake_amount, // do not touch base stake amounts
                     ),
                 ));
             }
@@ -286,7 +286,8 @@ impl ValidatorPool {
         }
 
         // Binary search the first item that max unstake > amount
-        if let Some(answer) = self.search_first_item_greater_than_amount(&validator_target, amount) {
+        if let Some(answer) = self.search_first_item_greater_than_amount(&validator_target, amount)
+        {
             answer
         } else {
             (

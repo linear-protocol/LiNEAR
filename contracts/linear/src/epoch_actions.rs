@@ -88,9 +88,10 @@ impl LiquidStakingContract {
             return false;
         }
 
-        let (candidate, amount_to_unstake) = self
-            .validator_pool
-            .get_candidate_to_unstake(self.unstake_amount_to_settle, self.total_staked_near_amount);
+        let (candidate, amount_to_unstake) = self.validator_pool.get_candidate_to_unstake_v1(
+            self.unstake_amount_to_settle,
+            self.total_staked_near_amount,
+        );
         if candidate.is_none() {
             log!("no candidate found to unstake {}", amount_to_unstake);
             return false;

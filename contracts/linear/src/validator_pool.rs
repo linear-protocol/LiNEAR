@@ -220,22 +220,18 @@ impl ValidatorPool {
         (candidate, amount_to_stake)
     }
 
-    fn get_first_item_greater_than_amount(
+    fn search_first_item_greater_than_amount(
         &self,
         sorted: &Vec<(AccountId, u128)>,
-        amount: Balance
+        amount: Balance,
     ) -> Option<(Option<Validator>, Balance)> {
         // Binary search the first item that greater than amount
         let p = sorted.partition_point(|(_, factor)| factor < &amount);
         if p < sorted.len() {
-            Some(
-                (
-                    Some(
-                        self.validators.get(&sorted[p].0).unwrap().into_validator()
-                    ),
-                    amount
-                )
-            )
+            Some((
+                Some(self.validators.get(&sorted[p].0).unwrap().into_validator()),
+                amount,
+            ))
         } else {
             None
         }
@@ -246,31 +242,36 @@ impl ValidatorPool {
         amount: Balance,
         total_staked_near_amount: Balance,
     ) -> (Option<Validator>, Balance) {
-        let candidate_iter= self
+        let candidate_iter = self
             .validators
             .iter()
             .map(|(_, v)| v.into_validator())
             // Remove pending release validators
-            .filter(|v| !v.pending_release());
+            .filter(|v| !v.pending_release())
+            // do not touch base stake amounts
+            .filter(|v| v.staked_amount > v.base_stake_amount);
 
         let mut validator_delta = Vec::new();
         let mut validator_target = Vec::new();
 
         candidate_iter.for_each(|v| {
-            let target_amount =
-                self.validator_target_stake_amount(total_staked_near_amount, &v);
-            if target_amount > v.staked_amount {
-                validator_delta.push((v.account_id.clone(), target_amount - v.staked_amount));
-                validator_target.push((v.account_id, min(target_amount / 2, target_amount - v.base_stake_amount)));
+            let target_amount = self.validator_target_stake_amount(total_staked_near_amount, &v);
+            if v.staked_amount > target_amount {
+                validator_delta.push((v.account_id.clone(), v.staked_amount - target_amount));
+
+                validator_target.push((
+                    v.account_id,
+                    min(
+                        target_amount / 2,
+                        v.staked_amount - v.base_stake_amount // do not touch base stake amounts
+                    ),
+                ));
             }
         });
 
         validator_delta.sort_by(|l, r| l.1.cmp(&r.1));
         // Binary search the first item that delta > amount
-        if let Some(answer) = self.get_first_item_greater_than_amount(
-            &validator_delta,
-            amount
-        ) {
+        if let Some(answer) = self.search_first_item_greater_than_amount(&validator_delta, amount) {
             return answer;
         }
         let delta_max = get_last(&validator_delta);
@@ -279,25 +280,18 @@ impl ValidatorPool {
         let target_max = get_last(&validator_target);
         if delta_max.1 >= target_max.1 {
             return (
-                Some(
-                    self.validators.get(&delta_max.0).unwrap().into_validator()
-                ),
-                delta_max.1
+                Some(self.validators.get(&delta_max.0).unwrap().into_validator()),
+                delta_max.1,
             );
         }
 
         // Binary search the first item that max unstake > amount
-        if let Some(answer) = self.get_first_item_greater_than_amount(
-            &validator_target,
-            amount
-        ) {
+        if let Some(answer) = self.search_first_item_greater_than_amount(&validator_target, amount) {
             answer
         } else {
             (
-                Some(
-                    self.validators.get(&target_max.0).unwrap().into_validator()
-                ),
-                target_max.1
+                Some(self.validators.get(&target_max.0).unwrap().into_validator()),
+                target_max.1,
             )
         }
     }
@@ -412,9 +406,7 @@ fn min3(x: u128, y: u128, z: u128) -> u128 {
     min(x, min(y, z))
 }
 
-fn get_last(
-    sorted: &Vec<(AccountId, u128)>,
-) -> &(AccountId, u128) {
+fn get_last(sorted: &[(AccountId, u128)]) -> &(AccountId, u128) {
     return sorted.last().unwrap();
 }
 

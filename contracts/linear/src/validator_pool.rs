@@ -220,56 +220,86 @@ impl ValidatorPool {
         (candidate, amount_to_stake)
     }
 
+    fn get_first_item_greater_than_amount(
+        &self,
+        sorted: &Vec<(AccountId, u128)>,
+        amount: Balance
+    ) -> Option<(Option<Validator>, Balance)> {
+        // Binary search the first item that greater than amount
+        let p = sorted.partition_point(|(_, factor)| factor < &amount);
+        if p < sorted.len() {
+            Some(
+                (
+                    Some(
+                        self.validators.get(&sorted[p].0).unwrap().into_validator()
+                    ),
+                    amount
+                )
+            )
+        } else {
+            None
+        }
+    }
+
     pub fn get_candidate_to_unstake_v1(
         &self,
         amount: Balance,
         total_staked_near_amount: Balance,
     ) -> (Option<Validator>, Balance) {
-        let mut validator_target_delta: Vec<(Validator, u128, u128)> = self
+        let candidate_iter= self
             .validators
             .iter()
             .map(|(_, v)| v.into_validator())
-            // Filter out pending release validators
-            .filter(|v| !v.pending_release())
-            // Pick validators whose staked amount is greater than target amount
-            // Store target amounts and delta temporarily
-            .filter_map(|v| {
-                let target_amount =
-                    self.validator_target_stake_amount(total_staked_near_amount, &v);
+            // Remove pending release validators
+            .filter(|v| !v.pending_release());
 
-                if v.staked_amount > target_amount {
-                    let delta = v.staked_amount - target_amount;
-                    Some((v, target_amount, delta))
-                } else {
-                    None
-                }
-            })
-            .collect();
+        let mut validator_delta = Vec::new();
+        let mut validator_target = Vec::new();
 
-        // There is not validator whose delta > 0
-        if validator_target_delta.is_empty() {
-            return (None, 0);
-        }
+        candidate_iter.for_each(|v| {
+            let target_amount =
+                self.validator_target_stake_amount(total_staked_near_amount, &v);
+            if target_amount > v.staked_amount {
+                validator_delta.push((v.account_id.clone(), target_amount - v.staked_amount));
+                validator_target.push((v.account_id, min(target_amount / 2, target_amount - v.base_stake_amount)));
+            }
+        });
 
-        // Sort by deltas(the 3rd element)
-        validator_target_delta.sort_by(|a, b| a.2.cmp(&(b.2)));
+        validator_delta.sort_by(|l, r| l.1.cmp(&r.1));
         // Binary search the first item that delta > amount
-        let p = validator_target_delta.partition_point(|(_, _, delta)| delta < &amount);
-        if p < validator_target_delta.len() {
-            return (Some(validator_target_delta.remove(p).0), amount);
+        if let Some(answer) = self.get_first_item_greater_than_amount(
+            &validator_delta,
+            amount
+        ) {
+            return answer;
+        }
+        let delta_max = get_last(&validator_delta);
+
+        validator_target.sort_by(|l, r| l.1.cmp(&r.1));
+        let target_max = get_last(&validator_target);
+        if delta_max.1 >= target_max.1 {
+            return (
+                Some(
+                    self.validators.get(&delta_max.0).unwrap().into_validator()
+                ),
+                delta_max.1
+            );
         }
 
-        // Sort by targets(the 2nd element)
-        validator_target_delta.sort_by(|a, b| a.1.cmp(&(b.1)));
-        // Binary search the first item that target / 2 > amount
-        let p = validator_target_delta.partition_point(|(_, target, _)| target / 2 < amount);
-        if p < validator_target_delta.len() {
-            return (Some(validator_target_delta.remove(p).0), amount);
+        // Binary search the first item that max unstake > amount
+        if let Some(answer) = self.get_first_item_greater_than_amount(
+            &validator_target,
+            amount
+        ) {
+            answer
+        } else {
+            (
+                Some(
+                    self.validators.get(&target_max.0).unwrap().into_validator()
+                ),
+                target_max.1
+            )
         }
-
-        // If we cannot find a single validator to solve this unstake. Maximize the unstake amount
-        let (v, target, _) = validator_target_delta.pop().unwrap();
-        (Some(v), target / 2)
     }
 
     pub fn get_candidate_to_unstake(
@@ -380,6 +410,12 @@ impl ValidatorPool {
 
 fn min3(x: u128, y: u128, z: u128) -> u128 {
     min(x, min(y, z))
+}
+
+fn get_last(
+    sorted: &Vec<(AccountId, u128)>,
+) -> &(AccountId, u128) {
+    return sorted.last().unwrap();
 }
 
 #[near_bindgen]

@@ -277,6 +277,7 @@ impl ValidatorPool {
         let delta_max = get_last(&validator_delta);
 
         validator_target.sort_by(|l, r| l.1.cmp(&r.1));
+
         let target_max = get_last(&validator_target);
         if delta_max.1 >= target_max.1 {
             return (

@@ -298,5 +298,89 @@
     "weight": 5,
     "fee": "4%",
     "Delegators": 320
+  },
+  {
+    "id": "cunum.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "teoviteovi.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "monresearch.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "letsnode.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "stakerrash.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "welldonestake.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "nativo.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "snsmln.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "ifedi.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "owa.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "chain0ps.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "vcap.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "smartnode.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "qibaocenter.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
   }
 ]

@@ -54,5 +54,37 @@
     {
         "id": "qibaocenter.poolv1.near",
         "base": "32500000000000000000000000000"
+    },
+    {
+        "id": "pinrocks.poolv1.near",
+        "base": "27500000000000000000000000000"
+    },
+    {
+        "id": "anya-forger.poolv1.near",
+        "base": "40000000000000000000000000000"
+    },
+    {
+        "id": "lovali.poolv1.near",
+        "base": "42500000000000000000000000000"
+    },
+    {
+        "id": "bee1stake.poolv1.near",
+        "base": "27500000000000000000000000000"
+    },
+    {
+        "id": "ou812.poolv1.near",
+        "base": "50000000000000000000000000000"
+    },
+    {
+        "id": "loyanix.poolv1.near",
+        "base": "37500000000000000000000000000"
+    },
+    {
+        "id": "meduza.poolv1.near",
+        "base": "25000000000000000000000000000"
+    },
+    {
+        "id": "evstigneeff.poolv1.near",
+        "base": "50000000000000000000000000000"
     }
 ]

@@ -382,5 +382,53 @@
     "weight": 0,
     "fee": "1%",
     "Delegators": 1
+  },
+  {
+    "id": "pinrocks.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "anya-forger.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "lovali.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "bee1stake.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "ou812.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "loyanix.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "meduza.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "evstigneeff.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
   }
 ]

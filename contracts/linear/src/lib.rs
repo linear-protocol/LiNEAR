@@ -46,6 +46,7 @@ pub(crate) enum StorageKey {
     AuthorizedFarmTokens,
     Managers,
     ValidatorsV1,
+    EpochUnstakeValidators,
 }
 
 #[near_bindgen]
@@ -110,6 +111,9 @@ pub struct LiquidStakingContract {
     /// Authorized tokens for farms.
     /// Required because any contract can call method with ft_transfer_call, so must verify that contract will accept it.
     authorized_farm_tokens: UnorderedSet<AccountId>,
+
+    /// unstaked validator ids in current epoch
+    epoch_unstake_validators: UnorderedSet<AccountId>,
 }
 
 #[near_bindgen]
@@ -162,6 +166,7 @@ impl LiquidStakingContract {
             active_farms: Vec::new(),
             // authorized_users: UnorderedSet::new(StorageKey::AuthorizedUsers),
             authorized_farm_tokens: UnorderedSet::new(StorageKey::AuthorizedFarmTokens),
+            epoch_unstake_validators: UnorderedSet::new(StorageKey::EpochUnstakeValidators),
         };
         this.internal_add_manager(&owner_id);
         this.measure_account_storage_usage();

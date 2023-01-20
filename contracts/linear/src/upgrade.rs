@@ -34,6 +34,7 @@ impl LiquidStakingContract {
             farms: contract.farms,
             active_farms: contract.active_farms,
             authorized_farm_tokens: contract.authorized_farm_tokens,
+            epoch_unstake_validators: UnorderedSet::new(StorageKey::EpochUnstakeValidators),
         }
     }
 }

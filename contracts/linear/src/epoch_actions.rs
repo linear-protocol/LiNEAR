@@ -88,6 +88,11 @@ impl LiquidStakingContract {
             return false;
         }
 
+        if self.epoch_unstake_validators.len() >= self.validator_pool.valid_count() / 4 {
+            log!("a quarter of validators have been unstaked in this epoch");
+            return false;
+        }
+
         let (candidate, amount_to_unstake) = self.validator_pool.get_candidate_to_unstake_v1(
             self.unstake_amount_to_settle,
             self.total_staked_near_amount,
@@ -116,12 +121,14 @@ impl LiquidStakingContract {
         candidate
             .unstake(&mut self.validator_pool, amount_to_unstake)
             .then(ext_self_action_cb::validator_unstaked_callback(
-                candidate.account_id,
+                candidate.account_id.clone(),
                 amount_to_unstake.into(),
                 env::current_account_id(),
                 NO_DEPOSIT,
                 GAS_CB_VALIDATOR_UNSTAKED,
             ));
+
+        self.epoch_unstake_validators.insert(&candidate.account_id);
 
         true
     }
@@ -209,6 +216,8 @@ impl LiquidStakingContract {
             self.unstake_amount_to_settle -= self.stake_amount_to_settle;
             self.stake_amount_to_settle = 0;
         }
+
+        self.epoch_unstake_validators.clear();
 
         Event::EpochCleanup {
             stake_amount_to_settle: &U128(self.stake_amount_to_settle),

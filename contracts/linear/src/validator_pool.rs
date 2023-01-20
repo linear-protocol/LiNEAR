@@ -12,6 +12,7 @@ use near_sdk::{
     near_bindgen, require, AccountId, Balance, EpochHeight, Promise,
 };
 use std::cmp::min;
+use std::convert::TryInto;
 
 const STAKE_SMALL_CHANGE_AMOUNT: Balance = ONE_NEAR;
 const UNSTAKE_FACTOR: u128 = 2;
@@ -79,6 +80,15 @@ impl ValidatorPool {
 
     pub fn count(&self) -> u64 {
         self.validators.len()
+    }
+
+    pub fn valid_count(&self) -> u64 {
+        self.validators
+            .iter()
+            .filter(|(_, v)| v.get_weight() > 0)
+            .count()
+            .try_into()
+            .unwrap()
     }
 
     pub fn get_validator(&self, validator_id: &AccountId) -> Option<Validator> {
@@ -716,6 +726,13 @@ impl VValidator {
         match self {
             VValidator::V0(v) => v.into_validator(),
             VValidator::Current(v) => v,
+        }
+    }
+
+    pub fn get_weight(&self) -> u16 {
+        match self {
+            VValidator::V0(v) => v.weight,
+            VValidator::Current(v) => v.weight,
         }
     }
 }

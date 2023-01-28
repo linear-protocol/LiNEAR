@@ -430,5 +430,29 @@
     "weight": 0,
     "fee": "1%",
     "Delegators": 1
+  },
+  {
+    "id": "openbitlab.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "maia.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "svarog.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "jagon.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
   }
 ]

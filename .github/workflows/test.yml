@@ -19,7 +19,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: 1.66.1 # stable
           override: true
       - uses: Swatinem/rust-cache@v1
       # Set up Node environment

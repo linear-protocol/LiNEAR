@@ -244,15 +244,15 @@ impl ValidatorPool {
             // do not touch base stake amounts
             .filter(|v| v.staked_amount > v.base_stake_amount);
 
-        let mut validator_delta = Vec::new();
-        let mut validator_target = Vec::new();
+        let mut unstake_amounts_based_on_delta = Vec::new();
+        let mut unstake_amounts_based_on_target = Vec::new();
 
         candidate_iter.for_each(|v| {
             let target_amount = self.validator_target_stake_amount(total_staked_near_amount, &v);
             if v.staked_amount > target_amount {
-                validator_delta.push((v.account_id.clone(), v.staked_amount - target_amount));
+                unstake_amounts_based_on_delta.push((v.account_id.clone(), v.staked_amount - target_amount));
 
-                validator_target.push((
+                unstake_amounts_based_on_target.push((
                     v.account_id,
                     min(
                         target_amount / 2,
@@ -262,23 +262,22 @@ impl ValidatorPool {
             }
         });
 
-        if validator_delta.is_empty() {
+        if unstake_amounts_based_on_delta.is_empty() {
             return (None, 0);
         }
 
-        validator_delta.sort_by(|l, r| l.1.cmp(&r.1));
-        // Binary search the first item that delta > amount
-        if let Some(id) = search_first_item_greater_than_amount(&validator_delta, amount) {
+        unstake_amounts_based_on_delta.sort_by(|l, r| l.1.cmp(&r.1));
+        if let Some(id) = search_first_item_greater_than_amount(&unstake_amounts_based_on_delta, amount) {
             return (
                 Some(self.validators.get(&id).unwrap().into_validator()),
                 amount,
             );
         }
-        let delta_max = get_last(&validator_delta);
+        let delta_max = get_last(&unstake_amounts_based_on_delta);
 
-        validator_target.sort_by(|l, r| l.1.cmp(&r.1));
+        unstake_amounts_based_on_target.sort_by(|l, r| l.1.cmp(&r.1));
 
-        let target_max = get_last(&validator_target);
+        let target_max = get_last(&unstake_amounts_based_on_target);
         if delta_max.1 >= target_max.1 {
             return (
                 Some(self.validators.get(&delta_max.0).unwrap().into_validator()),
@@ -286,8 +285,7 @@ impl ValidatorPool {
             );
         }
 
-        // Binary search the first item that max unstake > amount
-        if let Some(id) = search_first_item_greater_than_amount(&validator_target, amount) {
+        if let Some(id) = search_first_item_greater_than_amount(&unstake_amounts_based_on_target, amount) {
             return (
                 Some(self.validators.get(&id).unwrap().into_validator()),
                 amount,

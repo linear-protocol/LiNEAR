@@ -230,23 +230,6 @@ impl ValidatorPool {
         (candidate, amount_to_stake)
     }
 
-    fn search_first_item_greater_than_amount(
-        &self,
-        sorted: &Vec<(AccountId, u128)>,
-        amount: Balance,
-    ) -> Option<(Option<Validator>, Balance)> {
-        // Binary search the first item that greater than amount
-        let p = sorted.partition_point(|(_, factor)| factor < &amount);
-        if p < sorted.len() {
-            Some((
-                Some(self.validators.get(&sorted[p].0).unwrap().into_validator()),
-                amount,
-            ))
-        } else {
-            None
-        }
-    }
-
     pub fn get_candidate_to_unstake_v1(
         &self,
         amount: Balance,
@@ -279,10 +262,17 @@ impl ValidatorPool {
             }
         });
 
+        if validator_delta.is_empty() {
+            return (None, 0);
+        }
+
         validator_delta.sort_by(|l, r| l.1.cmp(&r.1));
         // Binary search the first item that delta > amount
-        if let Some(answer) = self.search_first_item_greater_than_amount(&validator_delta, amount) {
-            return answer;
+        if let Some(id) = search_first_item_greater_than_amount(&validator_delta, amount) {
+            return (
+                Some(self.validators.get(&id).unwrap().into_validator()),
+                amount,
+            );
         }
         let delta_max = get_last(&validator_delta);
 
@@ -297,9 +287,11 @@ impl ValidatorPool {
         }
 
         // Binary search the first item that max unstake > amount
-        if let Some(answer) = self.search_first_item_greater_than_amount(&validator_target, amount)
-        {
-            answer
+        if let Some(id) = search_first_item_greater_than_amount(&validator_target, amount) {
+            return (
+                Some(self.validators.get(&id).unwrap().into_validator()),
+                amount,
+            );
         } else {
             (
                 Some(self.validators.get(&target_max.0).unwrap().into_validator()),
@@ -416,6 +408,19 @@ impl ValidatorPool {
 
 fn min3(x: u128, y: u128, z: u128) -> u128 {
     min(x, min(y, z))
+}
+
+fn search_first_item_greater_than_amount(
+    sorted: &Vec<(AccountId, u128)>,
+    amount: Balance,
+) -> Option<AccountId> {
+    // Binary search the first item that greater than amount
+    let p = sorted.partition_point(|(_, factor)| factor < &amount);
+    if p < sorted.len() {
+        Some(sorted[p].0.clone())
+    } else {
+        None
+    }
 }
 
 fn get_last(sorted: &[(AccountId, u128)]) -> &(AccountId, u128) {

@@ -127,7 +127,8 @@ impl LiquidStakingContract {
                 GAS_CB_VALIDATOR_UNSTAKED,
             ));
 
-        self.epoch_unstake_validators.insert(&candidate.validator.account_id);
+        self.epoch_unstake_validators
+            .insert(&candidate.validator.account_id);
 
         true
     }

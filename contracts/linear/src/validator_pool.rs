@@ -237,79 +237,94 @@ impl ValidatorPool {
         })
     }
 
-    pub fn get_candidate_to_unstake_v1(
+    fn best_match(
         &self,
         amount: Balance,
         total_staked_near_amount: Balance,
+        candidates: &[Validator],
+        f: fn(v: &Validator, target_amount: u128) -> u128,
     ) -> Option<CandidateValidator> {
-        let candidate_iter = self
-            .validators
+        let mut unstake_amounts_based_on_delta: Vec<(AccountId, u128)> = candidates
             .iter()
-            .map(|(_, v)| v.into_validator())
-            // Remove pending release validators
-            .filter(|v| !v.pending_release())
-            // do not touch base stake amounts
-            .filter(|v| v.staked_amount > v.base_stake_amount);
-
-        let mut unstake_amounts_based_on_delta = Vec::new();
-        let mut unstake_amounts_based_on_target = Vec::new();
-
-        candidate_iter.for_each(|v| {
-            let target_amount = self.validator_target_stake_amount(total_staked_near_amount, &v);
-            if v.staked_amount > target_amount {
-                unstake_amounts_based_on_delta.push((v.account_id.clone(), v.staked_amount - target_amount));
-
-                unstake_amounts_based_on_target.push((
-                    v.account_id,
-                    min(
-                        target_amount / 2,
-                        v.staked_amount - v.base_stake_amount, // do not touch base stake amounts
-                    ),
-                ));
-            }
-        });
+            .filter_map(|v| {
+                let target_amount = self.validator_target_stake_amount(total_staked_near_amount, v);
+                if v.staked_amount > target_amount {
+                    Some((v.account_id.clone(), f(v, target_amount)))
+                } else {
+                    None
+                }
+            })
+            .collect();
 
         if unstake_amounts_based_on_delta.is_empty() {
             return None;
         }
 
         unstake_amounts_based_on_delta.sort_by(|l, r| l.1.cmp(&r.1));
-        if let Some(id) = search_first_item_greater_than_amount(&unstake_amounts_based_on_delta, amount) {
-            return Some(
-                CandidateValidator {
-                    validator: self.validators.get(&id).unwrap().into_validator(),
-                    amount,
-                }
-            );
-        }
-        let delta_max = get_last(&unstake_amounts_based_on_delta);
-
-        unstake_amounts_based_on_target.sort_by(|l, r| l.1.cmp(&r.1));
-
-        let target_max = get_last(&unstake_amounts_based_on_target);
-        if delta_max.1 >= target_max.1 {
-            return Some(
-                CandidateValidator {
-                    validator: self.validators.get(&delta_max.0).unwrap().into_validator(),
-                    amount: delta_max.1,
-                }
-            );
-        }
-
-        if let Some(id) = search_first_item_greater_than_amount(&unstake_amounts_based_on_target, amount) {
-            Some(
-                CandidateValidator {
-                    validator: self.validators.get(&id).unwrap().into_validator(),
-                    amount,
-                }
-            )
+        if let Some(id) =
+            search_first_item_greater_than_amount(&unstake_amounts_based_on_delta, amount)
+        {
+            Some(CandidateValidator {
+                validator: self.validators.get(&id).unwrap().into_validator(),
+                amount,
+            })
         } else {
-            Some(
-                CandidateValidator {
-                    validator: self.validators.get(&target_max.0).unwrap().into_validator(),
-                    amount: target_max.1,
-                }
-            )
+            let last = get_last(&unstake_amounts_based_on_delta);
+            Some(CandidateValidator {
+                validator: self.validators.get(&last.0).unwrap().into_validator(),
+                amount: last.1,
+            })
+        }
+    }
+
+    pub fn get_candidate_to_unstake_v1(
+        &self,
+        amount: Balance,
+        total_staked_near_amount: Balance,
+    ) -> Option<CandidateValidator> {
+        let candidates: Vec<Validator> = self
+            .validators
+            .iter()
+            .map(|(_, v)| v.into_validator())
+            // Remove pending release validators
+            .filter(|v| !v.pending_release())
+            // do not touch base stake amounts
+            .filter(|v| v.staked_amount > v.base_stake_amount)
+            .collect();
+
+        let candidate_based_on_delta = self.best_match(
+            amount,
+            total_staked_near_amount,
+            &candidates,
+            |v, target_amount| v.staked_amount - target_amount,
+        );
+        candidate_based_on_delta.as_ref()?;
+
+        let candidate_based_on_delta = candidate_based_on_delta.unwrap();
+        if candidate_based_on_delta.amount >= amount {
+            return Some(candidate_based_on_delta);
+        }
+
+        let candidate_based_on_target = self.best_match(
+            amount,
+            total_staked_near_amount,
+            &candidates,
+            |v, target_amount| {
+                min(
+                    target_amount / 2,
+                    v.staked_amount - v.base_stake_amount, // do not touch base stake amounts
+                )
+            },
+        );
+        let candidate_based_on_target = candidate_based_on_target.unwrap();
+        if candidate_based_on_target.amount >= amount {
+            return Some(candidate_based_on_target);
+        }
+
+        if candidate_based_on_target.amount > candidate_based_on_delta.amount {
+            Some(candidate_based_on_target)
+        } else {
+            Some(candidate_based_on_delta)
         }
     }
 

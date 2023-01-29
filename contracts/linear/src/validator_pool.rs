@@ -242,7 +242,7 @@ impl ValidatorPool {
         amount: Balance,
         total_staked_near_amount: Balance,
         candidates: &[Validator],
-        f: fn(v: &Validator, target_amount: u128) -> u128,
+        cal_unstake_amount: fn(v: &Validator, target_amount: u128) -> u128,
     ) -> Option<CandidateValidator> {
         let mut unstake_amounts: Vec<(AccountId, u128)> = candidates
             .iter()

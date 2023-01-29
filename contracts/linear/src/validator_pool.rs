@@ -250,7 +250,8 @@ impl ValidatorPool {
         candidate_iter.for_each(|v| {
             let target_amount = self.validator_target_stake_amount(total_staked_near_amount, &v);
             if v.staked_amount > target_amount {
-                unstake_amounts_based_on_delta.push((v.account_id.clone(), v.staked_amount - target_amount));
+                unstake_amounts_based_on_delta
+                    .push((v.account_id.clone(), v.staked_amount - target_amount));
 
                 unstake_amounts_based_on_target.push((
                     v.account_id,
@@ -267,7 +268,9 @@ impl ValidatorPool {
         }
 
         unstake_amounts_based_on_delta.sort_by(|l, r| l.1.cmp(&r.1));
-        if let Some(id) = search_first_item_greater_than_amount(&unstake_amounts_based_on_delta, amount) {
+        if let Some(id) =
+            search_first_item_greater_than_amount(&unstake_amounts_based_on_delta, amount)
+        {
             return (
                 Some(self.validators.get(&id).unwrap().into_validator()),
                 amount,
@@ -285,7 +288,9 @@ impl ValidatorPool {
             );
         }
 
-        if let Some(id) = search_first_item_greater_than_amount(&unstake_amounts_based_on_target, amount) {
+        if let Some(id) =
+            search_first_item_greater_than_amount(&unstake_amounts_based_on_target, amount)
+        {
             return (
                 Some(self.validators.get(&id).unwrap().into_validator()),
                 amount,

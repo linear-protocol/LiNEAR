@@ -288,7 +288,7 @@ impl ValidatorPool {
             .map(|(_, v)| v.into_validator())
             // Remove pending release validators
             .filter(|v| !v.pending_release())
-            // do not touch base stake amounts
+            // Do not touch base stake amounts
             .filter(|v| v.staked_amount > v.base_stake_amount)
             .collect();
 
@@ -298,6 +298,8 @@ impl ValidatorPool {
             &candidates,
             |v, target_amount| v.staked_amount - target_amount,
         );
+        // None means there are no available validators
+        // Just return None in advance
         candidate_based_on_delta.as_ref()?;
 
         let candidate_based_on_delta = candidate_based_on_delta.unwrap();

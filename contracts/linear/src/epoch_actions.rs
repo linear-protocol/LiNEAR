@@ -29,15 +29,17 @@ impl LiquidStakingContract {
             return false;
         }
 
-        let (candidate, amount_to_stake) = self
+        let candidate = self
             .validator_pool
             .get_candidate_to_stake(self.stake_amount_to_settle, self.total_staked_near_amount);
 
         if candidate.is_none() {
-            log!("no candidate found to stake {}", amount_to_stake);
+            log!("no candidate found to stake");
             return false;
         }
+
         let mut candidate = candidate.unwrap();
+        let amount_to_stake = candidate.amount;
 
         if amount_to_stake < MIN_AMOUNT_TO_PERFORM_STAKE {
             log!("stake amount too low: {}", amount_to_stake);
@@ -53,15 +55,15 @@ impl LiquidStakingContract {
         self.stake_amount_to_settle -= amount_to_stake;
 
         Event::EpochStakeAttempt {
-            validator_id: &candidate.account_id,
+            validator_id: &candidate.validator.account_id,
             amount: &U128(amount_to_stake),
         }
         .emit();
 
         // do staking on selected validator
-        candidate.deposit_and_stake(amount_to_stake).then(
+        candidate.validator.deposit_and_stake(amount_to_stake).then(
             ext_self_action_cb::validator_staked_callback(
-                candidate.account_id.clone(),
+                candidate.validator.account_id.clone(),
                 amount_to_stake.into(),
                 env::current_account_id(),
                 NO_DEPOSIT,

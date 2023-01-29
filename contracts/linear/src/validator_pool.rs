@@ -244,7 +244,7 @@ impl ValidatorPool {
         candidates: &[Validator],
         f: fn(v: &Validator, target_amount: u128) -> u128,
     ) -> Option<CandidateValidator> {
-        let mut unstake_amounts_based_on_delta: Vec<(AccountId, u128)> = candidates
+        let mut unstake_amounts: Vec<(AccountId, u128)> = candidates
             .iter()
             .filter_map(|v| {
                 let target_amount = self.validator_target_stake_amount(total_staked_near_amount, v);
@@ -256,20 +256,20 @@ impl ValidatorPool {
             })
             .collect();
 
-        if unstake_amounts_based_on_delta.is_empty() {
+        if unstake_amounts.is_empty() {
             return None;
         }
 
-        unstake_amounts_based_on_delta.sort_by(|l, r| l.1.cmp(&r.1));
+        unstake_amounts.sort_by(|l, r| l.1.cmp(&r.1));
         if let Some(id) =
-            search_first_item_greater_than_amount(&unstake_amounts_based_on_delta, amount)
+            search_first_item_greater_than_amount(&unstake_amounts, amount)
         {
             Some(CandidateValidator {
                 validator: self.validators.get(&id).unwrap().into_validator(),
                 amount,
             })
         } else {
-            let last = get_last(&unstake_amounts_based_on_delta);
+            let last = get_last(&unstake_amounts);
             Some(CandidateValidator {
                 validator: self.validators.get(&last.0).unwrap().into_validator(),
                 amount: last.1,

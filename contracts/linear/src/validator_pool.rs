@@ -249,7 +249,7 @@ impl ValidatorPool {
             .filter_map(|v| {
                 let target_amount = self.validator_target_stake_amount(total_staked_near_amount, v);
                 if v.staked_amount > target_amount {
-                    Some((v.account_id.clone(), f(v, target_amount)))
+                    Some((v.account_id.clone(), cal_unstake_amount(v, target_amount)))
                 } else {
                     None
                 }

@@ -90,14 +90,15 @@ impl LiquidStakingContract {
             return false;
         }
 
-        let (candidate, amount_to_unstake) = self
+        let candidate = self
             .validator_pool
             .get_candidate_to_unstake(self.unstake_amount_to_settle, self.total_staked_near_amount);
         if candidate.is_none() {
-            log!("no candidate found to unstake {}", amount_to_unstake);
+            log!("no candidate found to unstake {}");
             return false;
         }
         let mut candidate = candidate.unwrap();
+        let amount_to_unstake = candidate.amount;
 
         if amount_to_unstake < MIN_AMOUNT_TO_PERFORM_UNSTAKE {
             log!("unstake amount too low: {}", amount_to_unstake);
@@ -108,16 +109,17 @@ impl LiquidStakingContract {
         self.unstake_amount_to_settle -= amount_to_unstake;
 
         Event::EpochUnstakeAttempt {
-            validator_id: &candidate.account_id,
+            validator_id: &candidate.validator.account_id,
             amount: &U128(amount_to_unstake),
         }
         .emit();
 
         // do unstaking on selected validator
         candidate
+            .validator
             .unstake(&mut self.validator_pool, amount_to_unstake)
             .then(ext_self_action_cb::validator_unstaked_callback(
-                candidate.account_id,
+                candidate.validator.account_id,
                 amount_to_unstake.into(),
                 env::current_account_id(),
                 NO_DEPOSIT,

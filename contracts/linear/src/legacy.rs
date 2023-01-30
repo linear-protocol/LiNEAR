@@ -2,7 +2,7 @@
 //! when upgrading contract.
 use crate::account::Account;
 use crate::types::*;
-use crate::validator_pool::{VersionedValidator, Validator};
+use crate::validator_pool::{Validator, VersionedValidator};
 use crate::Farm;
 use crate::Fraction;
 use crate::LiquidityPool;

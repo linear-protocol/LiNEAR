@@ -300,8 +300,6 @@ impl ValidatorPool {
             .filter(|v| v.staked_amount > v.base_stake_amount)
             .collect();
 
-        // Find a minimum delta that can fullfil the unstake amount
-        // If found, the standard deviations of stake amounts will decrease
         let candidate_based_on_delta = self.best_match(
             amount,
             total_staked_near_amount,
@@ -310,15 +308,22 @@ impl ValidatorPool {
         );
 
         match candidate_based_on_delta {
-            // None means there are no available validators(the vector `candidates` is empty)
-            // Just return None in advance
+            // None means there are no available validators(the vector `candidates` is empty).
+            // Just return None in advance.
             None => None,
             Some(candidate_based_on_delta) => {
                 match candidate_based_on_delta {
                     MatchResult::CanFulfill(candidate_based_on_delta) => {
+                        // A minimum delta that can fullfil the unstake amount is found.
+                        // The average deviation between stake amounts and target amounts will decrease.
                         Some(candidate_based_on_delta)
                     }
                     MatchResult::Largest(candidate_based_on_delta) => {
+                        // Can not find a minimum delta to fullfil the unstake amount, 
+                        // which means that the unstake amount is large. Try unstake in 
+                        // terms of target amounts, which should increase the average 
+                        // deviation between stake amounts and target amounts, to prevent 
+                        // this large unstake from blocking following unstakes.
                         let candidate_based_on_target = self.best_match(
                             amount,
                             total_staked_near_amount,

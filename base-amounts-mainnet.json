@@ -1,0 +1,106 @@
+[
+    {
+        "id": "cunum.poolv1.near",
+        "base": "47500000000000000000000000000"
+    },
+    {
+        "id": "teoviteovi.poolv1.near",
+        "base": "35000000000000000000000000000"
+    },
+    {
+        "id": "monresearch.poolv1.near",
+        "base": "50000000000000000000000000000"
+    },
+    {
+        "id": "letsnode.poolv1.near",
+        "base": "20000000000000000000000000000"
+    },
+    {
+        "id": "stakerrash.poolv1.near",
+        "base": "36000000000000000000000000000"
+    },
+    {
+        "id": "welldonestake.poolv1.near",
+        "base": "40000000000000000000000000000"
+    },
+    {
+        "id": "nativo.pool.near",
+        "base": "30000000000000000000000000000"
+    },
+    {
+        "id": "snsmln.poolv1.near",
+        "base": "42500000000000000000000000000"
+    },
+    {
+        "id": "ifedi.poolv1.near",
+        "base": "37500000000000000000000000000"
+    },
+    {
+        "id": "owa.poolv1.near",
+        "base": "20000000000000000000000000000"
+    },
+    {
+        "id": "chain0ps.poolv1.near",
+        "base": "44000000000000000000000000000"
+    },
+    {
+        "id": "vcap.poolv1.near",
+        "base": "25000000000000000000000000000"
+    },
+    {
+        "id": "smartnode.poolv1.near",
+        "base": "27500000000000000000000000000"
+    },
+    {
+        "id": "qibaocenter.poolv1.near",
+        "base": "32500000000000000000000000000"
+    },
+    {
+        "id": "pinrocks.poolv1.near",
+        "base": "27500000000000000000000000000"
+    },
+    {
+        "id": "anya-forger.poolv1.near",
+        "base": "40000000000000000000000000000"
+    },
+    {
+        "id": "lovali.poolv1.near",
+        "base": "42500000000000000000000000000"
+    },
+    {
+        "id": "bee1stake.poolv1.near",
+        "base": "27500000000000000000000000000"
+    },
+    {
+        "id": "ou812.poolv1.near",
+        "base": "50000000000000000000000000000"
+    },
+    {
+        "id": "loyanix.poolv1.near",
+        "base": "37500000000000000000000000000"
+    },
+    {
+        "id": "meduza.poolv1.near",
+        "base": "25000000000000000000000000000"
+    },
+    {
+        "id": "evstigneeff.poolv1.near",
+        "base": "50000000000000000000000000000"
+    },
+    {
+        "id": "openbitlab.poolv1.near",
+        "base": "40000000000000000000000000000"
+    },
+    {
+        "id": "maia.poolv1.near",
+        "base": "35000000000000000000000000000"
+    },
+    {
+        "id": "svarog.poolv1.near",
+        "base": "32500000000000000000000000000"
+    },
+    {
+        "id": "jagon.poolv1.near",
+        "base": "32500000000000000000000000000"
+    }
+]

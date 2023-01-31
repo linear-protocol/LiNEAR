@@ -2,7 +2,7 @@
 //! when upgrading contract.
 use crate::account::Account;
 use crate::types::*;
-use crate::validator_pool::{VValidator, Validator};
+use crate::validator_pool::{Validator, VersionedValidator};
 use crate::Farm;
 use crate::Fraction;
 use crate::LiquidityPool;
@@ -279,7 +279,7 @@ pub struct ValidatorPoolV1_0_0 {
 impl ValidatorPoolV1_0_0 {
     pub fn migrate(&mut self) -> ValidatorPool {
         // migrate old validators into the new structure
-        let mut new_validators: UnorderedMap<AccountId, VValidator> =
+        let mut new_validators: UnorderedMap<AccountId, VersionedValidator> =
             UnorderedMap::new(StorageKey::ValidatorsV1);
         let old_validators = self.validators.values_as_vector();
         for v in old_validators.iter() {

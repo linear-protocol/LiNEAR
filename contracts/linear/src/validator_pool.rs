@@ -58,7 +58,7 @@ trait WhitelistCallback {
 /// store validator info and calculate the best candidate to stake/unstake.
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct ValidatorPool {
-    pub validators: UnorderedMap<AccountId, VValidator>,
+    pub validators: UnorderedMap<AccountId, VersionedValidator>,
     pub total_weight: u16,
     pub total_base_stake_amount: Balance,
 }
@@ -770,16 +770,16 @@ impl LiquidStakingContract {
 }
 
 #[derive(BorshSerialize, BorshDeserialize)]
-pub enum VValidator {
+pub enum VersionedValidator {
     V0(ValidatorV1_0_0),
     Current(Validator),
 }
 
-impl VValidator {
+impl VersionedValidator {
     pub fn into_validator(self) -> Validator {
         match self {
-            VValidator::V0(v) => v.into_validator(),
-            VValidator::Current(v) => v,
+            VersionedValidator::V0(v) => v.into_validator(),
+            VersionedValidator::Current(v) => v,
         }
     }
 
@@ -791,9 +791,9 @@ impl VValidator {
     }
 }
 
-impl From<Validator> for VValidator {
+impl From<Validator> for VersionedValidator {
     fn from(v: Validator) -> Self {
-        VValidator::Current(v)
+        VersionedValidator::Current(v)
     }
 }
 

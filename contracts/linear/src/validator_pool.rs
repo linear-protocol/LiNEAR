@@ -243,7 +243,7 @@ impl ValidatorPool {
         total_staked_near_amount: Balance,
         candidates: &[Validator],
         cal_unstake_amount: fn(v: &Validator, target_amount: u128) -> u128,
-    ) -> Option<CandidateValidator> {
+    ) -> Option<MatchResult> {
         let mut unstake_amounts: Vec<(AccountId, u128)> = candidates
             .iter()
             .filter_map(|v| {
@@ -257,21 +257,31 @@ impl ValidatorPool {
             .collect();
 
         if unstake_amounts.is_empty() {
-            return None;
-        }
-
-        unstake_amounts.sort_by(|l, r| l.1.cmp(&r.1));
-        if let Some(id) = search_first_item_greater_than_amount(&unstake_amounts, amount) {
-            Some(CandidateValidator {
-                validator: self.validators.get(&id).unwrap().into_validator(),
-                amount,
-            })
+            None
         } else {
-            let last = get_last(&unstake_amounts);
-            Some(CandidateValidator {
-                validator: self.validators.get(&last.0).unwrap().into_validator(),
-                amount: last.1,
-            })
+            unstake_amounts.sort_by(|l, r| l.1.cmp(&r.1));
+
+            // Find a minimum amount to fulfill the unstake amount. If not found, return the largest amount
+            Some(
+                match search_first_item_greater_than_amount(&unstake_amounts, amount) {
+                    Some(id) => {
+                        MatchResult::CanFulfill(
+                            CandidateValidator {
+                                validator: self.validators.get(&id).unwrap().into_validator(),
+                                amount,
+                            }
+                        )
+                    },
+                    None => {
+                        MatchResult::Largest(
+                            CandidateValidator {
+                                validator: self.validators.get(&unstake_amounts.last().unwrap().0).unwrap().into_validator(),
+                                amount: unstake_amounts.last().unwrap().1,
+                            }
+                        )
+                    }
+                },
+            )
         }
     }
 
@@ -290,41 +300,53 @@ impl ValidatorPool {
             .filter(|v| v.staked_amount > v.base_stake_amount)
             .collect();
 
+        // Find a minimum delta that can fullfil the unstake amount
+        // If found, the standard deviations of stake amounts will decrease
         let candidate_based_on_delta = self.best_match(
             amount,
             total_staked_near_amount,
             &candidates,
             |v, target_amount| v.staked_amount - target_amount,
         );
-        // None means there are no available validators
-        // Just return None in advance
-        candidate_based_on_delta.as_ref()?;
 
-        let candidate_based_on_delta = candidate_based_on_delta.unwrap();
-        if candidate_based_on_delta.amount >= amount {
-            return Some(candidate_based_on_delta);
-        }
-
-        let candidate_based_on_target = self.best_match(
-            amount,
-            total_staked_near_amount,
-            &candidates,
-            |v, target_amount| {
-                min(
-                    target_amount / 2,
-                    v.staked_amount - v.base_stake_amount, // do not touch base stake amounts
-                )
-            },
-        );
-        let candidate_based_on_target = candidate_based_on_target.unwrap();
-        if candidate_based_on_target.amount >= amount {
-            return Some(candidate_based_on_target);
-        }
-
-        if candidate_based_on_target.amount > candidate_based_on_delta.amount {
-            Some(candidate_based_on_target)
-        } else {
-            Some(candidate_based_on_delta)
+        match candidate_based_on_delta {
+            // None means there are no available validators(the vector `candidates` is empty)
+            // Just return None in advance
+            None => None,
+            Some(candidate_based_on_delta) => {
+                match candidate_based_on_delta {
+                    MatchResult::CanFulfill(candidate_based_on_delta) => {
+                        Some(candidate_based_on_delta)
+                    }
+                    MatchResult::Largest(candidate_based_on_delta) => {
+                        let candidate_based_on_target = self.best_match(
+                            amount,
+                            total_staked_near_amount,
+                            &candidates,
+                            |v, target_amount| {
+                                min(
+                                    target_amount / 2,
+                                    v.staked_amount - v.base_stake_amount, // do not touch base stake amounts
+                                )
+                            },
+                        );
+                        match candidate_based_on_target.unwrap() {
+                            MatchResult::CanFulfill(candidate_based_on_target) => {
+                                Some(candidate_based_on_target)
+                            }
+                            MatchResult::Largest(candidate_based_on_target) => {
+                                if candidate_based_on_target.amount
+                                    > candidate_based_on_delta.amount
+                                {
+                                    Some(candidate_based_on_target)
+                                } else {
+                                    Some(candidate_based_on_delta)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -452,10 +474,6 @@ fn search_first_item_greater_than_amount(
     } else {
         None
     }
-}
-
-fn get_last(sorted: &[(AccountId, u128)]) -> &(AccountId, u128) {
-    return sorted.last().unwrap();
 }
 
 #[near_bindgen]
@@ -808,6 +826,11 @@ pub struct ValidatorInfo {
     pub staked_amount: U128,
     pub unstaked_amount: U128,
     pub pending_release: bool,
+}
+
+enum MatchResult {
+    CanFulfill(CandidateValidator),
+    Largest(CandidateValidator),
 }
 
 impl Validator {

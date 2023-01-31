@@ -261,9 +261,7 @@ impl ValidatorPool {
         }
 
         unstake_amounts.sort_by(|l, r| l.1.cmp(&r.1));
-        if let Some(id) =
-            search_first_item_greater_than_amount(&unstake_amounts, amount)
-        {
+        if let Some(id) = search_first_item_greater_than_amount(&unstake_amounts, amount) {
             Some(CandidateValidator {
                 validator: self.validators.get(&id).unwrap().into_validator(),
                 amount,

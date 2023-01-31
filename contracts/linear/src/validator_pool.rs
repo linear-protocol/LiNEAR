@@ -277,7 +277,7 @@ impl ValidatorPool {
         }
     }
 
-    pub fn get_candidate_to_unstake_v1(
+    pub fn get_candidate_to_unstake_v2(
         &self,
         amount: Balance,
         total_staked_near_amount: Balance,

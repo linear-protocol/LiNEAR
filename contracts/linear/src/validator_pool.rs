@@ -785,8 +785,8 @@ impl VersionedValidator {
 
     pub fn get_weight(&self) -> u16 {
         match self {
-            VValidator::V0(v) => v.weight,
-            VValidator::Current(v) => v.weight,
+            VersionedValidator::V0(v) => v.weight,
+            VersionedValidator::Current(v) => v.weight,
         }
     }
 }

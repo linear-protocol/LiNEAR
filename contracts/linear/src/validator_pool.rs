@@ -272,7 +272,7 @@ impl ValidatorPool {
     /// If total staked NEAR amount < total base stake amount,
     /// 1. set dynamic stake amount to 0;
     /// 2. calculate the base stake amount proportionally
-    fn validator_target_stake_amount(
+    pub fn validator_target_stake_amount(
         &self,
         total_staked_near_amount: Balance,
         validator: &Validator,
@@ -423,14 +423,14 @@ impl LiquidStakingContract {
         self.validator_pool
             .get_validator(&validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST)
-            .get_info()
+            .get_info(&self.validator_pool, self.total_staked_near_amount)
     }
 
     pub fn get_validators(&self, offset: u64, limit: u64) -> Vec<ValidatorInfo> {
         self.validator_pool
             .get_validators(offset, limit)
             .iter()
-            .map(|v| v.get_info())
+            .map(|v| v.get_info(&self.validator_pool, self.total_staked_near_amount))
             .collect()
     }
 }
@@ -660,6 +660,7 @@ pub struct ValidatorInfo {
     pub account_id: AccountId,
     pub weight: u16,
     pub base_stake_amount: U128,
+    pub target_stake_amount: U128,
     pub staked_amount: U128,
     pub unstaked_amount: U128,
     pub pending_release: bool,
@@ -678,11 +679,18 @@ impl Validator {
         }
     }
 
-    pub fn get_info(&self) -> ValidatorInfo {
+    pub fn get_info(
+        &self,
+        pool: &ValidatorPool,
+        total_staked_near_amount: Balance,
+    ) -> ValidatorInfo {
         ValidatorInfo {
             account_id: self.account_id.clone(),
             weight: self.weight,
             base_stake_amount: self.base_stake_amount.into(),
+            target_stake_amount: pool
+                .validator_target_stake_amount(total_staked_near_amount, self)
+                .into(),
             staked_amount: self.staked_amount.into(),
             unstaked_amount: self.unstaked_amount.into(),
             pending_release: self.pending_release(),

@@ -267,6 +267,7 @@ export function assertValidatorAmountHelper (
     stakedAmount: string,
     unstakedAmount: string,
     baseStakeAmount?: string,
+    targetStakeAmount?: string,
   ) {
     // 1. make sure validator has correct balance
     test.is(
@@ -295,11 +296,20 @@ export function assertValidatorAmountHelper (
       unstaked.toString(),
       NEAR.parse(unstakedAmount).toString()
     );
+
     if (baseStakeAmount) {
       const baseStaked = NEAR.from(v.base_stake_amount);
       test.is(
         baseStaked.toString(),
         NEAR.parse(baseStakeAmount).toString()
+      );
+    }
+
+    if (targetStakeAmount) {
+      const target = NEAR.from(v.target_stake_amount);
+      test.is(
+        target.toString(),
+        NEAR.parse(targetStakeAmount).toString()
       );
     }
   }

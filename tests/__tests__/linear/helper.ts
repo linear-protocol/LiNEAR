@@ -241,6 +241,10 @@ export async function setManager(root: NearAccount, contract: NearAccount, owner
   return manager;
 }
 
+export async function getSummary (contract: NearAccount) {
+  return await contract.view("get_summary", {}) as any;
+}
+
 export async function updateBaseStakeAmounts(
   contract: NearAccount,
   manager: NearAccount,

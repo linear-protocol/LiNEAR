@@ -5,7 +5,8 @@ import {
   numbersEqual,
   noMoreThanOneYoctoDiff,
   assertFailure,
-  ONE_YOCTO
+  ONE_YOCTO,
+  getSummary
 } from './helper';
 
 // Errors
@@ -46,10 +47,6 @@ const estimateSwapFee = async (contract: any, totalAmount: NEAR, amount: NEAR) =
 const getBalance = async (user) => {
   const balance = await user.balance();
   return balance.total
-}
-
-const getSummary = async (contract) => {
-  return await contract.view("get_summary", {}) as any;
 }
 
 const getTotalStakedNEAR = async (contract) => {

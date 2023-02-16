@@ -44,6 +44,8 @@ pub struct Summary {
     pub stake_amount_to_settle: U128,
     /// Amount of NEAR that needs to be settled by unstaking from validators
     pub unstake_amount_to_settle: U128,
+    /// Total base stake amount of NEAR on validators
+    pub validators_total_base_stake_amount: U128,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -104,6 +106,7 @@ impl LiquidStakingContract {
             farms: self.get_active_farms(),
             stake_amount_to_settle: self.stake_amount_to_settle.into(),
             unstake_amount_to_settle: self.unstake_amount_to_settle.into(),
+            validators_total_base_stake_amount: self.validator_pool.total_base_stake_amount.into(),
         }
     }
 

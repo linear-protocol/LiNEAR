@@ -55,8 +55,8 @@ pub const ERR_SYNC_BALANCE_BAD_UNSTAKED: &str =
 pub const ERR_NON_ZERO_WEIGHT: &str = "Validator weight must be zero for drain operation";
 pub const ERR_NON_ZERO_BASE_STAKE_AMOUNT: &str =
     "Validator base stake amount must be zero for drain operation";
-pub const ERR_NON_ZERO_UNSTAKED_AMOUNT: &str =
-    "Validator unstaked amount must be zero when drain unstake";
+pub const ERR_BAD_UNSTAKED_AMOUNT: &str =
+    "Validator unstaked amount too large for drain unstake";
 pub const ERR_NON_ZERO_STAKED_AMOUNT: &str =
     "Validator staked amount must be zero when drain withdraw";
 

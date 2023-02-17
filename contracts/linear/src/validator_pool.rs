@@ -500,7 +500,7 @@ impl LiquidStakingContract {
             ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED
         );
         // in practice we allow 10 yocto NEAR just in case the unstaked balance is not fully synced
-        require!(validator.unstaked_amount <= 10, ERR_NON_ZERO_UNSTAKED_AMOUNT);
+        require!(validator.unstaked_amount <= 10, ERR_BAD_UNSTAKED_AMOUNT);
 
         let unstake_amount = validator.staked_amount;
 

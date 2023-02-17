@@ -5,7 +5,8 @@ import {
   createStakingPool,
   updateBaseStakeAmounts,
   setManager,
-  assertValidatorAmountHelper
+  assertValidatorAmountHelper,
+  getSummary
 } from "./helper";
 
 const workspace = initWorkSpace();
@@ -327,9 +328,9 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
   // validators should have target stake amount based on weights + base stake amounts
   // - 1st epoch_unstake() unstaked 24 NEAR from validator v3
   // - 2nd epoch_unstake() unstaked 2 NEAR from validator v1
-  await assertValidator(v1, '18', '2', '10');   // target = 10 (base) + 6 (weighted) = 16; delta = 20 - 16 = 6; when 2nd epoch unstake: min3(6 * 2, 2, 20) = 2
-  await assertValidator(v2, '22', '18', '0');  // target = 12 (weighted); delta = 22 - 12 = 10; when 2nd epoch unstake: min3(10 * 2, 2, 22) = 2
-  await assertValidator(v3, '6', '54', '0');   // target = 18 (weighted); delta = 30 - 18 = 12; when 2nd epoch unstake: min3(12 * 2, 2, 6) = 2
+  await assertValidator(v1, '18', '2', '10', '16');   // target = 10 (base) + 6 (weighted) = 16; delta = 20 - 16 = 6; when 2nd epoch unstake: min3(6 * 2, 2, 20) = 2
+  await assertValidator(v2, '22', '18', '0', '12');  // target = 12 (weighted); delta = 22 - 12 = 10; when 2nd epoch unstake: min3(10 * 2, 2, 22) = 2
+  await assertValidator(v3, '6', '54', '0', '18');   // target = 18 (weighted); delta = 30 - 18 = 12; when 2nd epoch unstake: min3(12 * 2, 2, 6) = 2
 
  
   // reset base stake amount of v1 to 0
@@ -351,21 +352,21 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
     { epoch: 26 }
   );
 
-  // unstake more; remaining total staked: 120 - 30 - 18 - 26 - 12 = 36
+  // unstake more; remaining total staked: 120 - 30 - 18 - 26 - 10 = 36
   await alice.call(
     contract,
     'unstake',
-    { amount: NEAR.parse('12') }
+    { amount: NEAR.parse('10') }
   );
 
   // epoch unstake
   await unstakeAll(owner, contract);
 
   // validators should have target stake amount based on weights + base stake amounts
-  // - 1st epoch_unstake() unstaked 12 NEAR from validator v1; however, the expectation is to only unstake 10 NEAR (base stake amount) from the validator
-  await assertValidator(v1, '6', '14', '0');   // target = 6 (weighted); delta = 18 - 6 = 12;
-  await assertValidator(v2, '22', '18', '0');  // target = 12 (weighted); delta = 22 - 12 = 10;
-  await assertValidator(v3, '6', '54', '0');   // target = 18 (weighted); delta = 6 - 18 = -12;
+  // - 1st epoch_unstake() unstaked 10 NEAR from validator v1; however, the expectation is to only unstake 10 NEAR (base stake amount) from the validator
+  await assertValidator(v1, '8', '12', '0', '6');   // target = 6 (weighted); delta = 18 - 6 = 12;
+  await assertValidator(v2, '22', '18', '0', '12');  // target = 12 (weighted); delta = 22 - 12 = 10;
+  await assertValidator(v3, '6', '54', '0', '18');   // target = 18 (weighted); delta = 6 - 18 = -12;
 });
 
 workspace.test('epoch collect rewards', async (test, {root, contract, alice, owner}) => {

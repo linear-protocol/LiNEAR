@@ -217,7 +217,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
         gas: Gas.parse('200 Tgas')
       }
     ),
-    'Validator unstaked amount must be zero when drain unstake'
+    'Validator unstaked amount too large for drain unstake'
   );
 });
 

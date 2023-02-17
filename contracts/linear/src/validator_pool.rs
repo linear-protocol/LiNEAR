@@ -488,8 +488,8 @@ impl LiquidStakingContract {
             !validator.pending_release(),
             ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED
         );
-        // in practice we allow 10 yocto NEAR due to the precision of stake operation
-        require!(validator.unstaked_amount <= 10, ERR_BAD_UNSTAKED_AMOUNT);
+        // in practice we allow 1 NEAR due to the precision of stake operation
+        require!(validator.unstaked_amount < ONE_NEAR, ERR_BAD_UNSTAKED_AMOUNT);
 
         let unstake_amount = validator.staked_amount;
 

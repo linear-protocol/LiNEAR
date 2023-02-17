@@ -2,11 +2,11 @@
 //! when upgrading contract.
 use crate::account::Account;
 use crate::types::*;
-use crate::validator_pool::{VValidator, Validator};
+use crate::validator_pool::Validator;
 use crate::Farm;
 use crate::Fraction;
 use crate::LiquidityPool;
-use crate::StorageKey;
+// use crate::StorageKey;
 use crate::ValidatorPool;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
@@ -275,24 +275,25 @@ pub struct ValidatorPoolV1_0_0 {
     total_weight: u16,
 }
 
-/// --- ValidatorPool state migration --
-impl ValidatorPoolV1_0_0 {
-    pub fn migrate(&mut self) -> ValidatorPool {
-        // migrate old validators into the new structure
-        let mut new_validators: UnorderedMap<AccountId, VValidator> =
-            UnorderedMap::new(StorageKey::ValidatorsV1);
-        let old_validators = self.validators.values_as_vector();
-        for v in old_validators.iter() {
-            new_validators.insert(&v.account_id.clone(), &v.into_validator().into());
-        }
+// --- ValidatorPool state migration --
+// Used in v1.3.0 upgrade
+// impl ValidatorPoolV1_0_0 {
+//     pub fn migrate(&mut self) -> ValidatorPool {
+//         // migrate old validators into the new structure
+//         let mut new_validators: UnorderedMap<AccountId, VValidator> =
+//             UnorderedMap::new(StorageKey::ValidatorsV1);
+//         let old_validators = self.validators.values_as_vector();
+//         for v in old_validators.iter() {
+//             new_validators.insert(&v.account_id.clone(), &v.into_validator().into());
+//         }
 
-        // remove old map
-        self.validators.clear();
+//         // remove old map
+//         self.validators.clear();
 
-        ValidatorPool {
-            validators: new_validators,
-            total_weight: self.total_weight,
-            total_base_stake_amount: 0,
-        }
-    }
-}
+//         ValidatorPool {
+//             validators: new_validators,
+//             total_weight: self.total_weight,
+//             total_base_stake_amount: 0,
+//         }
+//     }
+// }

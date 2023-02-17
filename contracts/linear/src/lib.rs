@@ -45,7 +45,7 @@ pub(crate) enum StorageKey {
     // AuthorizedUsers,
     AuthorizedFarmTokens,
     Managers,
-    ValidatorsV1,
+    // ValidatorsV1, // Used in v1.3.0 upgrade (Don't remove this comment)
 }
 
 #[near_bindgen]

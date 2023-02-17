@@ -41,7 +41,7 @@
     },
     {
         "id": "chain0ps.poolv1.near",
-        "base": "44000000000000000000000000000"
+        "base": "0"
     },
     {
         "id": "vcap.poolv1.near",

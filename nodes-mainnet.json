@@ -294,12 +294,6 @@
     "Delegators": 320
   },
   {
-    "id": "cunum.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
-  },
-  {
     "id": "teoviteovi.poolv1.near",
     "weight": 0,
     "fee": "1%",
@@ -307,12 +301,6 @@
   },
   {
     "id": "monresearch.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
-  },
-  {
-    "id": "letsnode.poolv1.near",
     "weight": 0,
     "fee": "1%",
     "Delegators": 1
@@ -330,12 +318,6 @@
     "Delegators": 1
   },
   {
-    "id": "nativo.pool.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
-  },
-  {
     "id": "snsmln.poolv1.near",
     "weight": 0,
     "fee": "1%",
@@ -343,24 +325,6 @@
   },
   {
     "id": "ifedi.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
-  },
-  {
-    "id": "owa.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
-  },
-  {
-    "id": "chain0ps.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
-  },
-  {
-    "id": "vcap.poolv1.near",
     "weight": 0,
     "fee": "1%",
     "Delegators": 1
@@ -396,12 +360,6 @@
     "Delegators": 1
   },
   {
-    "id": "bee1stake.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
-  },
-  {
     "id": "ou812.poolv1.near",
     "weight": 0,
     "fee": "1%",
@@ -415,12 +373,6 @@
   },
   {
     "id": "meduza.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
-  },
-  {
-    "id": "evstigneeff.poolv1.near",
     "weight": 0,
     "fee": "1%",
     "Delegators": 1
@@ -450,18 +402,6 @@
     "Delegators": 1
   },
   {
-    "id": "nepser.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
-  },
-  {
-    "id": "gruberx.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
-  },
-  {
     "id": "agrestus.poolv1.near",
     "weight": 0,
     "fee": "1%",
@@ -475,12 +415,6 @@
   },
   {
     "id": "pyro.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
-  },
-  {
-    "id": "korchagin.poolv1.near",
     "weight": 0,
     "fee": "1%",
     "Delegators": 1

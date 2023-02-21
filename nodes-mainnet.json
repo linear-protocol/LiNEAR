@@ -42,12 +42,6 @@
     "Delegators": 3020
   },
   {
-    "id": "magic.poolv1.near",
-    "weight": 15,
-    "fee": "5%",
-    "Delegators": 550
-  },
-  {
     "id": "rekt.poolv1.near",
     "weight": 20,
     "fee": "2%",

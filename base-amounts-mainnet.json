@@ -1,7 +1,7 @@
 [
     {
         "id": "cunum.poolv1.near",
-        "base": "47500000000000000000000000000"
+        "base": "0"
     },
     {
         "id": "teoviteovi.poolv1.near",
@@ -13,7 +13,7 @@
     },
     {
         "id": "letsnode.poolv1.near",
-        "base": "20000000000000000000000000000"
+        "base": "0"
     },
     {
         "id": "stakerrash.poolv1.near",
@@ -25,7 +25,7 @@
     },
     {
         "id": "nativo.pool.near",
-        "base": "30000000000000000000000000000"
+        "base": "0"
     },
     {
         "id": "snsmln.poolv1.near",
@@ -37,7 +37,7 @@
     },
     {
         "id": "owa.poolv1.near",
-        "base": "20000000000000000000000000000"
+        "base": "0"
     },
     {
         "id": "chain0ps.poolv1.near",
@@ -45,7 +45,7 @@
     },
     {
         "id": "vcap.poolv1.near",
-        "base": "25000000000000000000000000000"
+        "base": "0"
     },
     {
         "id": "smartnode.poolv1.near",
@@ -69,7 +69,7 @@
     },
     {
         "id": "bee1stake.poolv1.near",
-        "base": "27500000000000000000000000000"
+        "base": "0"
     },
     {
         "id": "ou812.poolv1.near",
@@ -85,7 +85,7 @@
     },
     {
         "id": "evstigneeff.poolv1.near",
-        "base": "50000000000000000000000000000"
+        "base": "0"
     },
     {
         "id": "openbitlab.poolv1.near",
@@ -109,7 +109,7 @@
     },
     {
         "id": "gruberx.poolv1.near",
-        "base": "35000000000000000000000000000"
+        "base": "0"
     },
     {
         "id": "agrestus.poolv1.near",
@@ -125,6 +125,6 @@
     },
     {
         "id": "korchagin.poolv1.near",
-        "base": "39000000000000000000000000000"
+        "base": "0"
     }
 ]

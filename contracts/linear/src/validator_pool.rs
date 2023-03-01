@@ -647,6 +647,18 @@ impl LiquidStakingContract {
     }
 }
 
+/// How to add a new variant for VersionedValidator:
+/// 1. Put the current definition of Validator into legacy.rs as `ValidatorVx_x_x`
+/// 2. Update the current Validator struct
+/// 3. Implement `From<ValidatorVx_x_x> for Validator` so that we can migrate
+///    from the previous version of Validator to the latest.
+/// 4. Insert a new variant of VersionedValidator just BEFORE `Current(Validator)`.
+///    It stands for the previous version of Validator, which should be version
+///    that production is using at the time of writing the code.
+///    Due to the fact that Borsh use variant index instead of name to serialize,
+///    the new variant will be deserialzed to the previous version correctly after
+///    new code is deployed.
+/// 5. Update `impl From<VersionedValidator> for Validator`, to match the new variant.
 #[derive(BorshSerialize, BorshDeserialize)]
 pub enum VersionedValidator {
     V0(ValidatorV1_0_0),

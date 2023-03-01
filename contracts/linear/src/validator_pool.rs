@@ -1,6 +1,7 @@
 use crate::errors::*;
 use crate::events::Event;
 use crate::legacy::ValidatorV1_0_0;
+use crate::legacy::ValidatorV1_3_0;
 use crate::types::*;
 use crate::utils::*;
 use crate::*;
@@ -57,7 +58,7 @@ trait WhitelistCallback {
 /// store validator info and calculate the best candidate to stake/unstake.
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct ValidatorPool {
-    pub validators: UnorderedMap<AccountId, VersionedValidator>,
+    validators: UnorderedMap<AccountId, VersionedValidator>,
     pub total_weight: u16,
     pub total_base_stake_amount: Balance,
 }
@@ -76,7 +77,7 @@ impl Default for ValidatorPool {
 impl ValidatorPool {
     pub fn new() -> Self {
         Self {
-            validators: UnorderedMap::new(StorageKey::Validators),
+            validators: UnorderedMap::new(StorageKey::ValidatorsV1),
             total_weight: 0,
             total_base_stake_amount: 0,
         }
@@ -89,7 +90,7 @@ impl ValidatorPool {
     pub fn get_validator(&self, validator_id: &AccountId) -> Option<Validator> {
         self.validators
             .get(validator_id)
-            .map(|v| v.into_validator())
+            .map(|v| v.into())
     }
 
     pub fn save_validator(&mut self, validator: &Validator) {
@@ -120,11 +121,11 @@ impl ValidatorPool {
     }
 
     pub fn remove_validator(&mut self, validator_id: &AccountId) -> Validator {
-        let validator = self
+        let validator: Validator = self
             .validators
             .remove(validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST)
-            .into_validator();
+            .into();
 
         // make sure this validator is not used at all
         require!(
@@ -144,11 +145,11 @@ impl ValidatorPool {
     }
 
     pub fn update_weight(&mut self, validator_id: &AccountId, weight: u16) {
-        let mut validator = self
+        let mut validator: Validator = self
             .validators
             .get(validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST)
-            .into_validator();
+            .into();
 
         let old_weight = validator.weight;
         // update total weight
@@ -167,11 +168,11 @@ impl ValidatorPool {
 
     /// Update base stake amount of the validator
     pub fn update_base_stake_amount(&mut self, validator_id: &AccountId, amount: Balance) {
-        let mut validator = self
+        let mut validator: Validator = self
             .validators
             .get(validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST)
-            .into_validator();
+            .into();
 
         let old_base_stake_amount = validator.base_stake_amount;
         // update total base stake amount
@@ -205,7 +206,7 @@ impl ValidatorPool {
         let mut amount_to_stake: Balance = 0;
 
         for (_, validator) in self.validators.iter() {
-            let validator = validator.into_validator();
+            let validator = validator.into();
             let target_amount =
                 self.validator_target_stake_amount(total_staked_near_amount, &validator);
             if validator.staked_amount < target_amount {
@@ -236,7 +237,7 @@ impl ValidatorPool {
         let mut amount_to_unstake: Balance = 0;
 
         for (_, validator) in self.validators.iter() {
-            let validator = validator.into_validator();
+            let validator: Validator = validator.into();
             if validator.pending_release() {
                 continue;
             }
@@ -320,7 +321,7 @@ impl ValidatorPool {
         let mut available_amount: Balance = 0;
         let mut total_staked_amount: Balance = 0;
         for validator in self.validators.values() {
-            let validator = validator.into_validator();
+            let validator: Validator = validator.into();
             total_staked_amount += validator.staked_amount;
 
             if !validator.pending_release() && validator.staked_amount > 0 {
@@ -649,16 +650,8 @@ impl LiquidStakingContract {
 #[derive(BorshSerialize, BorshDeserialize)]
 pub enum VersionedValidator {
     V0(ValidatorV1_0_0),
+    V1(ValidatorV1_3_0),
     Current(Validator),
-}
-
-impl VersionedValidator {
-    pub fn into_validator(self) -> Validator {
-        match self {
-            VersionedValidator::V0(v) => v.into_validator(),
-            VersionedValidator::Current(v) => v,
-        }
-    }
 }
 
 impl From<Validator> for VersionedValidator {
@@ -685,6 +678,9 @@ pub struct Validator {
     /// this is to save the last value of unstake_fired_epoch,
     /// so that when unstake revert we can restore it
     pub last_unstake_fired_epoch: EpochHeight,
+
+    /// Whether the validator is in draining process
+    pub draining: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -697,6 +693,18 @@ pub struct ValidatorInfo {
     pub staked_amount: U128,
     pub unstaked_amount: U128,
     pub pending_release: bool,
+    pub draining: bool,
+}
+
+
+impl From<VersionedValidator> for Validator {
+    fn from(value: VersionedValidator) -> Self {
+        match value {
+            VersionedValidator::Current(v) => v,
+            VersionedValidator::V1(v1) => v1.into(),
+            VersionedValidator::V0(v0) => v0.into(),
+        }
+    }
 }
 
 impl Validator {
@@ -709,6 +717,7 @@ impl Validator {
             unstaked_amount: 0,
             unstake_fired_epoch: 0,
             last_unstake_fired_epoch: 0,
+            draining: false,
         }
     }
 
@@ -727,6 +736,7 @@ impl Validator {
             staked_amount: self.staked_amount.into(),
             unstaked_amount: self.unstaked_amount.into(),
             pending_release: self.pending_release(),
+            draining: self.draining,
         }
     }
 

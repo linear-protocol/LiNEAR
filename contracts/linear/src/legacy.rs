@@ -104,6 +104,27 @@ pub struct ValidatorV1_3_0 {
     pub last_unstake_fired_epoch: EpochHeight,
 }
 
+impl From<ValidatorV1_3_0> for VersionedValidator {
+    fn from(v: ValidatorV1_3_0) -> Self {
+        VersionedValidator::V1(v)
+    }
+}
+
+impl From<ValidatorV1_3_0> for Validator {
+    fn from(v: ValidatorV1_3_0) -> Self {
+        Validator {
+            account_id: v.account_id,
+            weight: v.weight,
+            staked_amount: v.staked_amount,
+            unstaked_amount: v.unstaked_amount,
+            base_stake_amount: v.base_stake_amount,
+            unstake_fired_epoch: v.unstake_fired_epoch,
+            last_unstake_fired_epoch: v.last_unstake_fired_epoch,
+            draining: false,
+        }
+    }
+}
+
 /// There's no any state change in v1.2.0, but it retired built-in liquidity pool
 /// ContractV1_2_0
 
@@ -262,7 +283,29 @@ impl ValidatorV1_0_0 {
             base_stake_amount: 0, // 0 by default
             unstake_fired_epoch: self.unstake_fired_epoch,
             last_unstake_fired_epoch: self.last_unstake_fired_epoch,
+            draining: false,
         }
+    }
+}
+
+impl From<ValidatorV1_0_0> for Validator {
+    fn from(v: ValidatorV1_0_0) -> Self {
+        Validator {
+            account_id: v.account_id,
+            weight: v.weight,
+            staked_amount: v.staked_amount,
+            unstaked_amount: v.unstaked_amount,
+            base_stake_amount: 0,
+            unstake_fired_epoch: v.unstake_fired_epoch,
+            last_unstake_fired_epoch: v.last_unstake_fired_epoch,
+            draining: false,
+        }
+    }
+}
+
+impl From<ValidatorV1_0_0> for VersionedValidator {
+    fn from(v: ValidatorV1_0_0) -> Self {
+        VersionedValidator::V0(v)
     }
 }
 

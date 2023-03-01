@@ -35,6 +35,7 @@ use crate::types::*;
 use crate::utils::*;
 use crate::validator_pool::*;
 
+#[allow(dead_code)]
 #[derive(BorshStorageKey, BorshSerialize)]
 pub(crate) enum StorageKey {
     Accounts,

@@ -27,4 +27,4 @@ compiled-contracts/
 nodes-testnet.json
 nodes-stg.json
 
-blobhash-mainnet
+blobhash-*

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { init } = require('../near');
 const prompts = require('prompts');
-const { Gas } = require('near-units');
+const { Gas, NEAR } = require('near-units');
 
 exports.command = 'set-node-base-amounts <address>';
 exports.desc = 'Set base stake amounts of nodes';
@@ -49,7 +49,13 @@ exports.handler = async function (argv) {
     // use yoctoNEAR instead of NEAR in config to take into account staking rewards
     if (node.base != null && currentNodes[node.id].base_stake_amount != null
       && node.base.toString() !== currentNodes[node.id].base_stake_amount.toString()) {
-      nodesToUpdateBaseStakeAmount.push(node);        
+      const denom = NEAR.from(node.base !== "0" ? node.base : currentNodes[node.id].base_stake_amount);
+      const diff = NEAR.from(node.base).sub(NEAR.from(currentNodes[node.id].base_stake_amount)).abs();
+      const threshold = 0.05;
+      // Update base stake amount only if the diff is obvious. Ignore the difference due to staking rewards
+      if (NEAR.parse("1").mul(diff).div(denom).gt(NEAR.parse(threshold.toString()))) {
+        nodesToUpdateBaseStakeAmount.push(node);
+      }
     }
 
     delete currentNodes[node.id];

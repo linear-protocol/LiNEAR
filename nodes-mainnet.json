@@ -294,12 +294,6 @@
     "Delegators": 320
   },
   {
-    "id": "teoviteovi.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
-  },
-  {
     "id": "monresearch.poolv1.near",
     "weight": 0,
     "fee": "1%",

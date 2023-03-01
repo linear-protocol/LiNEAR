@@ -49,7 +49,11 @@ exports.handler = async function (argv) {
     // use yoctoNEAR instead of NEAR in config to take into account staking rewards
     if (node.base != null && currentNodes[node.id].base_stake_amount != null
       && node.base.toString() !== currentNodes[node.id].base_stake_amount.toString()) {
-      const denom = NEAR.from(node.base !== "0" ? node.base : currentNodes[node.id].base_stake_amount);
+      const denom = NEAR.from(
+        currentNodes[node.id].base_stake_amount !== "0"
+          ? currentNodes[node.id].base_stake_amount
+          : node.base
+      );
       const diff = NEAR.from(node.base).sub(NEAR.from(currentNodes[node.id].base_stake_amount)).abs();
       const threshold = 0.05;
       // Update base stake amount only if the diff is obvious. Ignore the difference due to staking rewards

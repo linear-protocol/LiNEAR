@@ -58,6 +58,9 @@ pub const ERR_NON_ZERO_BASE_STAKE_AMOUNT: &str =
 pub const ERR_BAD_UNSTAKED_AMOUNT: &str = "Validator unstaked amount too large for drain unstake";
 pub const ERR_NON_ZERO_STAKED_AMOUNT: &str =
     "Validator staked amount must be zero when drain withdraw";
+pub const ERR_DRAINING: &str = "Validator is currently in draining process";
+pub const ERR_NOT_IN_DRAINING: &str =
+    "Validator is not in draining process, cannot run drain withdraw";
 
 // withdraw
 pub const ERR_NON_POSITIVE_WITHDRAWAL_AMOUNT: &str = "Withdrawal amount should be positive";

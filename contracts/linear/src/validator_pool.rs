@@ -601,7 +601,7 @@ impl LiquidStakingContract {
 
         if is_promise_success() {
             validator.on_unstake_success(&mut self.validator_pool, amount);
-            validator.draining = true;
+            validator.set_draining(&mut self.validator_pool, true);
 
             Event::DrainUnstakeSuccess {
                 validator_id: &validator_id,
@@ -629,7 +629,7 @@ impl LiquidStakingContract {
             .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
         if is_promise_success() {
-            validator.draining = false;
+            validator.set_draining(&mut self.validator_pool, false);
 
             Event::DrainWithdrawSuccess {
                 validator_id: &validator_id,
@@ -925,6 +925,11 @@ impl Validator {
 
     pub fn on_withdraw_failed(&mut self, pool: &mut ValidatorPool, amount: Balance) {
         self.unstaked_amount += amount;
+        pool.save_validator(self);
+    }
+
+    pub fn set_draining(&mut self, pool: &mut ValidatorPool, draining: bool) {
+        self.draining = draining;
         pool.save_validator(self);
     }
 }

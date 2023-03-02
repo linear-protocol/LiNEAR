@@ -8,6 +8,7 @@ use crate::Fraction;
 use crate::LiquidityPool;
 // use crate::StorageKey;
 use crate::ValidatorPool;
+use crate::validator_pool::VersionedValidator;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     collections::{UnorderedMap, UnorderedSet, Vector},

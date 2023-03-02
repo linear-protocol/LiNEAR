@@ -35,18 +35,19 @@ use crate::types::*;
 use crate::utils::*;
 use crate::validator_pool::*;
 
+/// ONLY APPEND to this list for new variants
 #[allow(dead_code)]
 #[derive(BorshStorageKey, BorshSerialize)]
 pub(crate) enum StorageKey {
     Accounts,
     Shares,
     Beneficiaries,
-    Validators, // V0
+    Validators, // V0 (Don't comment this)
     Farms,
     // AuthorizedUsers,
     AuthorizedFarmTokens,
     Managers,
-    // ValidatorsV1, // Used in v1.3.0 upgrade (Don't remove this comment)
+    ValidatorsV1, // Used in v1.3.0 upgrade
 }
 
 #[near_bindgen]

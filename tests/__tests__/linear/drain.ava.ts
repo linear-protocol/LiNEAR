@@ -5,7 +5,8 @@ import {
   createStakingPool,
   setManager,
   assertValidatorAmountHelper,
-  updateBaseStakeAmounts
+  updateBaseStakeAmounts,
+  getValidator
 } from "./helper";
 
 const workspace = initWorkSpace();
@@ -317,11 +318,30 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
     }
   );
 
+  // make sure the validator is in draining mode
+  test.assert((await getValidator(contract, v1.accountId)).draining);
+
   // fast-forward
   await owner.call(
     contract,
     'set_epoch_height',
     { epoch: 14 }
+  );
+
+  // epoch_withdraw should not be allowed
+  await assertFailure(
+    test,
+    manager.call(
+      contract,
+      'epoch_withdraw',
+      {
+        validator_id: v1.accountId
+      },
+      {
+        gas: Gas.parse('200 Tgas')
+      }
+    ),
+    'Validator is currently in draining process'
   );
 
   await manager.call(
@@ -336,6 +356,8 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
   );
 
   // make sure v1 is drained
+  test.assert(!(await getValidator(contract, v1.accountId)).draining);
+
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
   await assertValidator(v1, '0', '0');
   await assertValidator(v2, '20', '0');

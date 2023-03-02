@@ -1,6 +1,6 @@
 import { Gas, NEAR } from "near-units";
 import { NearAccount } from "near-workspaces-ava";
-import { assertFailure, initAndSetWhitelist, initWorkSpace, updateBaseStakeAmounts, } from "./helper";
+import { assertFailure, getValidator, initAndSetWhitelist, initWorkSpace, updateBaseStakeAmounts, } from "./helper";
 
 const workspace = initWorkSpace();
 
@@ -509,23 +509,13 @@ workspace.test('update base stake amount', async (test, context) => {
     amounts
   );
 
-  const foo: any = await contract.view(
-    'get_validator',
-    {
-      validator_id: 'foo'
-    }
-  );
+  const foo = await getValidator(contract, 'foo');
   test.is(
     foo.base_stake_amount,
     amounts[0].toString()
   );
 
-  const bar: any = await contract.view(
-    'get_validator',
-    {
-      validator_id: 'bar'
-    }
-  );
+  const bar = await getValidator(contract, 'bar');
   test.is(
     bar.base_stake_amount,
     amounts[1].toString()

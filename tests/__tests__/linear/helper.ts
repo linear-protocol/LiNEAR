@@ -261,6 +261,26 @@ export async function updateBaseStakeAmounts(
   );
 }
 
+interface Validator {
+  staked_amount: string,
+  unstaked_amount: string,
+  base_stake_amount: string,
+  target_stake_amount: string,
+  draining: boolean
+}
+
+export function getValidator(
+  contract: NearAccount,
+  validatorId: string
+): Promise<Validator> {
+  return contract.view(
+    'get_validator',
+    {
+      validator_id: validatorId
+    }
+  );
+}
+
 export function assertValidatorAmountHelper (
   test: any,
   contract: NearAccount,
@@ -284,12 +304,7 @@ export function assertValidatorAmountHelper (
     );
 
     // 2. make sure contract validator object is synced
-    const v: any = await contract.view(
-      'get_validator',
-      {
-        validator_id: validator.accountId
-      }
-    );
+    const v = await getValidator(contract, validator.accountId);
     const staked = NEAR.from(v.staked_amount);
     const unstaked = NEAR.from(v.unstaked_amount);
     test.is(

@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { Gas, NEAR } from "near-units";
 import { NearAccount, Workspace } from "near-workspaces-ava";
-import { createStakingPool, initAndSetWhitelist, skip, updateBaseStakeAmounts, } from "./helper";
+import { createStakingPool, getValidator, initAndSetWhitelist, skip, updateBaseStakeAmounts, } from "./helper";
 
 async function deployLinearV1_2_0(
   root: NearAccount,
@@ -223,23 +223,13 @@ skip('upgrade contract from v1.2.0 to v1.3.0 on testnet', async (test, context) 
     amounts
   );
 
-  const foo: any = await contract.view(
-    'get_validator',
-    {
-      validator_id: 'foo'
-    }
-  );
+  const foo = await getValidator(contract, 'foo');
   test.is(
     foo.base_stake_amount,
     amounts[0].toString()
   );
 
-  const bar: any = await contract.view(
-    'get_validator',
-    {
-      validator_id: 'bar'
-    }
-  );
+  const bar = await getValidator(contract, 'bar');
   test.is(
     bar.base_stake_amount,
     amounts[1].toString()

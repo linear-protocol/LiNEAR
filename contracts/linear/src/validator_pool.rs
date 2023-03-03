@@ -513,7 +513,6 @@ impl LiquidStakingContract {
             validator.unstaked_amount < ONE_NEAR,
             ERR_BAD_UNSTAKED_AMOUNT
         );
-        require!(!validator.draining, ERR_DRAINING);
 
         let unstake_amount = validator.staked_amount;
 
@@ -540,7 +539,6 @@ impl LiquidStakingContract {
     /// Withdraw from a drained validator
     pub fn drain_withdraw(&mut self, validator_id: AccountId) {
         self.assert_running();
-        self.assert_manager();
 
         // make sure enough gas was given
         let min_gas = GAS_DRAIN_WITHDRAW + GAS_EXT_WITHDRAW + GAS_CB_VALIDATOR_WITHDRAW;

@@ -7,7 +7,6 @@ use crate::Farm;
 use crate::Fraction;
 use crate::LiquidityPool;
 // use crate::StorageKey;
-use crate::validator_pool::VersionedValidator;
 use crate::ValidatorPool;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
@@ -103,12 +102,6 @@ pub struct ValidatorV1_3_0 {
     /// this is to save the last value of unstake_fired_epoch,
     /// so that when unstake revert we can restore it
     pub last_unstake_fired_epoch: EpochHeight,
-}
-
-impl From<ValidatorV1_3_0> for VersionedValidator {
-    fn from(v: ValidatorV1_3_0) -> Self {
-        VersionedValidator::V1(v)
-    }
 }
 
 impl From<ValidatorV1_3_0> for Validator {
@@ -274,21 +267,6 @@ pub struct ValidatorV1_0_0 {
     pub last_unstake_fired_epoch: EpochHeight,
 }
 
-impl ValidatorV1_0_0 {
-    pub fn into_validator(self) -> Validator {
-        Validator {
-            account_id: self.account_id,
-            weight: self.weight,
-            staked_amount: self.staked_amount,
-            unstaked_amount: self.unstaked_amount,
-            base_stake_amount: 0, // 0 by default
-            unstake_fired_epoch: self.unstake_fired_epoch,
-            last_unstake_fired_epoch: self.last_unstake_fired_epoch,
-            draining: false,
-        }
-    }
-}
-
 impl From<ValidatorV1_0_0> for Validator {
     fn from(v: ValidatorV1_0_0) -> Self {
         Validator {
@@ -301,12 +279,6 @@ impl From<ValidatorV1_0_0> for Validator {
             last_unstake_fired_epoch: v.last_unstake_fired_epoch,
             draining: false,
         }
-    }
-}
-
-impl From<ValidatorV1_0_0> for VersionedValidator {
-    fn from(v: ValidatorV1_0_0) -> Self {
-        VersionedValidator::V0(v)
     }
 }
 

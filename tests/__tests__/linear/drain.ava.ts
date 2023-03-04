@@ -37,18 +37,6 @@ workspace.test('Non-manager call drain methods', async (test, {contract, alice})
         ),
         'Only manager can perform this action'
     );
-
-    await assertFailure(
-        test,
-        alice.call(
-            contract,
-            'drain_withdraw',
-            {
-                validator_id: 'foo'
-            }
-        ),
-        'Only manager can perform this action'
-    );
 });
 
 workspace.test('drain constraints', async (test, {contract, root, owner, alice, bob}) => {

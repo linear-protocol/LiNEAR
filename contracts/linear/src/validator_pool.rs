@@ -498,6 +498,7 @@ impl LiquidStakingContract {
         // 2. has base stake amount set to 0
         // 3. not in pending release
         // 4. has not unstaked balance (because this part is from user's unstake request)
+        // 5. not in draining process
         require!(validator.weight == 0, ERR_NON_ZERO_WEIGHT);
         require!(
             validator.base_stake_amount == 0,
@@ -512,6 +513,7 @@ impl LiquidStakingContract {
             validator.unstaked_amount < ONE_NEAR,
             ERR_BAD_UNSTAKED_AMOUNT
         );
+        require!(!validator.draining, ERR_DRAINING);
 
         let unstake_amount = validator.staked_amount;
 

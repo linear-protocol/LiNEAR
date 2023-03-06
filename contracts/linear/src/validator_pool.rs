@@ -58,7 +58,7 @@ trait WhitelistCallback {
 /// store validator info and calculate the best candidate to stake/unstake.
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct ValidatorPool {
-    validators: UnorderedMap<AccountId, VersionedValidator>,
+    pub validators: UnorderedMap<AccountId, VersionedValidator>,
     pub total_weight: u16,
     pub total_base_stake_amount: Balance,
 }
@@ -498,7 +498,6 @@ impl LiquidStakingContract {
         // 2. has base stake amount set to 0
         // 3. not in pending release
         // 4. has not unstaked balance (because this part is from user's unstake request)
-        // 5. not in draining process
         require!(validator.weight == 0, ERR_NON_ZERO_WEIGHT);
         require!(
             validator.base_stake_amount == 0,

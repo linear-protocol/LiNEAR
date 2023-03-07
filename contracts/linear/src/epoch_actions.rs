@@ -171,6 +171,8 @@ impl LiquidStakingContract {
             .get_validator(&validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST);
 
+        require!(!validator.draining, ERR_DRAINING);
+
         let amount = validator.unstaked_amount;
 
         Event::EpochWithdrawAttempt {

@@ -1,5 +1,5 @@
 import { NearAccount, NEAR, Gas } from "near-workspaces-ava";
-import { assertFailure, initWorkSpace, createStakingPool } from "./helper";
+import { assertFailure, initWorkSpace, createStakingPool, getValidator } from "./helper";
 
 const workspace = initWorkSpace();
 
@@ -23,12 +23,7 @@ function assertValidatorHelper(
     stakedAmount: string,
     unstakedAmount: string
   ) {
-    const v: any = await contract.view(
-      'get_validator',
-      {
-        validator_id: validator.accountId
-      }
-    );
+    const v = await getValidator(contract, validator.accountId);
     const staked = NEAR.from(v.staked_amount);
     const unstaked = NEAR.from(v.unstaked_amount);
     test.is(

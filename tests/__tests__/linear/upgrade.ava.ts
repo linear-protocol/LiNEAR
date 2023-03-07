@@ -1,16 +1,16 @@
 import { readFileSync } from "fs";
 import { Gas, NEAR } from "near-units";
 import { NearAccount, Workspace } from "near-workspaces-ava";
-import { createStakingPool, initAndSetWhitelist, skip, updateBaseStakeAmounts, } from "./helper";
+import { createStakingPool, getValidator, initAndSetWhitelist, skip, updateBaseStakeAmounts, } from "./helper";
 
-async function deployLinearV1_2_0(
+async function deployLinearAtVersion(
   root: NearAccount,
   owner_id: string,
-  contractId = 'linear',
+  version: string,
 ) {
   return root.createAndDeploy(
-    contractId,
-    'compiled-contracts/linear_v1_2_0.wasm',
+    'linear',
+    `compiled-contracts/linear_${version}.wasm`,
     {
       method: 'new',
       args: {
@@ -45,24 +45,6 @@ async function stakeAll (signer: NearAccount, contract: NearAccount) {
   }
 }
 
-function initWorkSpace() {
-  return Workspace.init(async ({ root }) => {
-    // deposit 1M $NEAR for each account
-    const owner = await root.createAccount('linear_owner', { initialBalance: NEAR.parse("1000000").toString() });
-    const alice = await root.createAccount('alice', { initialBalance: NEAR.parse("1000000").toString() });
-    const bob = await root.createAccount('bob', { initialBalance: NEAR.parse("1000000").toString() });
-    const carol = await root.createAccount('carol', { initialBalance: NEAR.parse("1000000").toString() });
-
-    const contract = await deployLinearV1_2_0(root, owner.accountId);
-
-    await initAndSetWhitelist(root, contract, owner, true);
-
-    return { contract, owner, alice, bob, carol, };
-  });
-}
-
-const workspace = initWorkSpace();
-
 async function setManager(root: NearAccount, contract: NearAccount, owner: NearAccount) {
   const manager = await root.createAccount('linear_manager', { initialBalance: NEAR.parse("1000000").toString() });
 
@@ -78,12 +60,31 @@ async function setManager(root: NearAccount, contract: NearAccount, owner: NearA
   return manager;
 }
 
+function initWorkSpace(version: string) {
+  return Workspace.init(async ({ root }) => {
+    // deposit 1M $NEAR for each account
+    const owner = await root.createAccount('linear_owner', { initialBalance: NEAR.parse("1000000").toString() });
+    const alice = await root.createAccount('alice', { initialBalance: NEAR.parse("1000000").toString() });
+    const bob = await root.createAccount('bob', { initialBalance: NEAR.parse("1000000").toString() });
+    const carol = await root.createAccount('carol', { initialBalance: NEAR.parse("1000000").toString() });
+
+    const contract = await deployLinearAtVersion(root, owner.accountId, version);
+
+    await initAndSetWhitelist(root, contract, owner, true);
+    const manager = await setManager(root, contract, owner);
+
+    return { contract, owner, manager, alice, bob, carol, };
+  });
+}
+
+const baseVersion = 'v1_3_3';  // change this to the version that you want to upgrade from
+const workspace = initWorkSpace(baseVersion);
+
 // The upgrade() test has run successfully in sandbox by migrating the states of 50 validators.
 // Skip the test in CI because upgrade varies between versions and is almost a one-time effort.
 // Keep this test case to make it easier to be reused in future upgrade.
 skip('upgrade contract from v1.2.0 to v1.3.0 on testnet', async (test, context) => {
-  const { root, contract, owner, alice, bob } = context;
-  const manager = await setManager(root, contract, owner);
+  const { root, contract, owner, manager, alice, bob } = context;
 
   const groups = 10;
   const limit = 5;
@@ -223,25 +224,105 @@ skip('upgrade contract from v1.2.0 to v1.3.0 on testnet', async (test, context) 
     amounts
   );
 
-  const foo: any = await contract.view(
-    'get_validator',
-    {
-      validator_id: 'foo'
-    }
-  );
+  const foo = await getValidator(contract, 'foo');
   test.is(
     foo.base_stake_amount,
     amounts[0].toString()
   );
 
-  const bar: any = await contract.view(
-    'get_validator',
-    {
-      validator_id: 'bar'
-    }
-  );
+  const bar = await getValidator(contract, 'bar');
   test.is(
     bar.base_stake_amount,
     amounts[1].toString()
   );
+});
+
+skip('upgrade from v1.3.3 to v1.4.0', async (test, context) => {
+  const { root, contract, owner, manager, alice } = context;
+
+  // add some validators
+  const names = Array.from({ length: 5 }, (_, i) => `validator-${i}`);
+  const weights = names.map(_ => 1);
+  const validators = await Promise.all(names.map(name => createStakingPool(root, name)));
+
+  await manager.call(
+    contract,
+    'add_validators',
+    {
+      validator_ids: validators.map(v => v.accountId),
+      weights
+    },
+    {
+      gas: Gas.parse('300 Tgas')
+    }
+  );
+
+  // user stake
+  const staked = 5000;
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    {
+      attachedDeposit: NEAR.parse((staked-10).toFixed(0))
+    }
+  );
+
+  // run epoch stake
+  await stakeAll(manager, contract);
+
+  // upgrade linear contract to the latest
+  await upgrade(contract, owner);
+
+  // read validators to verify upgrade
+  for (const validator of validators) {
+    const v = await getValidator(contract, validator.accountId);
+    test.assert(v.draining === false);
+  }
+
+  // try to drain one of the validators
+  const targetValidator = validators[0];
+
+  // set weight to 0
+  await manager.call(
+    contract,
+    'update_weight',
+    {
+      validator_id: targetValidator.accountId,
+      weight: 0
+    }
+  );
+
+  await manager.call(
+    contract,
+    'drain_unstake',
+    {
+      validator_id: targetValidator.accountId
+    },
+    {
+      gas: Gas.parse('200 Tgas')
+    }
+  );
+
+  test.assert((await getValidator(contract, targetValidator.accountId)).draining);
+
+  // fast-forward
+  await owner.call(
+    contract,
+    'set_epoch_height',
+    { epoch: 14 }
+  );
+
+  await manager.call(
+    contract,
+    'drain_withdraw',
+    {
+      validator_id: targetValidator.accountId
+    },
+    {
+      gas: Gas.parse('200 Tgas')
+    }
+  );
+
+  test.assert(!(await getValidator(contract, targetValidator.accountId)).draining);
 });

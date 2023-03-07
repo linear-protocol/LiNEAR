@@ -1,6 +1,7 @@
 use crate::errors::*;
 use crate::events::Event;
 use crate::legacy::ValidatorV1_0_0;
+use crate::legacy::ValidatorV1_3_0;
 use crate::types::*;
 use crate::utils::*;
 use crate::*;
@@ -76,7 +77,7 @@ impl Default for ValidatorPool {
 impl ValidatorPool {
     pub fn new() -> Self {
         Self {
-            validators: UnorderedMap::new(StorageKey::Validators),
+            validators: UnorderedMap::new(StorageKey::ValidatorsV1),
             total_weight: 0,
             total_base_stake_amount: 0,
         }
@@ -87,9 +88,7 @@ impl ValidatorPool {
     }
 
     pub fn get_validator(&self, validator_id: &AccountId) -> Option<Validator> {
-        self.validators
-            .get(validator_id)
-            .map(|v| v.into_validator())
+        self.validators.get(validator_id).map(|v| v.into())
     }
 
     pub fn save_validator(&mut self, validator: &Validator) {
@@ -120,11 +119,11 @@ impl ValidatorPool {
     }
 
     pub fn remove_validator(&mut self, validator_id: &AccountId) -> Validator {
-        let validator = self
+        let validator: Validator = self
             .validators
             .remove(validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST)
-            .into_validator();
+            .into();
 
         // make sure this validator is not used at all
         require!(
@@ -144,11 +143,11 @@ impl ValidatorPool {
     }
 
     pub fn update_weight(&mut self, validator_id: &AccountId, weight: u16) {
-        let mut validator = self
+        let mut validator: Validator = self
             .validators
             .get(validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST)
-            .into_validator();
+            .into();
 
         let old_weight = validator.weight;
         // update total weight
@@ -167,11 +166,11 @@ impl ValidatorPool {
 
     /// Update base stake amount of the validator
     pub fn update_base_stake_amount(&mut self, validator_id: &AccountId, amount: Balance) {
-        let mut validator = self
+        let mut validator: Validator = self
             .validators
             .get(validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST)
-            .into_validator();
+            .into();
 
         let old_base_stake_amount = validator.base_stake_amount;
         // update total base stake amount
@@ -205,7 +204,7 @@ impl ValidatorPool {
         let mut amount_to_stake: Balance = 0;
 
         for (_, validator) in self.validators.iter() {
-            let validator = validator.into_validator();
+            let validator = validator.into();
             let target_amount =
                 self.validator_target_stake_amount(total_staked_near_amount, &validator);
             if validator.staked_amount < target_amount {
@@ -236,7 +235,7 @@ impl ValidatorPool {
         let mut amount_to_unstake: Balance = 0;
 
         for (_, validator) in self.validators.iter() {
-            let validator = validator.into_validator();
+            let validator: Validator = validator.into();
             if validator.pending_release() {
                 continue;
             }
@@ -320,7 +319,7 @@ impl ValidatorPool {
         let mut available_amount: Balance = 0;
         let mut total_staked_amount: Balance = 0;
         for validator in self.validators.values() {
-            let validator = validator.into_validator();
+            let validator: Validator = validator.into();
             total_staked_amount += validator.staked_amount;
 
             if !validator.pending_release() && validator.staked_amount > 0 {
@@ -499,6 +498,7 @@ impl LiquidStakingContract {
         // 2. has base stake amount set to 0
         // 3. not in pending release
         // 4. has not unstaked balance (because this part is from user's unstake request)
+        // 5. not in draining process
         require!(validator.weight == 0, ERR_NON_ZERO_WEIGHT);
         require!(
             validator.base_stake_amount == 0,
@@ -513,6 +513,7 @@ impl LiquidStakingContract {
             validator.unstaked_amount < ONE_NEAR,
             ERR_BAD_UNSTAKED_AMOUNT
         );
+        require!(!validator.draining, ERR_DRAINING);
 
         let unstake_amount = validator.staked_amount;
 
@@ -539,7 +540,6 @@ impl LiquidStakingContract {
     /// Withdraw from a drained validator
     pub fn drain_withdraw(&mut self, validator_id: AccountId) {
         self.assert_running();
-        self.assert_manager();
 
         // make sure enough gas was given
         let min_gas = GAS_DRAIN_WITHDRAW + GAS_EXT_WITHDRAW + GAS_CB_VALIDATOR_WITHDRAW;
@@ -558,6 +558,7 @@ impl LiquidStakingContract {
         // 2. has base stake amount set to 0
         // 3. has no staked balance
         // 4. not pending release
+        // 5. in draining process
         require!(validator.weight == 0, ERR_NON_ZERO_WEIGHT);
         require!(
             validator.base_stake_amount == 0,
@@ -568,6 +569,7 @@ impl LiquidStakingContract {
             !validator.pending_release(),
             ERR_VALIDATOR_WITHDRAW_WHEN_LOCKED
         );
+        require!(validator.draining, ERR_NOT_IN_DRAINING);
 
         let amount = validator.unstaked_amount;
 
@@ -598,6 +600,7 @@ impl LiquidStakingContract {
 
         if is_promise_success() {
             validator.on_unstake_success(&mut self.validator_pool, amount);
+            validator.set_draining(&mut self.validator_pool, true);
 
             Event::DrainUnstakeSuccess {
                 validator_id: &validator_id,
@@ -619,7 +622,14 @@ impl LiquidStakingContract {
     #[private]
     pub fn validator_drain_withdraw_callback(&mut self, validator_id: AccountId, amount: U128) {
         let amount = amount.into();
+        let mut validator = self
+            .validator_pool
+            .get_validator(&validator_id)
+            .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
+
         if is_promise_success() {
+            validator.set_draining(&mut self.validator_pool, false);
+
             Event::DrainWithdrawSuccess {
                 validator_id: &validator_id,
                 amount: &U128(amount),
@@ -630,11 +640,6 @@ impl LiquidStakingContract {
             self.epoch_requested_stake_amount += amount;
         } else {
             // withdraw failed, revert
-            let mut validator = self
-                .validator_pool
-                .get_validator(&validator_id)
-                .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
-
             validator.on_withdraw_failed(&mut self.validator_pool, amount);
 
             Event::DrainWithdrawFailed {
@@ -646,19 +651,23 @@ impl LiquidStakingContract {
     }
 }
 
+/// How to add a new variant for VersionedValidator:
+/// 1. Put the current definition of Validator into legacy.rs as `ValidatorVx_x_x`
+/// 2. Update the current Validator struct
+/// 3. Implement `From<ValidatorVx_x_x> for Validator` so that we can migrate
+///    from the previous version of Validator to the latest.
+/// 4. Insert a new variant of VersionedValidator just BEFORE `Current(Validator)`.
+///    It stands for the previous version of Validator, which should be version
+///    that production is using at the time of writing the code.
+///    Due to the fact that Borsh use variant index instead of name to serialize,
+///    the new variant will be deserialzed to the previous version correctly after
+///    new code is deployed.
+/// 5. Update `impl From<VersionedValidator> for Validator`, to match the new variant.
 #[derive(BorshSerialize, BorshDeserialize)]
 pub enum VersionedValidator {
     V0(ValidatorV1_0_0),
+    V1(ValidatorV1_3_0),
     Current(Validator),
-}
-
-impl VersionedValidator {
-    pub fn into_validator(self) -> Validator {
-        match self {
-            VersionedValidator::V0(v) => v.into_validator(),
-            VersionedValidator::Current(v) => v,
-        }
-    }
 }
 
 impl From<Validator> for VersionedValidator {
@@ -685,6 +694,9 @@ pub struct Validator {
     /// this is to save the last value of unstake_fired_epoch,
     /// so that when unstake revert we can restore it
     pub last_unstake_fired_epoch: EpochHeight,
+
+    /// Whether the validator is in draining process
+    pub draining: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -697,6 +709,17 @@ pub struct ValidatorInfo {
     pub staked_amount: U128,
     pub unstaked_amount: U128,
     pub pending_release: bool,
+    pub draining: bool,
+}
+
+impl From<VersionedValidator> for Validator {
+    fn from(value: VersionedValidator) -> Self {
+        match value {
+            VersionedValidator::Current(v) => v,
+            VersionedValidator::V1(v1) => v1.into(),
+            VersionedValidator::V0(v0) => v0.into(),
+        }
+    }
 }
 
 impl Validator {
@@ -709,6 +732,7 @@ impl Validator {
             unstaked_amount: 0,
             unstake_fired_epoch: 0,
             last_unstake_fired_epoch: 0,
+            draining: false,
         }
     }
 
@@ -727,6 +751,7 @@ impl Validator {
             staked_amount: self.staked_amount.into(),
             unstaked_amount: self.unstaked_amount.into(),
             pending_release: self.pending_release(),
+            draining: self.draining,
         }
     }
 
@@ -899,6 +924,11 @@ impl Validator {
 
     pub fn on_withdraw_failed(&mut self, pool: &mut ValidatorPool, amount: Balance) {
         self.unstaked_amount += amount;
+        pool.save_validator(self);
+    }
+
+    pub fn set_draining(&mut self, pool: &mut ValidatorPool, draining: bool) {
+        self.draining = draining;
         pool.save_validator(self);
     }
 }

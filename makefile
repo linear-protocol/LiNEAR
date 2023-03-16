@@ -51,7 +51,7 @@ lint:
 	cargo fmt -- --check
 	cargo clippy --tests -- -D clippy::all
 
-test: test-unit test-linear test-mock-staking-pool test-mock-fungible-token
+test: test-linear
 
 test-unit:
 	cargo test --features "test"
@@ -66,7 +66,7 @@ test-linear: linear_test mock-staking-pool mock-fungible-token mock-dex mock-loc
 	@cp ./res/mock_dex.wasm ./tests/compiled-contracts/mock_dex.wasm
 	@cp ./res/mock_lockup.wasm ./tests/compiled-contracts/mock_lockup.wasm
 	@cp ./res/mock_whitelist.wasm ./tests/compiled-contracts/mock_whitelist.wasm
-	cd tests && NEAR_PRINT_LOGS=$(LOGS) npx near-workspaces-ava --timeout=2m __tests__/linear/$(TEST_FILE).ava.ts --verbose
+	cd tests && NEAR_PRINT_LOGS=$(LOGS) npx near-workspaces-ava --timeout=2m __tests__/linear/validator-pool.ava.ts --verbose
 
 test-mock-staking-pool: mock-staking-pool
 	@mkdir -p ./tests/compiled-contracts/

@@ -477,7 +477,7 @@ workspace.test('max update weights', async (test, context) => {
   for (let i = 0; i < 100; i++) {
     totalWeight += i;
 
-    const id = i.toFixed(0);
+    const id = i.toFixed(0) + ".test.near";
     const weight = i;
 
     validator_ids.push(id);

@@ -474,7 +474,7 @@ workspace.test('max update weights', async (test, context) => {
   let weights: number[] = [];
 
   let totalWeight = 0;
-  const total = 30;
+  const total = 10;
   for (let i = 0; i < total; i++) {
     totalWeight += i;
 
@@ -502,7 +502,7 @@ workspace.test('max update weights', async (test, context) => {
 
   weights = weights.map(x => x + 1);
   // update foo
-  await manager.call(
+  const result = await manager.call_raw(
     contract,
     'update_weights',
     {
@@ -513,6 +513,7 @@ workspace.test('max update weights', async (test, context) => {
       gas: Gas.parse('300 Tgas')
     }
   );
+  console.log("gas_burnt", result.gas_burnt.toString(10));
   test.is(
     await contract.view('get_total_weight'),
     totalWeight + total

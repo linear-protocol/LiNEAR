@@ -474,7 +474,7 @@ workspace.test('max update weights', async (test, context) => {
   const weights: number[] = [];
 
   let totalWeight = 0;
-  for (let i = 0; i < 25; i++) {
+  for (let i = 0; i < 100; i++) {
     totalWeight += i;
 
     const id = i.toFixed(0) + ".test.near";
@@ -484,17 +484,20 @@ workspace.test('max update weights', async (test, context) => {
     weights.push(weight);
   }
 
-  await manager.call(
-    contract,
-    'add_validators',
-    {
-      validator_ids,
-      weights,
-    },
-    {
-      gas: Gas.parse('100 Tgas')
-    }
-  );
+  const delta = 20;
+  for (let i = 0; i < 100 / delta; i++) {
+    await manager.call(
+      contract,
+      'add_validators',
+      {
+        validator_ids: validator_ids.slice(i * delta, i * delta + delta),
+        weights: weights.slice(i * delta, i * delta + delta),
+      },
+      {
+        gas: Gas.parse('300 Tgas')
+      }
+    );
+  }
 
   // update foo
   await manager.call(

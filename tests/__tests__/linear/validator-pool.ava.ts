@@ -466,6 +466,54 @@ workspace.test('update weights', async (test, context) => {
   );
 });
 
+workspace.test('max update weights', async (test, context) => {
+  const { root, owner, contract } = context;
+  const manager = await setManager(root, contract, owner);
+
+  const validator_ids: string[] = [];
+  const weights: number[] = [];
+
+  let totalWeight = 0;
+  for (let i = 0; i < 100; i++) {
+    totalWeight += i;
+
+    const id = String.fromCharCode("a".charCodeAt(i));
+    const weight = i;
+
+    validator_ids.push(id);
+    weights.push(weight);
+
+    await manager.call(
+      contract,
+      'add_validators',
+      {
+        validator_ids: [id],
+        weights: [weight],
+      },
+      {
+        gas: Gas.parse('100 Tgas')
+      }
+    );
+  }
+
+  // update foo
+  await manager.call(
+    contract,
+    'update_weights',
+    {
+      validator_ids,
+      weights,
+    },
+    {
+      gas: Gas.parse('300 Tgas')
+    }
+  );
+  test.is(
+    await contract.view('get_total_weight'),
+    totalWeight
+  );
+});
+
 workspace.test('update base stake amount', async (test, context) => {
   const { root, owner, contract } = context;
   const manager = await setManager(root, contract, owner);

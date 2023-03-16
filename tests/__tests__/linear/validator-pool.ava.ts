@@ -484,7 +484,7 @@ workspace.test('max update weights', async (test, context) => {
     weights.push(weight);
   }
 
-  const delta = 20;
+  const delta = 10;
   for (let i = 0; i < 100 / delta; i++) {
     await manager.call(
       contract,

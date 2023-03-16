@@ -474,7 +474,7 @@ workspace.test('max update weights', async (test, context) => {
   let weights: number[] = [];
 
   let totalWeight = 0;
-  const total = 30;
+  const total = 40;
   for (let i = 0; i < total; i++) {
     totalWeight += i;
 

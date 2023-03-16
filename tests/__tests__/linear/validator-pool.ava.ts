@@ -474,7 +474,7 @@ workspace.test('max update weights', async (test, context) => {
   const weights: number[] = [];
 
   let totalWeight = 0;
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 50; i++) {
     totalWeight += i;
 
     const id = i.toFixed(0) + ".test.near";

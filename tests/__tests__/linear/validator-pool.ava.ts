@@ -487,12 +487,17 @@ workspace.test('max update weights', async (test, context) => {
 
   const delta = 5;
   for (let i = 0; i < Math.ceil(total / delta); i++) {
+
+    const v = validator_ids.slice(i * delta, Math.min(i * delta + delta, total));
+    const w = weights.slice(i * delta, Math.min(i * delta + delta, total));
+    console.log("v", JSON.stringify(v), "w", JSON.stringify(w));
+
     await manager.call(
       contract,
       'add_validators',
       {
-        validator_ids: validator_ids.slice(i * delta, Math.min(i * delta + delta, total)),
-        weights: weights.slice(i * delta, Math.min(i * delta + delta, total)),
+        validator_ids: v,
+        weights: w,
       },
       {
         gas: Gas.parse('300 Tgas')
@@ -501,6 +506,8 @@ workspace.test('max update weights', async (test, context) => {
   }
 
   weights = weights.map(x => x + 1);
+  console.log("validator_ids", JSON.stringify(validator_ids), "weights", JSON.stringify(weights));
+
   // update foo
   const result = await manager.call_raw(
     contract,

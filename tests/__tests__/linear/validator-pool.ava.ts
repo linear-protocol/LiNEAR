@@ -513,7 +513,13 @@ workspace.test('max update weights', async (test, context) => {
       gas: Gas.parse('300 Tgas')
     }
   );
-  console.log("gas_burnt", result.outcome.reduce((pre, o) => {
+  console.log("outcome", result.outcome.reduce((pre, o) => {
+    return pre.add(new BN(o.gas_burnt));
+  } , new BN(0)).toString(10));
+  console.log("outcomes", result.outcomes.reduce((pre, o) => {
+    return pre.add(new BN(o.gas_burnt));
+  } , new BN(0)).toString(10));
+  console.log("receipts_outcomes", result.receipts_outcomes.reduce((pre, o) => {
     return pre.add(new BN(o.gas_burnt));
   } , new BN(0)).toString(10));
   test.is(

@@ -474,7 +474,7 @@ workspace.test('max update weights', async (test, context) => {
   let weights: number[] = [];
 
   let totalWeight = 0;
-  const total = 20;
+  const total = 30;
   for (let i = 0; i < total; i++) {
     totalWeight += i;
 
@@ -515,7 +515,7 @@ workspace.test('max update weights', async (test, context) => {
   );
   test.is(
     await contract.view('get_total_weight'),
-    totalWeight
+    totalWeight + total
   );
 });
 

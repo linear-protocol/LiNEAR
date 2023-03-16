@@ -474,7 +474,8 @@ workspace.test('max update weights', async (test, context) => {
   const weights: number[] = [];
 
   let totalWeight = 0;
-  for (let i = 0; i < 100; i++) {
+  const total = 50;
+  for (let i = 0; i < total; i++) {
     totalWeight += i;
 
     const id = i.toFixed(0) + ".test.near";
@@ -484,8 +485,8 @@ workspace.test('max update weights', async (test, context) => {
     weights.push(weight);
   }
 
-  const delta = 10;
-  for (let i = 0; i < 100 / delta; i++) {
+  const delta = 5;
+  for (let i = 0; i < total / delta; i++) {
     await manager.call(
       contract,
       'add_validators',

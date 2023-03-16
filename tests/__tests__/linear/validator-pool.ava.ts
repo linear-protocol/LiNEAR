@@ -1,5 +1,5 @@
 import { Gas, NEAR } from "near-units";
-import { NearAccount } from "near-workspaces-ava";
+import { BN, NearAccount } from "near-workspaces-ava";
 import { assertFailure, getValidator, initAndSetWhitelist, initWorkSpace, updateBaseStakeAmounts, } from "./helper";
 
 const workspace = initWorkSpace();
@@ -513,7 +513,9 @@ workspace.test('max update weights', async (test, context) => {
       gas: Gas.parse('300 Tgas')
     }
   );
-  console.log("gas_burnt", result.gas_burnt.toString(10));
+  console.log("gas_burnt", result.outcome.reduce((pre, o) => {
+    return pre.add(new BN(o.gas_burnt));
+  } , new BN(0)).toString(10));
   test.is(
     await contract.view('get_total_weight'),
     totalWeight + total

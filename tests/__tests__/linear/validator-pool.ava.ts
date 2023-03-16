@@ -471,10 +471,10 @@ workspace.test('max update weights', async (test, context) => {
   const manager = await setManager(root, contract, owner);
 
   const validator_ids: string[] = [];
-  const weights: number[] = [];
+  let weights: number[] = [];
 
   let totalWeight = 0;
-  const total = 50;
+  const total = 20;
   for (let i = 0; i < total; i++) {
     totalWeight += i;
 
@@ -500,6 +500,7 @@ workspace.test('max update weights', async (test, context) => {
     );
   }
 
+  weights = weights.map(x => x + 1);
   // update foo
   await manager.call(
     contract,

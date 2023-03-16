@@ -482,19 +482,19 @@ workspace.test('max update weights', async (test, context) => {
 
     validator_ids.push(id);
     weights.push(weight);
-
-    await manager.call(
-      contract,
-      'add_validators',
-      {
-        validator_ids: [id],
-        weights: [weight],
-      },
-      {
-        gas: Gas.parse('100 Tgas')
-      }
-    );
   }
+
+  await manager.call(
+    contract,
+    'add_validators',
+    {
+      validator_ids,
+      weights,
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
 
   // update foo
   await manager.call(

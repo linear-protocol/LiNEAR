@@ -17,6 +17,7 @@ use std::cmp::min;
 const STAKE_SMALL_CHANGE_AMOUNT: Balance = ONE_NEAR;
 const UNSTAKE_FACTOR: u128 = 2;
 const MAX_SYNC_BALANCE_DIFF: Balance = 100;
+const MAX_UPDATE_WEIGHTS_COUNT: usize = 300;
 
 #[ext_contract(ext_staking_pool)]
 pub trait ExtStakingPool {
@@ -425,6 +426,14 @@ impl LiquidStakingContract {
         self.assert_running();
         self.assert_manager();
         require!(validator_ids.len() == weights.len(), ERR_BAD_VALIDATOR_LIST);
+
+        require!(
+            validator_ids.len() <= MAX_UPDATE_WEIGHTS_COUNT,
+            format!(
+                "The number of validators to be updated at a time cannot exceed {}",
+                MAX_UPDATE_WEIGHTS_COUNT
+            )
+        );
 
         let mut account_ids = Vec::new();
         let mut old_weights = Vec::new();

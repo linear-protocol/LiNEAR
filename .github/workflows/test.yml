@@ -8,6 +8,7 @@ on:
     paths:
       - 'contracts/**'
       - 'tests/**'
+      - 'Cargo.*'
 
 env:
   CARGO_TERM_COLOR: always

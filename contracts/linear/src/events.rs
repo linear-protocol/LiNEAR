@@ -122,6 +122,11 @@ pub enum Event<'a> {
         old_weight: u16,
         new_weight: u16,
     },
+    ValidatorUpdatedWeights {
+        account_ids: Vec<&'a AccountId>,
+        old_weights: Vec<u16>,
+        new_weights: Vec<u16>,
+    },
     ValidatorUpdatedBaseStakeAmount {
         account_id: &'a AccountId,
         old_base_stake_amount: &'a U128,

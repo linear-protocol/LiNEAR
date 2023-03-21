@@ -1,7 +1,7 @@
 use near_sdk::{json_types::U128, log, serde::Serialize, serde_json::json, AccountId};
 
 const EVENT_STANDARD: &str = "linear";
-const EVENT_STANDARD_VERSION: &str = "1.0.0";
+const EVENT_STANDARD_VERSION: &str = "1.0.1";
 
 #[derive(Serialize, Debug, Clone)]
 #[serde(crate = "near_sdk::serde")]
@@ -117,10 +117,10 @@ pub enum Event<'a> {
         account_id: &'a AccountId,
         weight: u16,
     },
-    ValidatorUpdatedWeight {
-        account_id: &'a AccountId,
-        old_weight: u16,
-        new_weight: u16,
+    ValidatorsUpdatedWeights {
+        account_ids: Vec<&'a AccountId>,
+        old_weights: Vec<u16>,
+        new_weights: Vec<u16>,
     },
     ValidatorUpdatedBaseStakeAmount {
         account_id: &'a AccountId,
@@ -220,7 +220,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_stake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"epoch_stake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -235,7 +235,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_stake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"epoch_stake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -250,7 +250,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_stake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"epoch_stake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -265,7 +265,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_unstake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"epoch_unstake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -280,7 +280,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_unstake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"epoch_unstake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -295,7 +295,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_unstake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"epoch_unstake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -310,7 +310,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_cleanup","data":[{"stake_amount_to_settle":"100","unstake_amount_to_settle":"0"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"epoch_cleanup","data":[{"stake_amount_to_settle":"100","unstake_amount_to_settle":"0"}]}"#
         );
     }
 
@@ -325,7 +325,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_unstake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"drain_unstake_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -340,7 +340,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_unstake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"drain_unstake_success","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -355,7 +355,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_unstake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"drain_unstake_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -370,7 +370,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_withdraw_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"drain_withdraw_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -385,7 +385,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_withdraw_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"drain_withdraw_success","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -400,7 +400,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"drain_withdraw_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"drain_withdraw_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -415,7 +415,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_withdraw_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"epoch_withdraw_attempt","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -430,7 +430,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_withdraw_success","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"epoch_withdraw_success","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -445,7 +445,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_withdraw_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"epoch_withdraw_failed","data":[{"validator_id":"alice","amount":"100"}]}"#
         );
     }
 
@@ -463,7 +463,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"epoch_update_rewards","data":[{"validator_id":"alice","old_balance":"100","new_balance":"120","rewards":"20"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"epoch_update_rewards","data":[{"validator_id":"alice","old_balance":"100","new_balance":"120","rewards":"20"}]}"#
         );
     }
 
@@ -480,7 +480,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"balance_synced_from_validator","data":[{"validator_id":"alice","staked_balance":"300","unstaked_balance":"200"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"balance_synced_from_validator","data":[{"validator_id":"alice","staked_balance":"300","unstaked_balance":"200"}]}"#
         );
     }
 
@@ -497,7 +497,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"deposit","data":[{"account_id":"alice","amount":"100","new_unstaked_balance":"200"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"deposit","data":[{"account_id":"alice","amount":"100","new_unstaked_balance":"200"}]}"#
         );
     }
 
@@ -514,7 +514,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"withdraw","data":[{"account_id":"alice","amount":"100","new_unstaked_balance":"50"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"withdraw","data":[{"account_id":"alice","amount":"100","new_unstaked_balance":"50"}]}"#
         );
     }
 
@@ -535,7 +535,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"stake","data":[{"account_id":"alice","staked_amount":"100","minted_stake_shares":"99","new_unstaked_balance":"10","new_stake_shares":"199"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"stake","data":[{"account_id":"alice","staked_amount":"100","minted_stake_shares":"99","new_unstaked_balance":"10","new_stake_shares":"199"}]}"#
         );
     }
 
@@ -558,7 +558,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"unstake","data":[{"account_id":"alice","unstaked_amount":"101","burnt_stake_shares":"100","new_unstaked_balance":"111","new_stake_shares":"99","unstaked_available_epoch_height":932}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"unstake","data":[{"account_id":"alice","unstaked_amount":"101","burnt_stake_shares":"100","new_unstaked_balance":"111","new_stake_shares":"99","unstaked_available_epoch_height":932}]}"#
         );
     }
 
@@ -582,7 +582,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"instant_unstake","data":[{"account_id":"alice","unstaked_amount":"98","swapped_stake_shares":"100","new_unstaked_balance":"111","new_stake_shares":"99","fee_amount":"3"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"instant_unstake","data":[{"account_id":"alice","unstaked_amount":"98","swapped_stake_shares":"100","new_unstaked_balance":"111","new_stake_shares":"99","fee_amount":"3"}]}"#
         );
     }
 
@@ -593,24 +593,24 @@ mod tests {
         Event::ValidatorAdded { account_id, weight }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_added","data":[{"account_id":"alice","weight":10}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"validator_added","data":[{"account_id":"alice","weight":10}]}"#
         );
     }
 
     #[test]
-    fn validator_updated_weight() {
+    fn validators_updated_weights() {
         let account_id = &alice();
         let old_weight: u16 = 10;
         let new_weight: u16 = 20;
-        Event::ValidatorUpdatedWeight {
-            account_id,
-            old_weight,
-            new_weight,
+        Event::ValidatorsUpdatedWeights {
+            account_ids: vec![account_id],
+            old_weights: vec![old_weight],
+            new_weights: vec![new_weight],
         }
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_updated_weight","data":[{"account_id":"alice","old_weight":10,"new_weight":20}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"validators_updated_weights","data":[{"account_ids":["alice"],"old_weights":[10],"new_weights":[20]}]}"#
         );
     }
 
@@ -627,7 +627,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_updated_base_stake_amount","data":[{"account_id":"alice","old_base_stake_amount":"0","new_base_stake_amount":"50000"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"validator_updated_base_stake_amount","data":[{"account_id":"alice","old_base_stake_amount":"0","new_base_stake_amount":"50000"}]}"#
         );
     }
 
@@ -637,7 +637,7 @@ mod tests {
         Event::ValidatorRemoved { account_id }.emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"validator_removed","data":[{"account_id":"alice"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"validator_removed","data":[{"account_id":"alice"}]}"#
         );
     }
 
@@ -655,7 +655,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"add_liquidity","data":[{"account_id":"alice","amount":"100","minted_shares":"98"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"add_liquidity","data":[{"account_id":"alice","amount":"100","minted_shares":"98"}]}"#
         );
     }
 
@@ -674,7 +674,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"remove_liquidity","data":[{"account_id":"alice","burnt_shares":"98","received_near":"90","received_linear":"9"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"remove_liquidity","data":[{"account_id":"alice","burnt_shares":"98","received_near":"90","received_linear":"9"}]}"#
         );
     }
 
@@ -703,7 +703,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.0","event":"liquidity_pool_swap_fee","data":[{"account_id":"alice","stake_shares_in":"100","requested_amount":"100","received_amount":"97","fee_amount":"3","fee_stake_shares":"3","treasury_fee_stake_shares":"1","pool_fee_stake_shares":"2","total_fee_shares":"1022"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"liquidity_pool_swap_fee","data":[{"account_id":"alice","stake_shares_in":"100","requested_amount":"100","received_amount":"97","fee_amount":"3","fee_stake_shares":"3","treasury_fee_stake_shares":"1","pool_fee_stake_shares":"2","total_fee_shares":"1022"}]}"#
         );
     }
 }

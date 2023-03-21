@@ -17,6 +17,7 @@ use std::cmp::min;
 const STAKE_SMALL_CHANGE_AMOUNT: Balance = ONE_NEAR;
 const UNSTAKE_FACTOR: u128 = 2;
 const MAX_SYNC_BALANCE_DIFF: Balance = 100;
+const MAX_UPDATE_WEIGHTS_COUNT: usize = 300;
 
 #[ext_contract(ext_staking_pool)]
 pub trait ExtStakingPool {
@@ -142,7 +143,7 @@ impl ValidatorPool {
         validator
     }
 
-    pub fn update_weight(&mut self, validator_id: &AccountId, weight: u16) {
+    pub fn update_weight(&mut self, validator_id: &AccountId, weight: u16) -> u16 {
         let mut validator: Validator = self
             .validators
             .get(validator_id)
@@ -156,12 +157,7 @@ impl ValidatorPool {
         validator.weight = weight;
         self.validators.insert(validator_id, &validator.into());
 
-        Event::ValidatorUpdatedWeight {
-            account_id: validator_id,
-            old_weight,
-            new_weight: weight,
-        }
-        .emit();
+        old_weight
     }
 
     /// Update base stake amount of the validator
@@ -417,17 +413,47 @@ impl LiquidStakingContract {
     pub fn update_weight(&mut self, validator_id: AccountId, weight: u16) {
         self.assert_running();
         self.assert_manager();
-        self.validator_pool.update_weight(&validator_id, weight);
+        let old_weight = self.validator_pool.update_weight(&validator_id, weight);
+        Event::ValidatorsUpdatedWeights {
+            account_ids: vec![&validator_id],
+            old_weights: vec![old_weight],
+            new_weights: vec![weight],
+        }
+        .emit();
     }
 
     pub fn update_weights(&mut self, validator_ids: Vec<AccountId>, weights: Vec<u16>) {
         self.assert_running();
         self.assert_manager();
         require!(validator_ids.len() == weights.len(), ERR_BAD_VALIDATOR_LIST);
+
+        require!(
+            validator_ids.len() <= MAX_UPDATE_WEIGHTS_COUNT,
+            format!(
+                "The number of validators to be updated at a time cannot exceed {}",
+                MAX_UPDATE_WEIGHTS_COUNT
+            )
+        );
+
+        let mut account_ids = Vec::new();
+        let mut old_weights = Vec::new();
+        let mut new_weights = Vec::new();
+
         for i in 0..validator_ids.len() {
-            self.validator_pool
+            let old_weight = self
+                .validator_pool
                 .update_weight(&validator_ids[i], weights[i]);
+            account_ids.push(&validator_ids[i]);
+            old_weights.push(old_weight);
+            new_weights.push(weights[i]);
         }
+
+        Event::ValidatorsUpdatedWeights {
+            account_ids,
+            old_weights,
+            new_weights,
+        }
+        .emit();
     }
 
     pub fn update_base_stake_amounts(&mut self, validator_ids: Vec<AccountId>, amounts: Vec<U128>) {

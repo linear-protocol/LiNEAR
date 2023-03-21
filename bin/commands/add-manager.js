@@ -1,4 +1,5 @@
 const { init } = require("../near");
+const { networkOption } = require("./common");
 
 exports.command = 'add-manager <address>';
 exports.desc = 'Add manager';
@@ -8,11 +9,7 @@ exports.builder = yargs => {
       describe: 'Contract address',
       type: 'string'
     })
-    .option('network', {
-      describe: 'network ID',
-      default: 'testnet',
-      choices: ['testnet', 'mainnet']
-    })
+    .option('network', networkOption)
     .option('signer', {
       describe: 'signer account Id to call contract'
     })

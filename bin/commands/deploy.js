@@ -1,5 +1,6 @@
 const { readFileSync } = require("fs");
 const { init } = require("../near");
+const { networkOption } = require("./common");
 
 exports.command = 'deploy <address>';
 exports.desc = 'Deploy LiNEAR contract';
@@ -9,11 +10,7 @@ exports.builder = yargs => {
       describe: 'Contract address to deploy to',
       type: 'string'
     })
-    .option('network', {
-      describe: 'network ID',
-      default: 'testnet',
-      choices: ['testnet', 'mainnet']
-    })
+    .option('network', networkOption)
     .option('wasm', {
       describe: 'Contract wasm file path',
       default: 'res/linear.wasm'

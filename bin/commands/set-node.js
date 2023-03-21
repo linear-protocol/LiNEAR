@@ -2,6 +2,7 @@ const fs = require('fs');
 const { init } = require('../near');
 const prompts = require('prompts');
 const { Gas } = require('near-units');
+const { networkOption } = require("./common");
 
 exports.command = 'set-node <address>';
 exports.desc = 'Sync validators to the contract';
@@ -11,11 +12,7 @@ exports.builder = yargs => {
       describe: 'Contract address to deploy to',
       type: 'string'
     })
-    .option('network', {
-      describe: 'network ID',
-      default: 'testnet',
-      choices: ['testnet', 'mainnet']
-    })
+    .option('network', networkOption)
     .demandOption(['signer', 'nodes'])
     .option('signer', {
       describe: 'signer account Id to call contract'

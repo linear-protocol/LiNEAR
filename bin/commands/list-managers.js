@@ -1,4 +1,5 @@
 const { init } = require("../near");
+const { networkOption } = require("./common");
 
 exports.command = 'list-managers <address>';
 exports.desc = 'List manager';
@@ -8,11 +9,7 @@ exports.builder = yargs => {
       describe: 'Contract address',
       type: 'string'
     })
-    .option('network', {
-      describe: 'network ID',
-      default: 'testnet',
-      choices: ['testnet', 'mainnet']
-    })
+    .option('network', networkOption)
 }
 
 exports.handler = async function (argv) {

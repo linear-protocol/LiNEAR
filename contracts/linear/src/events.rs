@@ -598,7 +598,7 @@ mod tests {
     }
 
     #[test]
-    fn validator_updated_weights() {
+    fn validators_updated_weights() {
         let account_id = &alice();
         let old_weight: u16 = 10;
         let new_weight: u16 = 20;
@@ -610,7 +610,7 @@ mod tests {
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"validator_updated_weights","data":[{"account_ids":["alice"],"old_weights":[10],"new_weights":[20]}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"validators_updated_weights","data":[{"account_ids":["alice"],"old_weights":[10],"new_weights":[20]}]}"#
         );
     }
 

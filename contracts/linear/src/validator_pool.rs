@@ -414,7 +414,7 @@ impl LiquidStakingContract {
         self.assert_running();
         self.assert_manager();
         let old_weight = self.validator_pool.update_weight(&validator_id, weight);
-        Event::ValidatorUpdatedWeights {
+        Event::ValidatorsUpdatedWeights {
             account_ids: vec![&validator_id],
             old_weights: vec![old_weight],
             new_weights: vec![weight],
@@ -448,7 +448,7 @@ impl LiquidStakingContract {
             new_weights.push(weights[i]);
         }
 
-        Event::ValidatorUpdatedWeights {
+        Event::ValidatorsUpdatedWeights {
             account_ids,
             old_weights,
             new_weights,

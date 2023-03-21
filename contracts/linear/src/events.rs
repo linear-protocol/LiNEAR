@@ -117,7 +117,7 @@ pub enum Event<'a> {
         account_id: &'a AccountId,
         weight: u16,
     },
-    ValidatorUpdatedWeights {
+    ValidatorsUpdatedWeights {
         account_ids: Vec<&'a AccountId>,
         old_weights: Vec<u16>,
         new_weights: Vec<u16>,
@@ -602,7 +602,7 @@ mod tests {
         let account_id = &alice();
         let old_weight: u16 = 10;
         let new_weight: u16 = 20;
-        Event::ValidatorUpdatedWeights {
+        Event::ValidatorsUpdatedWeights {
             account_ids: vec![account_id],
             old_weights: vec![old_weight],
             new_weights: vec![new_weight],

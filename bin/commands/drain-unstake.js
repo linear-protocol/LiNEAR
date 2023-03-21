@@ -1,5 +1,6 @@
 const { init } = require("../near");
 const { Gas } = require("near-units");
+const { networkOption } = require("./common");
 
 exports.command = 'drain-unstake <address>';
 exports.desc = 'Drain Unstake';
@@ -9,11 +10,7 @@ exports.builder = yargs => {
       describe: 'Contract address to deploy to',
       type: 'string'
     })
-    .option('network', {
-      describe: 'network ID',
-      default: 'testnet',
-      choices: ['testnet', 'mainnet']
-    })
+    .option('network', networkOption)
     .option('signer', {
       describe: 'signer account Id to call contract'
     })

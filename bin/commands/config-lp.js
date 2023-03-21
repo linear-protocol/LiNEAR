@@ -1,5 +1,6 @@
 const { NEAR } = require("near-units");
 const { init, funcCall } = require("../near");
+const { networkOption } = require("./common");
 
 exports.command = 'config-lp <address>';
 exports.desc = 'Config liquidity pool';
@@ -9,11 +10,7 @@ exports.builder = yargs => {
       describe: 'Contract address to deploy to',
       type: 'string'
     })
-    .option('network', {
-      describe: 'network ID',
-      default: 'testnet',
-      choices: ['testnet', 'mainnet']
-    })
+    .option('network', networkOption)
     .option('signer', {
       describe: 'signer account Id to call contract'
     })

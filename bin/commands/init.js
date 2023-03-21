@@ -1,4 +1,5 @@
 const { init } = require("../near");
+const { networkOption } = require("./common");
 
 exports.command = 'init <address>';
 exports.desc = 'Init LiNEAR contract';
@@ -8,11 +9,7 @@ exports.builder = yargs => {
       describe: 'Contract address',
       type: 'string'
     })
-    .option('network', {
-      describe: 'network ID',
-      default: 'testnet',
-      choices: ['testnet', 'mainnet']
-    })
+    .option('network', networkOption)
     .demandOption(['signer', 'owner'])
     .option('signer', {
       describe: 'signer account ID to call new'

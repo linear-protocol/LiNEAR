@@ -1,5 +1,6 @@
 const { Gas } = require("near-units");
 const { init } = require("../near");
+const { networkOption } = require("./common");
 
 exports.command = 'withdraw <address>';
 exports.desc = 'Withdraw from a validator, for testing purpose';
@@ -9,11 +10,7 @@ exports.builder = yargs => {
       describe: 'Contract address to deploy to',
       type: 'string'
     })
-    .option('network', {
-      describe: 'network ID',
-      default: 'testnet',
-      choices: ['testnet', 'mainnet']
-    })
+    .option('network', networkOption)
     .demandOption(['signer', 'validator'])
     .option('signer', {
       describe: 'signer account Id to call contract'

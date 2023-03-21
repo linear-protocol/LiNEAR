@@ -1,4 +1,5 @@
 const { init } = require('../near');
+const { networkOption } = require("./common");
 
 exports.command = 'list-nodes <address>';
 exports.desc = 'List validators of the contract';
@@ -8,11 +9,7 @@ exports.builder = yargs => {
       describe: 'Contract address to deploy to',
       type: 'string'
     })
-    .option('network', {
-      describe: 'network ID',
-      default: 'testnet',
-      choices: ['testnet', 'mainnet']
-    })
+    .option('network', networkOption)
 }
 
 exports.handler = async function (argv) {

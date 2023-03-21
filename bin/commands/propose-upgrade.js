@@ -2,6 +2,7 @@ const { readFileSync, appendFileSync } = require("fs");
 const nearAPI = require('near-api-js');
 const { NEAR } = require("near-units");
 const { init } = require("../near");
+const { networkOption } = require("./common");
 
 exports.command = 'propose-upgrade <address>';
 exports.desc = 'Propose an upgrade in DAO';
@@ -11,11 +12,7 @@ exports.builder = yargs => {
       describe: 'Contract address to deploy to',
       type: 'string'
     })
-    .option('network', {
-      describe: 'network ID',
-      default: 'testnet',
-      choices: ['testnet', 'mainnet']
-    })
+    .option('network', networkOption)
     .option('wasm', {
       describe: 'New contract wasm file path',
       default: 'res/linear.wasm'

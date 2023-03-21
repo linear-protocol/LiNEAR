@@ -1,5 +1,6 @@
 const { init } = require("../near");
 const { NEAR }  = require('near-units');
+const { networkOption } = require("./common");
 
 exports.command = 'stake <address>';
 exports.desc = 'Deposit and Stake, for testing purpose';
@@ -9,11 +10,7 @@ exports.builder = yargs => {
       describe: 'Contract address to deploy to',
       type: 'string'
     })
-    .option('network', {
-      describe: 'network ID',
-      default: 'testnet',
-      choices: ['testnet', 'mainnet']
-    })
+    .option('network', networkOption)
     .demandOption(['signer'])
     .option('signer', {
       describe: 'signer account Id to call contract'

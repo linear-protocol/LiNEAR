@@ -15,6 +15,13 @@ const configs = {
     walletUrl: "https://wallet.mainnet.near.org",
     helperUrl: "https://helper.mainnet.near.org",
     explorerUrl: "https://explorer.mainnet.near.org",
+  },
+  localnet: {
+    networkId: "localnet",
+    nodeUrl: "http://127.0.0.1:3030",
+    walletUrl: "",
+    helperUrl: "http://localhost:3000",
+    explorerUrl: "http://localhost:9001",
   }
 };
 

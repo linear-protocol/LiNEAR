@@ -117,7 +117,7 @@ pub enum Event<'a> {
         account_id: &'a AccountId,
         weight: u16,
     },
-    ValidatorUpdatedWeight {
+    ValidatorUpdatedWeights {
         account_ids: Vec<&'a AccountId>,
         old_weights: Vec<u16>,
         new_weights: Vec<u16>,
@@ -185,7 +185,7 @@ impl Event<'_> {
 // Emit event that follows NEP-297 standard: https://nomicon.io/Standards/EventsFormat
 // Arguments
 // * `standard`: name of standard, e.g. nep171
-// * `version`: e.g. 1.0.1
+// * `version`: e.g. 1.0.0
 // * `event`: type of the event, e.g. nft_mint
 // * `data`: associate event data. Strictly typed for each set {standard, version, event} inside corresponding NEP
 pub(crate) fn emit_event<T: ?Sized + Serialize>(data: &T) {
@@ -602,7 +602,7 @@ mod tests {
         let account_id = &alice();
         let old_weight: u16 = 10;
         let new_weight: u16 = 20;
-        Event::ValidatorUpdatedWeight {
+        Event::ValidatorUpdatedWeights {
             account_ids: vec![account_id],
             old_weights: vec![old_weight],
             new_weights: vec![new_weight],

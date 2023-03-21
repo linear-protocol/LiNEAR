@@ -91,18 +91,19 @@ exports.handler = async function (argv) {
     console.log(`added ${chunkNodes.length} nodes`);
   }
 
-  for (const node of nodesToUpdate) {
-    await signer.functionCall({
-      contractId: address,
-      methodName: 'update_weight',
-      args: {
-        validator_id: node.id,
-        weight: node.weight
-      }
-    }); 
-    console.log(`node ${node.id} weight updated to ${node.weight}`);
-  }
+  // Update
+  await signer.functionCall({
+    contractId: address,
+    methodName: 'update_weights',
+    args: {
+      validator_ids: nodesToUpdate.map(n => n.id),
+      weights: nodesToUpdate.map(n => n.weight)
+    },
+    gas: Gas.parse('300 Tgas')
+  });
+  console.log(`Weights updated for ${nodesToUpdate.length} nodes`);
 
+  // Remove
   // set weight to zero instead of remove it
   for (const node of nodesToRemove) {
     await signer.functionCall({

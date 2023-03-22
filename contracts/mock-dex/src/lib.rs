@@ -30,7 +30,7 @@ impl FungibleTokenReceiver for Contract {
         );
         match msg.as_str() {
             "fail" => {
-                env::panic_str(format!("ft_on_transfer() from @{} failed!", sender_id).as_str())
+                env::panic_str(format!("ft_on_transfer() from @{sender_id} failed!").as_str())
             }
             "refund" => PromiseOrValue::Value(U128(amount)),
             _ => PromiseOrValue::Value(U128(0)),

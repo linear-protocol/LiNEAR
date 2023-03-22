@@ -119,8 +119,7 @@ impl LiquidityPool {
         require!(
             prev_shares_amount >= shares,
             format!(
-                "{}. remove {} liquidity shares, but only has {}",
-                ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE, shares, prev_shares_amount
+                "{ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE}. remove {shares} liquidity shares, but only has {prev_shares_amount}"
             )
         );
 
@@ -140,7 +139,7 @@ impl LiquidityPool {
             result
                 .iter()
                 .zip(self.token_account_ids.iter())
-                .map(|(amount, token_id)| format!("{} {}", amount, token_id))
+                .map(|(amount, token_id)| format!("{amount} {token_id}"))
                 .collect::<Vec<String>>(),
         );
         self.shares_total_supply -= shares;
@@ -168,8 +167,7 @@ impl LiquidityPool {
         require!(
             received_amount >= min_amount_out,
             format!(
-                "The received NEAR {} will be less than the expected amount {}",
-                received_amount, min_amount_out
+                "The received NEAR {received_amount} will be less than the expected amount {min_amount_out}"
             )
         );
 

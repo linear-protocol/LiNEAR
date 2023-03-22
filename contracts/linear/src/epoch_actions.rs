@@ -19,7 +19,7 @@ impl LiquidStakingContract {
         let min_gas = GAS_EPOCH_STAKE + GAS_EXT_DEPOSIT_AND_STAKE + GAS_CB_VALIDATOR_STAKED;
         require!(
             env::prepaid_gas() >= min_gas,
-            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+            format!("{ERR_NO_ENOUGH_GAS}. require at least {min_gas:?}")
         );
 
         self.epoch_cleanup();
@@ -80,7 +80,7 @@ impl LiquidStakingContract {
         let min_gas = GAS_EPOCH_UNSTAKE + GAS_EXT_UNSTAKE + GAS_CB_VALIDATOR_UNSTAKED;
         require!(
             env::prepaid_gas() >= min_gas,
-            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+            format!("{ERR_NO_ENOUGH_GAS}. require at least {min_gas:?}")
         );
 
         self.epoch_cleanup();
@@ -135,7 +135,7 @@ impl LiquidStakingContract {
         let min_gas = GAS_EPOCH_UPDATE_REWARDS + GAS_EXT_GET_BALANCE + GAS_CB_VALIDATOR_GET_BALANCE;
         require!(
             env::prepaid_gas() >= min_gas,
-            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+            format!("{ERR_NO_ENOUGH_GAS}. require at least {min_gas:?}")
         );
 
         let validator = self
@@ -163,7 +163,7 @@ impl LiquidStakingContract {
         let min_gas = GAS_EPOCH_WITHDRAW + GAS_EXT_WITHDRAW + GAS_CB_VALIDATOR_WITHDRAW;
         require!(
             env::prepaid_gas() >= min_gas,
-            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+            format!("{ERR_NO_ENOUGH_GAS}. require at least {min_gas:?}")
         );
 
         let mut validator = self
@@ -232,7 +232,7 @@ impl LiquidStakingContract {
         let min_gas = GAS_SYNC_BALANCE + GAS_EXT_GET_ACCOUNT + GAS_CB_VALIDATOR_SYNC_BALANCE;
         require!(
             env::prepaid_gas() >= min_gas,
-            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+            format!("{ERR_NO_ENOUGH_GAS}. require at least {min_gas:?}")
         );
 
         let validator = self

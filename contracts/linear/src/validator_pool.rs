@@ -430,8 +430,7 @@ impl LiquidStakingContract {
         require!(
             validator_ids.len() <= MAX_UPDATE_WEIGHTS_COUNT,
             format!(
-                "The number of validators to be updated at a time cannot exceed {}",
-                MAX_UPDATE_WEIGHTS_COUNT
+                "The number of validators to be updated at a time cannot exceed {MAX_UPDATE_WEIGHTS_COUNT}"
             )
         );
 
@@ -511,7 +510,7 @@ impl LiquidStakingContract {
         let min_gas = GAS_DRAIN_UNSTAKE + GAS_EXT_UNSTAKE + GAS_CB_VALIDATOR_UNSTAKED;
         require!(
             env::prepaid_gas() >= min_gas,
-            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+            format!("{ERR_NO_ENOUGH_GAS}. require at least {min_gas:?}")
         );
 
         let mut validator = self
@@ -571,7 +570,7 @@ impl LiquidStakingContract {
         let min_gas = GAS_DRAIN_WITHDRAW + GAS_EXT_WITHDRAW + GAS_CB_VALIDATOR_WITHDRAW;
         require!(
             env::prepaid_gas() >= min_gas,
-            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+            format!("{ERR_NO_ENOUGH_GAS}. require at least {min_gas:?}")
         );
 
         let mut validator = self

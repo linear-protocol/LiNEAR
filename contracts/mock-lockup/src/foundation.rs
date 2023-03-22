@@ -154,8 +154,7 @@ impl LockupContract {
 
         env::log(
             format!(
-                "Termination Step: Withdrawing {} of terminated unvested balance to account @{}",
-                amount, receiver_id
+                "Termination Step: Withdrawing {amount} of terminated unvested balance to account @{receiver_id}"
             )
             .as_bytes(),
         );

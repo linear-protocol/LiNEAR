@@ -77,3 +77,19 @@ test-mock-fungible-token: mock-fungible-token
 	@mkdir -p ./tests/compiled-contracts/
 	cp ./res/mock_fungible_token.wasm ./tests/compiled-contracts/mock_fungible_token.wasm
 	cd tests && npx near-workspaces-ava __tests__/mock-fungible-token/**.ts --verbose
+
+release:
+	$(call docker_build)
+	mkdir -p res
+	cp target/wasm32-unknown-unknown/release/linear.wasm ./res/linear.wasm
+
+define docker_build
+	docker build -t near-builder:1.68.0 .
+	docker run \
+		--mount type=bind,source=${PWD},target=/host \
+		--cap-add=SYS_PTRACE --security-opt seccomp=unconfined \
+		-w /host \
+		-e RUSTFLAGS=$(RFLAGS) \
+		-i -t near-builder:1.68.0 \
+		make
+endef

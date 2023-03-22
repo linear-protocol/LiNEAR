@@ -214,8 +214,7 @@ impl LockupContract {
                     });
                 env::log(
                     format!(
-                        "Termination Step: There is still terminated unvested balance of {} remaining to be withdrawn",
-                        remaining_balance
+                        "Termination Step: There is still terminated unvested balance of {remaining_balance} remaining to be withdrawn"
                     )
                         .as_bytes(),
                 );

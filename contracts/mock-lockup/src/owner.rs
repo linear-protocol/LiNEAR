@@ -11,7 +11,7 @@ impl LockupContract {
     /// Whitelist is ignored for test purpose
     pub fn select_staking_pool(&mut self, staking_pool_account_id: AccountId) -> bool {
         self.assert_owner();
-        env::log(format!("Selecting staking pool @{}.", staking_pool_account_id).as_bytes());
+        env::log(format!("Selecting staking pool @{staking_pool_account_id}.").as_bytes());
         self.staking_information = Some(StakingInformation {
             staking_pool_account_id,
             status: TransactionStatus::Idle,
@@ -419,8 +419,7 @@ impl LockupContract {
 
         env::log(
             format!(
-                "Checking that transfers are enabled at the transfer poll contract @{}",
-                transfer_poll_account_id,
+                "Checking that transfers are enabled at the transfer poll contract @{transfer_poll_account_id}"
             )
             .as_bytes(),
         );

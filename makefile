@@ -2,13 +2,18 @@ RFLAGS="-C link-arg=-s"
 
 all: linear
 
-linear: contracts/linear
+release:
+	$(call docker_build)
+	mkdir -p res
+	cp target/wasm32-unknown-unknown/release/linear.wasm ./res/linear.wasm
+
+linear: contracts/linear check-rustc-version
 	rustup target add wasm32-unknown-unknown
 	RUSTFLAGS=$(RFLAGS) cargo build -p linear --target wasm32-unknown-unknown --release
 	mkdir -p res
 	cp target/wasm32-unknown-unknown/release/linear.wasm ./res/linear.wasm
 
-linear_test: contracts/linear
+linear_test: contracts/linear check-rustc-version
 	rustup target add wasm32-unknown-unknown
 	RUSTFLAGS=$(RFLAGS) cargo build -p linear --target wasm32-unknown-unknown --features "test"
 	mkdir -p res
@@ -77,3 +82,22 @@ test-mock-fungible-token: mock-fungible-token
 	@mkdir -p ./tests/compiled-contracts/
 	cp ./res/mock_fungible_token.wasm ./tests/compiled-contracts/mock_fungible_token.wasm
 	cd tests && npx near-workspaces-ava __tests__/mock-fungible-token/**.ts --verbose
+
+check-rustc-version:
+	@RUSTC_VERSION=$$(rustc --version | awk '{print $$2}'); \
+	if [ "$$RUSTC_VERSION" != "1.68.0" ]; then \
+		echo "Error: Rustc version is $$RUSTC_VERSION but 1.68.0 is required." && exit 1; \
+	else \
+		echo "Rustc version $$RUSTC_VERSION is installed."; \
+	fi
+
+define docker_build
+	docker build -t near-builder:1.68.0 .
+	docker run \
+		--mount type=bind,source=${PWD},target=/host \
+		--cap-add=SYS_PTRACE --security-opt seccomp=unconfined \
+		-w /host \
+		-e RUSTFLAGS=$(RFLAGS) \
+		-i -t near-builder:1.68.0 \
+		make
+endef

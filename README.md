@@ -65,6 +65,8 @@ In order to use it, run `npm i` first.
   - `git push origin release/v1.0.x`
 - Create a PR from the release branch
 - Once the PR is merged, publish a new release on GitHub
+- Build release artifacts to deploy:
+  - `make release`
 
 
 ## Manage

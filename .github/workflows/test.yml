@@ -9,6 +9,7 @@ on:
       - 'contracts/**'
       - 'tests/**'
       - 'Cargo.*'
+      - '.github/**'
 
 env:
   CARGO_TERM_COLOR: always

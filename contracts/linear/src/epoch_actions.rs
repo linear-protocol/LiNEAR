@@ -13,6 +13,75 @@ const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR;
 /// during each epoch.
 #[near_bindgen]
 impl LiquidStakingContract {
+    #[cfg(feature = "test")]
+    pub fn stake_to_validator(&mut self, validator_id: AccountId) {
+        self.assert_running();
+        // make sure enough gas was given
+        let min_gas = GAS_EPOCH_STAKE + GAS_EXT_DEPOSIT_AND_STAKE + GAS_CB_VALIDATOR_STAKED;
+
+        require!(
+            env::prepaid_gas() >= min_gas,
+            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+        );
+
+        let mut validator = self
+            .validator_pool
+            .get_validator(&validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        let amount = env::attached_deposit();
+
+        Event::EpochStakeAttempt {
+            validator_id: &validator_id,
+            amount: &U128(amount),
+        }
+        .emit();
+
+        // do staking on selected validator
+        validator
+            .deposit_and_stake(amount)
+            .then(ext_self_action_cb::validator_staked_callback(
+                validator.account_id.clone(),
+                amount.into(),
+                env::current_account_id(),
+                NO_DEPOSIT,
+                GAS_CB_VALIDATOR_STAKED,
+            ));
+    }
+
+    #[cfg(feature = "test")]
+    pub fn unstake_from_validator(&mut self, validator_id: AccountId, amount: U128) {
+        self.assert_running();
+        // make sure enough gas was given
+        let min_gas = GAS_EPOCH_UNSTAKE + GAS_EXT_UNSTAKE + GAS_CB_VALIDATOR_UNSTAKED;
+        require!(
+            env::prepaid_gas() >= min_gas,
+            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+        );
+
+        let mut validator = self
+            .validator_pool
+            .get_validator(&validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        Event::EpochUnstakeAttempt {
+            validator_id: &validator_id,
+            amount: &amount,
+        }
+        .emit();
+
+        // do staking on selected validator
+        validator
+            .unstake(&mut self.validator_pool, amount.into())
+            .then(ext_self_action_cb::validator_unstaked_callback(
+                validator.account_id.clone(),
+                amount.into(),
+                env::current_account_id(),
+                NO_DEPOSIT,
+                GAS_CB_VALIDATOR_STAKED,
+            ));
+    }
+
     pub fn epoch_stake(&mut self) -> bool {
         self.assert_running();
         // make sure enough gas was given

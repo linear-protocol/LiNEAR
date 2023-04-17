@@ -363,6 +363,21 @@ impl LiquidStakingContract {
         }
     }
 
+    #[cfg(feature = "test")]
+    pub fn add_validators_without_whitelist_check(
+        &mut self,
+        validator_ids: Vec<AccountId>,
+        weights: Vec<u16>,
+    ) {
+        self.assert_running();
+        self.assert_manager();
+        require!(validator_ids.len() == weights.len(), ERR_BAD_VALIDATOR_LIST);
+        for i in 0..validator_ids.len() {
+            self.validator_pool
+                .add_validator(&validator_ids[i], weights[i]);
+        }
+    }
+
     /// Add a new validator only if it's whitelisted
     fn add_whitelisted_validator(&mut self, validator_id: &AccountId, weight: u16) {
         let whitelist_id = self

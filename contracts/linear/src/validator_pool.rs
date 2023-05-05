@@ -160,6 +160,17 @@ impl ValidatorPool {
         old_weight
     }
 
+    #[cfg(feature = "test")]
+    pub fn set_pending_release(&mut self, validator_id: &AccountId) {
+        let mut validator: Validator = self
+            .validators
+            .get(validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST)
+            .into();
+        validator.unstake_fired_epoch = get_epoch_height();
+        self.validators.insert(validator_id, &validator.into());
+    }
+
     /// Update base stake amount of the validator
     pub fn update_base_stake_amount(&mut self, validator_id: &AccountId, amount: Balance) {
         let mut validator: Validator = self

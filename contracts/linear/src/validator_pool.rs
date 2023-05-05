@@ -482,10 +482,9 @@ impl LiquidStakingContract {
         self.assert_running();
         self.assert_manager();
         for i in 0..validator_ids.len() {
-            self.validator_pool
-                .set_pending_release(&validator_ids[i]);
+            self.validator_pool.set_pending_release(&validator_ids[i]);
         }
-    } 
+    }
 
     // --- View Functions ---
 

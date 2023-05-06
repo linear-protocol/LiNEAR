@@ -486,6 +486,11 @@ impl LiquidStakingContract {
         }
     }
 
+    #[cfg(feature = "test")]
+    pub fn set_total_staked_near_amount(&mut self, amount: Balance) {
+        self.total_staked_near_amount = amount;
+    }
+
     // --- View Functions ---
 
     #[cfg(feature = "test")]

@@ -273,7 +273,7 @@ impl LiquidStakingContract {
     /// Cleaning up stake requirements and unstake requirements,
     /// since some stake requirements could be eliminated if
     /// there are more unstake requirements, and vice versa.
-    fn epoch_cleanup(&mut self) {
+    pub fn epoch_cleanup(&mut self) {
         if self.last_settlement_epoch == get_epoch_height() {
             return;
         }

@@ -171,6 +171,16 @@ impl ValidatorPool {
         self.validators.insert(validator_id, &validator.into());
     }
 
+    #[cfg(feature = "test")]
+    pub fn set_draining(&mut self, validator_id: &AccountId) {
+        let mut validator: Validator = self
+            .validators
+            .get(validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST)
+            .into();
+        validator.set_draining(self, true);
+    }
+
     /// Update base stake amount of the validator
     pub fn update_base_stake_amount(&mut self, validator_id: &AccountId, amount: Balance) {
         let mut validator: Validator = self
@@ -483,6 +493,13 @@ impl LiquidStakingContract {
         self.assert_manager();
         for i in 0..validator_ids.len() {
             self.validator_pool.set_pending_release(&validator_ids[i]);
+        }
+    }
+
+    #[cfg(feature = "test")]
+    pub fn set_drainings(&mut self, validator_ids: Vec<AccountId>) {
+        for i in 0..validator_ids.len() {
+            self.validator_pool.set_draining(&validator_ids[i]);
         }
     }
 

@@ -47,9 +47,9 @@ pub struct Summary {
     /// Total base stake amount of NEAR on validators
     pub validators_total_base_stake_amount: U128,
     /// Amount of NEAR that is requested to stake by all users during the last epoch
-    pub epoch_requested_stake_amount: Balance,
+    pub epoch_requested_stake_amount: U128,
     /// Amount of NEAR that is requested to unstake by all users during the last epoch
-    pub epoch_requested_unstake_amount: Balance,
+    pub epoch_requested_unstake_amount: U128,
 }
 
 #[derive(Serialize, Deserialize, Clone)]

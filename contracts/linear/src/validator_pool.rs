@@ -10,6 +10,7 @@ use near_sdk::{
     collections::UnorderedMap,
     ext_contract, is_promise_success,
     json_types::U128,
+    json_types::U64,
     log, near_bindgen, require, AccountId, Balance, EpochHeight, Promise,
 };
 use std::cmp::min;
@@ -161,13 +162,13 @@ impl ValidatorPool {
     }
 
     #[cfg(feature = "test")]
-    pub fn set_pending_release(&mut self, validator_id: &AccountId) {
+    pub fn set_unstake_fired_epoch(&mut self, validator_id: &AccountId, epoch_height: EpochHeight) {
         let mut validator: Validator = self
             .validators
             .get(validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST)
             .into();
-        validator.unstake_fired_epoch = get_epoch_height();
+        validator.unstake_fired_epoch = epoch_height;
         self.validators.insert(validator_id, &validator.into());
     }
 
@@ -488,11 +489,16 @@ impl LiquidStakingContract {
     }
 
     #[cfg(feature = "test")]
-    pub fn set_pending_releases(&mut self, validator_ids: Vec<AccountId>) {
+    pub fn batch_set_unstake_fired_epoch(
+        &mut self,
+        validator_ids: Vec<AccountId>,
+        epoch_heights: Vec<U64>,
+    ) {
         self.assert_running();
         self.assert_manager();
         for i in 0..validator_ids.len() {
-            self.validator_pool.set_pending_release(&validator_ids[i]);
+            self.validator_pool
+                .set_unstake_fired_epoch(&validator_ids[i], epoch_heights[i].into());
         }
     }
 

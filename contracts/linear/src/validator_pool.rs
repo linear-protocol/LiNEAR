@@ -12,7 +12,7 @@ use near_sdk::{
     json_types::U128,
     log, near_bindgen, require, AccountId, Balance, EpochHeight, Promise,
 };
-use std::cmp::min;
+use std::cmp::{min, Ordering};
 
 const STAKE_SMALL_CHANGE_AMOUNT: Balance = ONE_NEAR;
 const UNSTAKE_FACTOR: u128 = 2;
@@ -337,6 +337,130 @@ impl ValidatorPool {
         // no enough available validators to unstake
         // double the unstake wating time
         2 * NUM_EPOCHS_TO_UNLOCK
+    }
+}
+
+// V2 Unstake strategy impl
+impl ValidatorPool {
+    /// Strategy
+    /// 1. Extract validator list that are able
+    ///
+    ///
+    pub fn get_candidate_to_unstake_v2(
+        &self,
+        total_amount_to_unstake: Balance,
+        total_staked_near_amount: Balance,
+    ) -> Option<CandidateValidator> {
+        let mut candidate_validators = self.extract_candidate_validators(total_staked_near_amount);
+
+        Self::sort_candidate_validators_by_delta_asc(&mut candidate_validators);
+
+        let candidate = candidate_validators
+            .iter()
+            .find(|(validator, target_amount)| {
+                let delta = validator.staked_amount - *target_amount;
+                total_amount_to_unstake <= delta
+            });
+
+        if let Some((validator, _)) = candidate {
+            return Some(CandidateValidator {
+                validator: validator.clone(),
+                amount: total_amount_to_unstake,
+            });
+        };
+
+        Self::sort_candidate_validators_by_delta_to_target_desc(&mut candidate_validators);
+
+        candidate_validators
+            .first()
+            .map(|(validator, target_amount)| {
+                let amount_to_unstake = min3(
+                    total_amount_to_unstake,
+                    target_amount / 2,
+                    validator
+                        .staked_amount
+                        .saturating_sub(validator.base_stake_amount),
+                );
+                CandidateValidator {
+                    validator: validator.clone(),
+                    amount: amount_to_unstake,
+                }
+            })
+    }
+
+    // extract from validator list, return Vec<(validator, target_amount)>
+    fn extract_candidate_validators(
+        &self,
+        total_staked_near_amount: Balance,
+    ) -> Vec<(Validator, Balance)> {
+        self.validators
+            .values()
+            .map(|versioned_validator| {
+                let validator = Validator::from(versioned_validator);
+                let target_amount =
+                    self.validator_target_stake_amount(total_staked_near_amount, &validator);
+                (validator, target_amount)
+            })
+            .filter(|(validator, target_amount)| {
+                !validator.pending_release() // validator is not in pending release
+                    && validator.staked_amount > *target_amount // delta must > 0
+                    && validator.staked_amount > validator.base_stake_amount // guaranteed minimum staked amount
+            })
+            .collect()
+    }
+
+    // sort candidate validator by delta in ascending
+    // Note: delta must >= 0, else panic will occur
+    fn sort_candidate_validators_by_delta_asc(candidate_validators: &mut [(Validator, Balance)]) {
+        candidate_validators.sort_by(
+            |(validator_1, target_amount_1), (validator_2, target_amount_2)| {
+                let delta_1 = validator_1
+                    .staked_amount
+                    .checked_sub(*target_amount_1)
+                    .expect(ERR_DELTA_SHOULD_GTE_ZERO);
+                let delta_2 = validator_2
+                    .staked_amount
+                    .checked_sub(*target_amount_2)
+                    .expect(ERR_DELTA_SHOULD_GTE_ZERO);
+                delta_1.cmp(&delta_2)
+            },
+        );
+    }
+
+    // sort candidate validator by delta in descending
+    // Note: delta must >= 0, else panic will occur
+    fn sort_candidate_validators_by_delta_to_target_desc(
+        candidate_validators: &mut [(Validator, Balance)],
+    ) {
+        candidate_validators.sort_by(
+            |(validator_1, target_amount_1), (validator_2, target_amount_2)| {
+                let target_amount_1 = *target_amount_1;
+                let target_amount_2 = *target_amount_2;
+
+                let delta_1 = validator_1
+                    .staked_amount
+                    .checked_sub(target_amount_1)
+                    .expect(ERR_DELTA_SHOULD_GTE_ZERO);
+                let delta_2 = validator_2
+                    .staked_amount
+                    .checked_sub(target_amount_2)
+                    .expect(ERR_DELTA_SHOULD_GTE_ZERO);
+
+                if target_amount_1 == 0 && target_amount_2 == 0 {
+                    delta_2.cmp(&delta_1)
+                } else if target_amount_1 != 0 && target_amount_2 == 0 {
+                    Ordering::Greater
+                } else if target_amount_1 == 0 && target_amount_2 != 0 {
+                    Ordering::Less
+                } else {
+                    let target_to_delta_1 = target_amount_1 / delta_1;
+                    let target_to_delta_2 = target_amount_2 / delta_2;
+
+                    // big `target_to_delta` means small `delta_to_target`
+                    target_to_delta_1.cmp(&target_to_delta_2)
+                }
+            },
+        );
     }
 }
 

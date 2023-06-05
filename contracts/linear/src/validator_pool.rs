@@ -360,7 +360,7 @@ impl ValidatorPool {
 
         let candidate = candidate_validators
             .iter()
-            .find(|(_validator, _target_amount, delta)| total_amount_to_unstake <= *delta);
+            .find(|(_validator, _target_amount, delta)| *delta >= total_amount_to_unstake);
 
         if let Some((validator, _target_amount, _delta)) = candidate {
             return Some(CandidateValidator {
@@ -373,7 +373,7 @@ impl ValidatorPool {
 
         candidate_validators
             .first()
-            .map(|(validator, target_amount, _)| {
+            .map(|(validator, target_amount, _delta)| {
                 let amount_to_unstake = min3(
                     total_amount_to_unstake,
                     target_amount / 2,

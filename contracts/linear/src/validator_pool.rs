@@ -343,9 +343,12 @@ impl ValidatorPool {
 // V2 Unstake strategy impl
 impl ValidatorPool {
     /// Strategy
-    /// 1. Extract validator list that are able
-    ///
-    ///
+    /// Step 1. If there is a validator whose `delta` is greater than `total_amount_to_unstake`,
+    ///         it will be selected (If more than one validator match the condition, select one
+    ///         which has smallest `delta`).
+    /// Step 2. If we didn't find any valid validator in step 1, we should select a validator which
+    ///         has largest `delta / target_amount` (If `target_amount` is 0, select one which
+    ///         has largest `delta`).
     pub fn get_candidate_to_unstake_v2(
         &self,
         total_amount_to_unstake: Balance,
@@ -357,12 +360,9 @@ impl ValidatorPool {
 
         let candidate = candidate_validators
             .iter()
-            .find(|(validator, target_amount)| {
-                let delta = validator.staked_amount - *target_amount;
-                total_amount_to_unstake <= delta
-            });
+            .find(|(_validator, _target_amount, delta)| total_amount_to_unstake <= *delta);
 
-        if let Some((validator, _)) = candidate {
+        if let Some((validator, _target_amount, _delta)) = candidate {
             return Some(CandidateValidator {
                 validator: validator.clone(),
                 amount: total_amount_to_unstake,
@@ -373,7 +373,7 @@ impl ValidatorPool {
 
         candidate_validators
             .first()
-            .map(|(validator, target_amount)| {
+            .map(|(validator, target_amount, _)| {
                 let amount_to_unstake = min3(
                     total_amount_to_unstake,
                     target_amount / 2,
@@ -392,7 +392,7 @@ impl ValidatorPool {
     fn extract_candidate_validators(
         &self,
         total_staked_near_amount: Balance,
-    ) -> Vec<(Validator, Balance)> {
+    ) -> Vec<(Validator, Balance, Balance)> {
         self.validators
             .values()
             .map(|versioned_validator| {
@@ -406,48 +406,34 @@ impl ValidatorPool {
                     && validator.staked_amount > *target_amount // delta must > 0
                     && validator.staked_amount > validator.base_stake_amount // guaranteed minimum staked amount
             })
+            .map(|(validator, target_amount)| {
+                let delta = validator.staked_amount - target_amount; // safe sub
+                (validator, target_amount, delta)
+            })
             .collect()
     }
 
     // sort candidate validator by delta in ascending
-    // Note: delta must >= 0, else panic will occur
-    fn sort_candidate_validators_by_delta_asc(candidate_validators: &mut [(Validator, Balance)]) {
+    fn sort_candidate_validators_by_delta_asc(
+        candidate_validators: &mut [(Validator, Balance, Balance)],
+    ) {
         candidate_validators.sort_by(
-            |(validator_1, target_amount_1), (validator_2, target_amount_2)| {
-                let delta_1 = validator_1
-                    .staked_amount
-                    .checked_sub(*target_amount_1)
-                    .expect(ERR_DELTA_SHOULD_GTE_ZERO);
-                let delta_2 = validator_2
-                    .staked_amount
-                    .checked_sub(*target_amount_2)
-                    .expect(ERR_DELTA_SHOULD_GTE_ZERO);
-                delta_1.cmp(&delta_2)
-            },
+            |(_validator_1, _target_amount_1, delta_1),
+             (_validator_2, _target_amount_2, delta_2)| { delta_1.cmp(delta_2) },
         );
     }
 
     // sort candidate validator by delta in descending
-    // Note: delta must >= 0, else panic will occur
     fn sort_candidate_validators_by_delta_to_target_desc(
-        candidate_validators: &mut [(Validator, Balance)],
+        candidate_validators: &mut [(Validator, Balance, Balance)],
     ) {
         candidate_validators.sort_by(
-            |(validator_1, target_amount_1), (validator_2, target_amount_2)| {
+            |(_validator_1, target_amount_1, delta_1), (_validator_2, target_amount_2, delta_2)| {
                 let target_amount_1 = *target_amount_1;
                 let target_amount_2 = *target_amount_2;
 
-                let delta_1 = validator_1
-                    .staked_amount
-                    .checked_sub(target_amount_1)
-                    .expect(ERR_DELTA_SHOULD_GTE_ZERO);
-                let delta_2 = validator_2
-                    .staked_amount
-                    .checked_sub(target_amount_2)
-                    .expect(ERR_DELTA_SHOULD_GTE_ZERO);
-
                 if target_amount_1 == 0 && target_amount_2 == 0 {
-                    delta_2.cmp(&delta_1)
+                    delta_2.cmp(delta_1)
                 } else if target_amount_1 != 0 && target_amount_2 == 0 {
                     Ordering::Greater
                 } else if target_amount_1 == 0 && target_amount_2 != 0 {

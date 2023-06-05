@@ -12,6 +12,5 @@ near-sdk = "3.1.0"
 uint = { version = "0.8.3", default-features = false }
 
 [dev-dependencies]
-near-sdk-sim = "3.2.0"
 quickcheck = "0.9"
 quickcheck_macros = "0.9"

@@ -1556,4 +1556,43 @@ mod tests {
         assert_eq!(candidate.validator.account_id, ppt.account_id);
         assert_eq!(candidate.amount, 100 * ONE_NEAR);
     }
+
+    #[test]
+    fn test_unstake_candidate_select_v2_with_base_stake_amount() {
+        let mut validator_pool = ValidatorPool::new();
+
+        let mut foo = validator_pool.add_validator(&AccountId::new_unchecked("foo".to_string()), 1);
+        let mut bar = validator_pool.add_validator(&AccountId::new_unchecked("bar".to_string()), 1);
+
+        // set foo's base stake amount to 200
+        validator_pool.update_base_stake_amount(&foo.account_id, 200 * ONE_NEAR);
+        foo = validator_pool
+            .get_validator(&AccountId::new_unchecked("foo".to_string()))
+            .unwrap();
+        // set bar's base stake amount to 100
+        validator_pool.update_base_stake_amount(&bar.account_id, 100 * ONE_NEAR);
+        bar = validator_pool
+            .get_validator(&AccountId::new_unchecked("bar".to_string()))
+            .unwrap();
+
+        // manually set staked amount
+        foo.staked_amount = 300 * ONE_NEAR; // target is 250, delta is 50, base is 200
+        bar.staked_amount = 170 * ONE_NEAR; // target is 150, delta is 20, base is 100
+
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+
+        // foo has largest `delta / target`, so it will be selected.
+        // `target / 2` is 125 NEAR, `stake - base` is 100 NEAR, in order to
+        // guarantee base stake amount, we can unstake no more than 100 NEAR
+        let candidate = validator_pool.get_candidate_to_unstake_v2(150 * ONE_NEAR, 400 * ONE_NEAR);
+        assert!(candidate.is_some());
+        let candidate = candidate.unwrap();
+        assert_eq!(candidate.validator.account_id, foo.account_id);
+        assert_eq!(candidate.amount, 100 * ONE_NEAR);
+    }
 }

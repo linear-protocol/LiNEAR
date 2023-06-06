@@ -376,7 +376,11 @@ impl ValidatorPool {
             .map(|(validator, target_amount, _delta)| {
                 let amount_to_unstake = min3(
                     total_amount_to_unstake,
-                    target_amount / 2,
+                    if *target_amount != 0 {
+                        target_amount / 2
+                    } else {
+                        u128::MAX
+                    },
                     validator
                         .staked_amount
                         .saturating_sub(validator.base_stake_amount),
@@ -1499,5 +1503,57 @@ mod tests {
         // to avoid blocking unstake, more amount than the delta (100 NEAR) will be unstaked.
         assert_eq!(candidate.amount, 150 * ONE_NEAR);
         assert_eq!(candidate.validator.account_id, bar.account_id);
+    }
+
+    #[test]
+    fn test_unstake_candidate_select_v2() {
+        let mut validator_pool = ValidatorPool::new();
+
+        let mut foo = validator_pool.add_validator(&AccountId::new_unchecked("foo".to_string()), 1);
+        let mut bar = validator_pool.add_validator(&AccountId::new_unchecked("bar".to_string()), 1);
+        let mut zoo = validator_pool.add_validator(&AccountId::new_unchecked("zoo".to_string()), 2);
+
+        // manually set staked amounts
+        foo.staked_amount = 108 * ONE_NEAR; // target is 100, delta is 8
+        bar.staked_amount = 109 * ONE_NEAR; // target is 100, delta is 9
+        zoo.staked_amount = 210 * ONE_NEAR; // target is 200, delta is 10
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
+
+        // test only step 1
+        // all `delta` match the `total_amount_to_unstake`, and foo's is the smallest
+        let candidate = validator_pool.get_candidate_to_unstake_v2(5 * ONE_NEAR, 400 * ONE_NEAR);
+        assert!(candidate.is_some());
+        let candidate = candidate.unwrap();
+        assert_eq!(candidate.validator.account_id, foo.account_id);
+        assert_eq!(candidate.amount, 5 * ONE_NEAR);
+
+        // test step 2
+        // no `delta` match the `total_amount_to_unstake`, but bar has the largest `delta / target`
+        let candidate = validator_pool.get_candidate_to_unstake_v2(110 * ONE_NEAR, 400 * ONE_NEAR);
+        assert!(candidate.is_some());
+        let candidate = candidate.unwrap();
+        assert_eq!(candidate.validator.account_id, bar.account_id);
+        assert_eq!(candidate.amount, 50 * ONE_NEAR);
+
+        // test step 2 with zero target validator
+        let mut ppt = validator_pool.add_validator(&AccountId::new_unchecked("ppt".to_string()), 0);
+        ppt.staked_amount = 100 * ONE_NEAR; // target is 0, delta is 100
+        validator_pool
+            .validators
+            .insert(&ppt.account_id, &ppt.clone().into());
+
+        let candidate = validator_pool.get_candidate_to_unstake_v2(110 * ONE_NEAR, 400 * ONE_NEAR);
+        assert!(candidate.is_some());
+        let candidate = candidate.unwrap();
+        assert_eq!(candidate.validator.account_id, ppt.account_id);
+        assert_eq!(candidate.amount, 100 * ONE_NEAR);
     }
 }

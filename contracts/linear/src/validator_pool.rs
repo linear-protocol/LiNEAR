@@ -376,14 +376,10 @@ impl ValidatorPool {
             .map(|(validator, target_amount, _delta)| {
                 let amount_to_unstake = min3(
                     total_amount_to_unstake,
-                    if *target_amount != 0 {
-                        target_amount / 2
-                    } else {
-                        u128::MAX
-                    },
+                    validator.staked_amount.saturating_sub(target_amount / 2), // leave at least `target / 2` amount
                     validator
                         .staked_amount
-                        .saturating_sub(validator.base_stake_amount),
+                        .saturating_sub(validator.base_stake_amount), // leave at least base stake amount
                 );
                 CandidateValidator {
                     validator: validator.clone(),
@@ -392,7 +388,7 @@ impl ValidatorPool {
             })
     }
 
-    // extract from validator list, return Vec<(validator, target_amount)>
+    // extract from validator list, return Vec<(validator, target_amount, delta)>
     fn extract_candidate_validators(
         &self,
         total_staked_near_amount: Balance,

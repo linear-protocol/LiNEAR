@@ -442,12 +442,13 @@ impl ValidatorPool {
                     Ordering::Greater
                 } else if target_amount_1 == 0 && target_amount_2 != 0 {
                     Ordering::Less
-                } else {
+                } else if *delta_1 != 0 && *delta_2 != 0 {
+                    // big `target_to_delta` means small `delta_to_target`
                     let target_to_delta_1 = target_amount_1 / delta_1;
                     let target_to_delta_2 = target_amount_2 / delta_2;
-
-                    // big `target_to_delta` means small `delta_to_target`
                     target_to_delta_1.cmp(&target_to_delta_2)
+                } else {
+                    delta_2.cmp(delta_1)
                 }
             },
         );
@@ -1577,6 +1578,7 @@ mod tests {
 
         let mut foo = validator_pool.add_validator(&AccountId::new_unchecked("foo".to_string()), 1);
         let mut bar = validator_pool.add_validator(&AccountId::new_unchecked("bar".to_string()), 1);
+        let mut zoo = validator_pool.add_validator(&AccountId::new_unchecked("zoo".to_string()), 1);
 
         // set foo's base stake amount to 200
         validator_pool.update_base_stake_amount(&foo.account_id, 200 * ONE_NEAR);
@@ -1588,10 +1590,16 @@ mod tests {
         bar = validator_pool
             .get_validator(&AccountId::new_unchecked("bar".to_string()))
             .unwrap();
+        // set zoo's base stake amount to 70
+        validator_pool.update_base_stake_amount(&zoo.account_id, 70 * ONE_NEAR);
+        zoo = validator_pool
+            .get_validator(&AccountId::new_unchecked("zoo".to_string()))
+            .unwrap();
 
         // manually set staked amount
-        foo.staked_amount = 300 * ONE_NEAR; // target is 250, delta is 50, base is 200
-        bar.staked_amount = 170 * ONE_NEAR; // target is 150, delta is 20, base is 100
+        foo.staked_amount = 220 * ONE_NEAR; // target is 210, delta is 10, base is 200
+        bar.staked_amount = 120 * ONE_NEAR; // target is 110, delta is 10, base is 100
+        zoo.staked_amount = 90 * ONE_NEAR; // target is 80, delta is 10, base is 70
 
         validator_pool
             .validators
@@ -1599,14 +1607,17 @@ mod tests {
         validator_pool
             .validators
             .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
 
-        // foo has largest `delta / target`, so it will be selected.
-        // `target / 2` is 125 NEAR, `stake - base` is 100 NEAR, in order to
-        // guarantee base stake amount, we can unstake no more than 100 NEAR
-        let candidate = validator_pool.get_candidate_to_unstake_v2(150 * ONE_NEAR, 400 * ONE_NEAR);
+        // zoo has largest `delta / target`, so it will be selected.
+        // zoo's `target / 2` is 40 NEAR, `stake - base` is 20 NEAR, in order to
+        // guarantee base stake amount, we can unstake no more than 20 NEAR
+        let candidate = validator_pool.get_candidate_to_unstake_v2(30 * ONE_NEAR, 400 * ONE_NEAR);
         assert!(candidate.is_some());
         let candidate = candidate.unwrap();
-        assert_eq!(candidate.validator.account_id, foo.account_id);
-        assert_eq!(candidate.amount, 100 * ONE_NEAR);
+        assert_eq!(candidate.validator.account_id, zoo.account_id);
+        assert_eq!(candidate.amount, 20 * ONE_NEAR);
     }
 }

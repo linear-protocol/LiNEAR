@@ -1187,8 +1187,8 @@ mod tests {
         let mut zoo = validator_pool.add_validator(&AccountId::new_unchecked("zoo".to_string()), 2);
 
         // manually set staked amounts
-        foo.staked_amount = 100 * ONE_NEAR; // target is 100
-        bar.staked_amount = 100 * ONE_NEAR; // target is 100
+        foo.staked_amount = 108 * ONE_NEAR; // target is 100
+        bar.staked_amount = 107 * ONE_NEAR; // target is 100
         zoo.staked_amount = 210 * ONE_NEAR; // target is 200
         validator_pool
             .validators
@@ -1200,10 +1200,10 @@ mod tests {
             .validators
             .insert(&zoo.account_id, &zoo.clone().into());
 
-        // we have currently 510 already staked, 110 to unstake, target total 400,
+        // we have currently 425 already staked, 25 to unstake, target total 400,
         // each weight point should be 100, thus zoo is the most unbalanced one.
 
-        let candidate = validator_pool.get_candidate_to_unstake(110 * ONE_NEAR, 400 * ONE_NEAR);
+        let candidate = validator_pool.get_candidate_to_unstake(25 * ONE_NEAR, 400 * ONE_NEAR);
         assert!(candidate.is_some());
         let candidate = candidate.unwrap();
         assert_eq!(candidate.validator.account_id, zoo.account_id);

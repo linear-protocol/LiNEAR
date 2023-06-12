@@ -1,0 +1,416 @@
+[
+  {
+    "id": "astro-stakers.poolv1.near",
+    "weight": 20,
+    "fee": "1%",
+    "Delegators": 5274
+  },
+  {
+    "id": "bisontrails.poolv1.near",
+    "weight": 0,
+    "fee": "10%",
+    "Delegators": 772
+  },
+  {
+    "id": "dragonfly.poolv1.near",
+    "weight": 0,
+    "fee": "10%",
+    "Delegators": 351
+  },
+  {
+    "id": "foundry.poolv1.near",
+    "weight": 0,
+    "fee": "9%",
+    "Delegators": 250
+  },
+  {
+    "id": "finoa.poolv1.near",
+    "weight": 5,
+    "fee": "10%",
+    "Delegators": 258
+  },
+  {
+    "id": "blockdaemon.poolv1.near",
+    "weight": 10,
+    "fee": "5%",
+    "Delegators": 368
+  },
+  {
+    "id": "epic.poolv1.near",
+    "weight": 20,
+    "fee": "1%",
+    "Delegators": 3020
+  },
+  {
+    "id": "rekt.poolv1.near",
+    "weight": 20,
+    "fee": "2%",
+    "Delegators": 952
+  },
+  {
+    "id": "electric.poolv1.near",
+    "weight": 0,
+    "fee": "10%",
+    "Delegators": 206
+  },
+  {
+    "id": "zavodil.poolv1.near",
+    "weight": 20,
+    "fee": "1%",
+    "Delegators": 4397
+  },
+  {
+    "id": "d1.poolv1.near",
+    "weight": 10,
+    "fee": "5%",
+    "Delegators": 385
+  },
+  {
+    "id": "dokiacapital.poolv1.near",
+    "weight": 0,
+    "fee": "10%",
+    "Delegators": 283
+  },
+  {
+    "id": "chorusone.poolv1.near",
+    "weight": 10,
+    "fee": "8%",
+    "Delegators": 421
+  },
+  {
+    "id": "08investinwomen_runbybisontrails.poolv1.near",
+    "weight": 5,
+    "fee": "5%",
+    "Delegators": 347
+  },
+  {
+    "id": "continue.poolv1.near",
+    "weight": 5,
+    "fee": "5%",
+    "Delegators": 333
+  },
+  {
+    "id": "legends.poolv1.near",
+    "weight": 0,
+    "fee": "10%",
+    "Delegators": 334
+  },
+  {
+    "id": "binancenode1.poolv1.near",
+    "weight": 10,
+    "fee": "5%",
+    "Delegators": 303
+  },
+  {
+    "id": "future_is_near.poolv1.near",
+    "weight": 0,
+    "fee": "3%",
+    "Delegators": 384
+  },
+  {
+    "id": "hb436_pool.poolv1.near",
+    "weight": 0,
+    "fee": "10%",
+    "Delegators": 146
+  },
+  {
+    "id": "openshards.poolv1.near",
+    "weight": 15,
+    "fee": "5%",
+    "Delegators": 1659
+  },
+  {
+    "id": "figment.poolv1.near",
+    "weight": 0,
+    "fee": "10%",
+    "Delegators": 353
+  },
+  {
+    "id": "ideocolabventures.poolv1.near",
+    "weight": 0,
+    "fee": "10%",
+    "Delegators": 167
+  },
+  {
+    "id": "northernlights.poolv1.near",
+    "weight": 10,
+    "fee": "8%",
+    "Delegators": 196
+  },
+  {
+    "id": "buildlinks.poolv1.near",
+    "weight": 10,
+    "fee": "5%",
+    "Delegators": 1295
+  },
+  {
+    "id": "stakin.poolv1.near",
+    "weight": 10,
+    "fee": "1%",
+    "Delegators": 2316
+  },
+  {
+    "id": "smart-stake.poolv1.near",
+    "weight": 20,
+    "fee": "1%",
+    "Delegators": 2003
+  },
+  {
+    "id": "nearfans.poolv1.near",
+    "weight": 0,
+    "fee": "5%",
+    "Delegators": 424
+  },
+  {
+    "id": "nodeasy.poolv1.near",
+    "weight": 15,
+    "fee": "3%",
+    "Delegators": 489
+  },
+  {
+    "id": "erm.poolv1.near",
+    "weight": 0,
+    "fee": "8%",
+    "Delegators": 171
+  },
+  {
+    "id": "cryptium.poolv1.near",
+    "weight": 10,
+    "fee": "5%",
+    "Delegators": 353
+  },
+  {
+    "id": "everstake.poolv1.near",
+    "weight": 15,
+    "fee": "3%",
+    "Delegators": 2105
+  },
+  {
+    "id": "lux.poolv1.near",
+    "weight": 0,
+    "fee": "5%",
+    "Delegators": 320
+  },
+  {
+    "id": "sharpdarts.poolv1.near",
+    "weight": 10,
+    "fee": "5%",
+    "Delegators": 391
+  },
+  {
+    "id": "hashquark.poolv1.near",
+    "weight": 15,
+    "fee": "3%",
+    "Delegators": 564
+  },
+  {
+    "id": "dsrvlabs.poolv1.near",
+    "weight": 0,
+    "fee": "10%",
+    "Delegators": 194
+  },
+  {
+    "id": "baziliknear.poolv1.near",
+    "weight": 15,
+    "fee": "3%",
+    "Delegators": 492
+  },
+  {
+    "id": "stakesabai.poolv1.near",
+    "weight": 20,
+    "fee": "1%",
+    "Delegators": 1900
+  },
+  {
+    "id": "masternode24.poolv1.near",
+    "weight": 15,
+    "fee": "1%",
+    "Delegators": 1929
+  },
+  {
+    "id": "stardust.poolv1.near",
+    "weight": 10,
+    "fee": "5%",
+    "Delegators": 445
+  },
+  {
+    "id": "lunanova.poolv1.near",
+    "weight": 10,
+    "fee": "7%",
+    "Delegators": 265
+  },
+  {
+    "id": "appload.poolv1.near",
+    "weight": 15,
+    "fee": "3%",
+    "Delegators": 1036
+  },
+  {
+    "id": "republic.poolv1.near",
+    "weight": 0,
+    "fee": "5%",
+    "Delegators": 25
+  },
+  {
+    "id": "fish.poolv1.near",
+    "weight": 0,
+    "fee": "4%",
+    "Delegators": 627
+  },
+  {
+    "id": "moonlet.poolv1.near",
+    "weight": 10,
+    "fee": "5%",
+    "Delegators": 1094
+  },
+  {
+    "id": "01node.poolv1.near",
+    "weight": 15,
+    "fee": "3%",
+    "Delegators": 1861
+  },
+  {
+    "id": "jazza.poolv1.near",
+    "weight": 10,
+    "fee": "4%",
+    "Delegators": 317
+  },
+  {
+    "id": "inotel.poolv1.near",
+    "weight": 0,
+    "fee": "3%",
+    "Delegators": 455
+  },
+  {
+    "id": "fresh.poolv1.near",
+    "weight": 0,
+    "fee": "2%",
+    "Delegators": 882
+  },
+  {
+    "id": "zkv_staketosupportprivacy.poolv1.near",
+    "weight": 10,
+    "fee": "4%",
+    "Delegators": 320
+  },
+  {
+    "id": "monresearch.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "stakerrash.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "welldonestake.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "snsmln.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "ifedi.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "smartnode.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "qibaocenter.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "pinrocks.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "anya-forger.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "lovali.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "ou812.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "loyanix.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "meduza.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "openbitlab.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "maia.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "svarog.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "jagon.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "agrestus.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "eagleowl.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  },
+  {
+    "id": "pyro.poolv1.near",
+    "weight": 0,
+    "fee": "1%",
+    "Delegators": 1
+  }
+]

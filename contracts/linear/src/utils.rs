@@ -118,7 +118,7 @@ pub(crate) fn staked_amount_from_num_shares_rounded_down(
 }
 
 /// The absolute diff between left and right is not greater than epsilon.
-/// This is useful when user submit requests that approximaitely equal to the acount's NEAR/LiNEAR balance
+/// This is useful when user submit requests that approximately equal to the account's NEAR/LiNEAR balance
 pub(crate) fn abs_diff_eq(left: u128, right: u128, epsilon: u128) -> bool {
     left <= right + epsilon && right <= left + epsilon
 }

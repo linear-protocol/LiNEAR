@@ -68,7 +68,7 @@ pub struct ContractV1_3_0 {
     // --- Staking Farm ---
     /// Farm tokens.
     farms: Vector<Farm>,
-    /// Active farms: indicies into `farms`.
+    /// Active farms: indices into `farms`.
     active_farms: Vec<u64>,
     /// Authorized users, allowed to add farms.
     /// This is done to prevent farm spam with random tokens.
@@ -177,7 +177,7 @@ pub struct ContractV1_1_0 {
     // --- Staking Farm ---
     /// Farm tokens.
     pub farms: Vector<Farm>,
-    /// Active farms: indicies into `farms`.
+    /// Active farms: indices into `farms`.
     pub active_farms: Vec<u64>,
     /// Authorized users, allowed to add farms.
     /// This is done to prevent farm spam with random tokens.
@@ -241,7 +241,7 @@ pub struct ContractV1_0_0 {
     // --- Staking Farm ---
     /// Farm tokens.
     pub farms: Vector<Farm>,
-    /// Active farms: indicies into `farms`.
+    /// Active farms: indices into `farms`.
     pub active_farms: Vec<u64>,
     /// Authorized users, allowed to add farms.
     /// This is done to prevent farm spam with random tokens.

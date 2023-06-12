@@ -75,7 +75,7 @@ among others.
 1. Make sure there is currently no unstaked balance on it. If there is, call `epoch_withdraw` to withdraw.
 2. Set validator weight to 0, which can be done by either removing this validator from nodes list or set its weight to 0 directly. Run `set-node` command to update the weight.
 3. Run `drain-unstake` to unstake all funds from the validator.
-4. After 4 epoches, run `drain-withdraw` to withdraw and restake those funds.
+4. After 4 epochs, run `drain-withdraw` to withdraw and restake those funds.
 
 ## Design
 

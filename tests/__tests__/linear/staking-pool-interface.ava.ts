@@ -1,11 +1,11 @@
 import { NEAR, Gas } from 'near-workspaces-ava';
-import { initWorkSpace, assertFailure, epochHeightFastforward } from './helper';
+import { initWorkSpace, assertFailure, epochHeightFastForward } from './helper';
 
 const ERR_UNSTAKED_BALANCE_NOT_AVAILABLE = 'The unstaked balance is not yet available due to unstaking delay';
 
 const workspace = initWorkSpace();
 
-workspace.test('check balances after initlization', async (test, {contract, alice}) => {
+workspace.test('check balances after initialization', async (test, {contract, alice}) => {
   test.is(
     await contract.view('get_account_staked_balance', {account_id: alice}),
     '0',
@@ -192,10 +192,10 @@ workspace.test('unstake and withdraw', async (test, { contract, alice }) => {
     ERR_UNSTAKED_BALANCE_NOT_AVAILABLE
   );
 
-  // wait 4 epoches
-  await epochHeightFastforward(contract, alice);
+  // wait 4 epochs
+  await epochHeightFastForward(contract, alice);
 
-  // withdraw all after 4 epoches
+  // withdraw all after 4 epochs
   await alice.call(
     contract,
     'withdraw_all',
@@ -227,10 +227,10 @@ workspace.test('unstake and withdraw', async (test, { contract, alice }) => {
     stakeAmount.sub(unstakeAmount).toString()
   );
 
-  // wait 4 epoches
-  await epochHeightFastforward(contract, alice);
+  // wait 4 epochs
+  await epochHeightFastForward(contract, alice);
 
-  // withdraw all after 4 epoches
+  // withdraw all after 4 epochs
   const withdrawAmount = NEAR.parse('1');
   await alice.call(
     contract,
@@ -285,7 +285,7 @@ workspace.test('late unstake and withdraw', async (test, { contract ,alice }) =>
     { amount: unstakeAmount.toString() }
   ); 
 
-  // withdraw available time should be 5 epoches later
+  // withdraw available time should be 5 epochs later
   const account: any = await contract.view(
     'get_account_details',
     {
@@ -298,8 +298,8 @@ workspace.test('late unstake and withdraw', async (test, { contract ,alice }) =>
     15
   );
 
-  // cannot withdraw after 4 epoches
-  await epochHeightFastforward(contract, alice);
+  // cannot withdraw after 4 epochs
+  await epochHeightFastForward(contract, alice);
 
   await assertFailure(
     test,
@@ -312,7 +312,7 @@ workspace.test('late unstake and withdraw', async (test, { contract ,alice }) =>
   );
 
   // wait for one more epoch
-  await epochHeightFastforward(contract, alice, 1);
+  await epochHeightFastForward(contract, alice, 1);
 
   await alice.call(
     contract,

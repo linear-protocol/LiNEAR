@@ -160,6 +160,26 @@ impl ValidatorPool {
         old_weight
     }
 
+    pub fn set_weight_fixed(&mut self, validator_id: &AccountId, weight_fixed: bool) {
+        let mut validator: Validator = self
+            .validators
+            .get(validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST)
+            .into();
+
+        validator.weight_fixed = weight_fixed;
+        let weight = validator.weight;
+
+        self.validators.insert(validator_id, &validator.into());
+
+        Event::ValidatorSetWeightFixed {
+            account_id: validator_id,
+            weight,
+            weight_fixed,
+        }
+        .emit();
+    }
+
     /// Update base stake amount of the validator
     pub fn update_base_stake_amount(&mut self, validator_id: &AccountId, amount: Balance) {
         let mut validator: Validator = self
@@ -466,6 +486,19 @@ impl LiquidStakingContract {
         }
     }
 
+    pub fn set_weight_fixeds(&mut self, validator_ids: Vec<AccountId>, weight_fixeds: Vec<bool>) {
+        self.assert_running();
+        self.assert_manager();
+        require!(
+            validator_ids.len() == weight_fixeds.len(),
+            ERR_BAD_VALIDATOR_LIST
+        );
+        for i in 0..validator_ids.len() {
+            self.validator_pool
+                .set_weight_fixed(&validator_ids[i], weight_fixeds[i]);
+        }
+    }
+
     // --- View Functions ---
 
     #[cfg(feature = "test")]
@@ -707,7 +740,9 @@ impl From<Validator> for VersionedValidator {
 #[serde(crate = "near_sdk::serde")]
 pub struct Validator {
     pub account_id: AccountId,
+
     pub weight: u16,
+    pub weight_fixed: bool,
 
     pub staked_amount: Balance,
     pub unstaked_amount: Balance,
@@ -753,6 +788,7 @@ impl Validator {
         Self {
             account_id,
             weight,
+            weight_fixed: false,
             base_stake_amount: 0,
             staked_amount: 0,
             unstaked_amount: 0,

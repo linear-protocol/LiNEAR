@@ -117,6 +117,11 @@ pub enum Event<'a> {
         account_id: &'a AccountId,
         weight: u16,
     },
+    ValidatorSetWeightFixed {
+        account_id: &'a AccountId,
+        weight: u16,
+        weight_fixed: bool,
+    },
     ValidatorsUpdatedWeights {
         account_ids: Vec<&'a AccountId>,
         old_weights: Vec<u16>,

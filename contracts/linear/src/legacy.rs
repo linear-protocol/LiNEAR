@@ -109,6 +109,7 @@ impl From<ValidatorV1_3_0> for Validator {
         Validator {
             account_id: v.account_id,
             weight: v.weight,
+            weight_fixed: false, // TODO: think about it
             staked_amount: v.staked_amount,
             unstaked_amount: v.unstaked_amount,
             base_stake_amount: v.base_stake_amount,
@@ -272,6 +273,7 @@ impl From<ValidatorV1_0_0> for Validator {
         Validator {
             account_id: v.account_id,
             weight: v.weight,
+            weight_fixed: false, // TODO: think about it
             staked_amount: v.staked_amount,
             unstaked_amount: v.unstaked_amount,
             base_stake_amount: 0,

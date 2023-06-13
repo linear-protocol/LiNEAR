@@ -105,17 +105,16 @@ exports.handler = async function (argv) {
 
   // Remove
   // set weight to zero instead of remove it
-  for (const node of nodesToRemove) {
-    await signer.functionCall({
-      contractId: address,
-      methodName: 'update_weight',
-      args: {
-        validator_id: node.id,
-        weight: 0
-      }
-    }); 
-    console.log(`node ${node.id} weight set to 0`);
-  }
+  await signer.functionCall({
+    contractId: address,
+    methodName: 'update_weights',
+    args: {
+      validator_ids: nodesToRemove.map(n => n.id),
+      weights: nodesToRemove.map(_ => 0)
+    },
+    gas: Gas.parse('300 Tgas')
+  });
+  console.log(`Weights set to 0 for ${nodesToRemove.length} nodes`);
 
   console.log('done.');
 }

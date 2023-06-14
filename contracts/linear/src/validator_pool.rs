@@ -10,6 +10,7 @@ use near_sdk::{
     collections::UnorderedMap,
     ext_contract, is_promise_success,
     json_types::U128,
+    json_types::U64,
     near_bindgen, require, AccountId, Balance, EpochHeight, Promise,
 };
 use std::cmp::min;

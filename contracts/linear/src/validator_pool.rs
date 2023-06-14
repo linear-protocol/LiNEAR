@@ -10,7 +10,7 @@ use near_sdk::{
     collections::UnorderedMap,
     ext_contract, is_promise_success,
     json_types::U128,
-    log, near_bindgen, require, AccountId, Balance, EpochHeight, Promise,
+    near_bindgen, require, AccountId, Balance, EpochHeight, Promise,
 };
 use std::cmp::min;
 
@@ -236,8 +236,6 @@ impl ValidatorPool {
                 continue;
             }
 
-            let validator_id = validator.clone().account_id;
-            let staked_amount = validator.staked_amount;
             let target_amount =
                 self.validator_target_stake_amount(total_staked_near_amount, &validator);
             if validator.staked_amount > target_amount {
@@ -254,13 +252,6 @@ impl ValidatorPool {
                     candidate = Some(validator);
                 }
             }
-
-            log!(
-                "check unstake candidate {} with staked amount {} and target {}",
-                validator_id,
-                staked_amount,
-                target_amount
-            );
         }
 
         // if the amount left is too small, we try to unstake them at once

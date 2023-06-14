@@ -77,45 +77,51 @@ exports.handler = async function (argv) {
 
   // Add
   // in case the list is too long, we cut it into chunks
-  const chunks = chunkList(nodesToAdd, 5);
-  for (const chunkNodes of chunks) {
-    await signer.functionCall({
-      contractId: address,
-      methodName: 'add_validators',
-      args: {
-        validator_ids: chunkNodes.map(n => n.id),
-        weights: chunkNodes.map(n => n.weight)
-      },
-      gas: Gas.parse('250 Tgas')
-    });
-    console.log(`added ${chunkNodes.length} nodes`);
+  if (nodesToAdd.length > 0) {
+    const chunks = chunkList(nodesToAdd, 5);
+    for (const chunkNodes of chunks) {
+      await signer.functionCall({
+        contractId: address,
+        methodName: 'add_validators',
+        args: {
+          validator_ids: chunkNodes.map(n => n.id),
+          weights: chunkNodes.map(n => n.weight)
+        },
+        gas: Gas.parse('250 Tgas')
+      });
+      console.log(`added ${chunkNodes.length} nodes`);
+    }
   }
+  console.log(`Added ${nodesToAdd.length} nodes in total`);
 
   // Update
-  await signer.functionCall({
-    contractId: address,
-    methodName: 'update_weights',
-    args: {
-      validator_ids: nodesToUpdate.map(n => n.id),
-      weights: nodesToUpdate.map(n => n.weight)
-    },
-    gas: Gas.parse('300 Tgas')
-  });
+  if (nodesToUpdate.length > 0) {
+    await signer.functionCall({
+      contractId: address,
+      methodName: 'update_weights',
+      args: {
+        validator_ids: nodesToUpdate.map(n => n.id),
+        weights: nodesToUpdate.map(n => n.weight)
+      },
+      gas: Gas.parse('300 Tgas')
+    });
+  }
   console.log(`Weights updated for ${nodesToUpdate.length} nodes`);
 
   // Remove
   // set weight to zero instead of remove it
-  for (const node of nodesToRemove) {
+  if (nodesToRemove.length > 0) {
     await signer.functionCall({
       contractId: address,
-      methodName: 'update_weight',
+      methodName: 'update_weights',
       args: {
-        validator_id: node.id,
-        weight: 0
-      }
-    }); 
-    console.log(`node ${node.id} weight set to 0`);
+        validator_ids: nodesToRemove.map(n => n.id),
+        weights: nodesToRemove.map(_ => 0)
+      },
+      gas: Gas.parse('300 Tgas')
+    });
   }
+  console.log(`Weights set to 0 for ${nodesToRemove.length} nodes`);
 
   console.log('done.');
 }

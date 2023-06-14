@@ -10,8 +10,7 @@ use near_sdk::{
     collections::UnorderedMap,
     ext_contract, is_promise_success,
     json_types::U128,
-    json_types::U64,
-    log, near_bindgen, require, AccountId, Balance, EpochHeight, Promise,
+    near_bindgen, require, AccountId, Balance, EpochHeight, Promise,
 };
 use std::cmp::min;
 
@@ -258,8 +257,6 @@ impl ValidatorPool {
                 continue;
             }
 
-            let validator_id = validator.clone().account_id;
-            let staked_amount = validator.staked_amount;
             let target_amount =
                 self.validator_target_stake_amount(total_staked_near_amount, &validator);
             if validator.staked_amount > target_amount {
@@ -276,13 +273,6 @@ impl ValidatorPool {
                     candidate = Some(validator);
                 }
             }
-
-            log!(
-                "check unstake candidate {} with staked amount {} and target {}",
-                validator_id,
-                staked_amount,
-                target_amount
-            );
         }
 
         // if the amount left is too small, we try to unstake them at once
@@ -1235,8 +1225,8 @@ mod tests {
         let mut zoo = validator_pool.add_validator(&AccountId::new_unchecked("zoo".to_string()), 2);
 
         // manually set staked amounts
-        foo.staked_amount = 100 * ONE_NEAR; // target is 100
-        bar.staked_amount = 100 * ONE_NEAR; // target is 100
+        foo.staked_amount = 108 * ONE_NEAR; // target is 100
+        bar.staked_amount = 107 * ONE_NEAR; // target is 100
         zoo.staked_amount = 210 * ONE_NEAR; // target is 200
         validator_pool
             .validators
@@ -1248,10 +1238,10 @@ mod tests {
             .validators
             .insert(&zoo.account_id, &zoo.clone().into());
 
-        // we have currently 510 already staked, 110 to unstake, target total 400,
+        // we have currently 425 already staked, 25 to unstake, target total 400,
         // each weight point should be 100, thus zoo is the most unbalanced one.
 
-        let candidate = validator_pool.get_candidate_to_unstake(110 * ONE_NEAR, 400 * ONE_NEAR);
+        let candidate = validator_pool.get_candidate_to_unstake(25 * ONE_NEAR, 400 * ONE_NEAR);
         assert!(candidate.is_some());
         let candidate = candidate.unwrap();
         assert_eq!(candidate.validator.account_id, zoo.account_id);

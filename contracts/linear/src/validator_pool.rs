@@ -219,20 +219,22 @@ impl ValidatorPool {
         total_staked_near_amount: Balance,
     ) -> Option<CandidateValidator> {
         let mut candidate = None;
-        let mut amount_to_stake: Balance = 0;
+        let mut max_delta: Balance = 0;
 
         for (_, validator) in self.validators.iter() {
             let validator = validator.into();
             let target_amount =
                 self.validator_target_stake_amount(total_staked_near_amount, &validator);
             if validator.staked_amount < target_amount {
-                let delta = min(target_amount - validator.staked_amount, amount);
-                if delta > amount_to_stake {
-                    amount_to_stake = delta;
+                let delta = target_amount - validator.staked_amount;
+                if delta > max_delta {
+                    max_delta = delta;
                     candidate = Some(validator);
                 }
             }
         }
+
+        let mut amount_to_stake: Balance = min(amount, max_delta);
 
         if amount_to_stake > 0 && amount - amount_to_stake < STAKE_SMALL_CHANGE_AMOUNT {
             amount_to_stake = amount;

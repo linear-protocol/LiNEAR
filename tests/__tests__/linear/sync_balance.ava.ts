@@ -1,5 +1,5 @@
 import { assertFailure, createStakingPool, getValidator, initWorkSpace } from "./helper";
-import { Gas, NEAR, NearAccount, stake, } from "near-workspaces-ava";
+import { Gas, NEAR, NearAccount, ONE_NEAR, stake, } from "near-workspaces-ava";
 
 const workspace = initWorkSpace();
 
@@ -75,14 +75,14 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
     );
   }
 
-  // -- 1. total balance diff > 1 yN
+  // -- 1. total balance diff > 1 N
   await owner.call(
     v1,
     'adjust_balance',
     {
       account_id: contract.accountId,
-      staked_delta: 1,
-      unstaked_delta: 3
+      staked_delta: 0,
+      unstaked_delta: ONE_NEAR.addn(1).toString(10)
     },
   );
 
@@ -106,8 +106,8 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
     'adjust_balance',
     {
       account_id: contract.accountId,
-      staked_delta: 101,
-      unstaked_delta: 101
+      staked_delta: ONE_NEAR.toString(10),
+      unstaked_delta: ONE_NEAR.toString(10)
     },
   );
 
@@ -122,7 +122,7 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
     }
   );
 
-  // v1 amount should not change
+  // v2 amount should not change
   await assertValidator(v2, '30000000000000000000000000', '0');
 });
 

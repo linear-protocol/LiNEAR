@@ -1,886 +1,886 @@
 [
   {
-    "validator": "gfi-validator.poolv1.near",
+    "id": "gfi-validator.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "sweat_validator.poolv1.near",
+    "id": "sweat_validator.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "ni.poolv1.near",
+    "id": "ni.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "nearfans.poolv1.near",
+    "id": "nearfans.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "luganodes.pool.near",
+    "id": "luganodes.pool.near",
     "weight": 0
   },
   {
-    "validator": "bridgetower_v1.poolv1.near",
+    "id": "bridgetower_v1.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "welldonestake.poolv1.near",
+    "id": "welldonestake.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "baziliknear.poolv1.near",
+    "id": "baziliknear.poolv1.near",
     "weight": 15
   },
   {
-    "validator": "omnistake.pool.near",
+    "id": "omnistake.pool.near",
     "weight": 0
   },
   {
-    "validator": "gfs-ventures.poolv1.near",
+    "id": "gfs-ventures.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "jazza.poolv1.near",
+    "id": "jazza.poolv1.near",
     "weight": 10
   },
   {
-    "validator": "foundry.poolv1.near",
+    "id": "foundry.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "fresh.poolv1.near",
+    "id": "fresh.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "staked.poolv1.near",
+    "id": "staked.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "p2pstaking.poolv1.near",
+    "id": "p2pstaking.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "staking_yes_protocol1.poolv1.near",
+    "id": "staking_yes_protocol1.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "infiniteloop.poolv1.near",
+    "id": "infiniteloop.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "brea.poolv1.near",
+    "id": "brea.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "stakecito.poolv1.near",
+    "id": "stakecito.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "trdm.poolv1.near",
+    "id": "trdm.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "electric.poolv1.near",
+    "id": "electric.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "monresearch.poolv1.near",
+    "id": "monresearch.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "staking_sp2.poolv1.near",
+    "id": "staking_sp2.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "neardevvn.poolv1.near",
+    "id": "neardevvn.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "twinstake.poolv1.near",
+    "id": "twinstake.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "synclub.poolv1.near",
+    "id": "synclub.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "masternode24.poolv1.near",
+    "id": "masternode24.poolv1.near",
     "weight": 15
   },
   {
-    "validator": "bee1stake.poolv1.near",
+    "id": "bee1stake.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "frensvalidator.poolv1.near",
+    "id": "frensvalidator.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "pinrocks.poolv1.near",
+    "id": "pinrocks.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "avado.poolv1.near",
+    "id": "avado.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "near.poolv1.near",
+    "id": "near.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "idtcn4.poolv1.near",
+    "id": "idtcn4.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "davaymne.poolv1.near",
+    "id": "davaymne.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "restake.poolv1.near",
+    "id": "restake.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "loyanix.poolv1.near",
+    "id": "loyanix.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "snsmln.poolv1.near",
+    "id": "snsmln.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "autostake.poolv1.near",
+    "id": "autostake.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "usn-unofficial.pool.near",
+    "id": "usn-unofficial.pool.near",
     "weight": 0
   },
   {
-    "validator": "stakesabai.poolv1.near",
+    "id": "stakesabai.poolv1.near",
     "weight": 20
   },
   {
-    "validator": "infstones-global.poolv1.near",
+    "id": "infstones-global.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "rockxv2.poolv1.near",
+    "id": "rockxv2.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "smartnode.poolv1.near",
+    "id": "smartnode.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "owa.poolv1.near",
+    "id": "owa.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "guli.poolv1.near",
+    "id": "guli.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "staking-power.poolv1.near",
+    "id": "staking-power.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "iamoskvin.poolv1.near",
+    "id": "iamoskvin.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "sazhiv.poolv1.near",
+    "id": "sazhiv.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "nearuaguild.poolv1.near",
+    "id": "nearuaguild.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "ignor.poolv1.near",
+    "id": "ignor.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "coinpayu.poolv1.near",
+    "id": "coinpayu.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "centurion.poolv1.near",
+    "id": "centurion.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "bzam6yjpnfnxsdmjf6pw.poolv1.near",
+    "id": "bzam6yjpnfnxsdmjf6pw.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "nepser.poolv1.near",
+    "id": "nepser.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "nativo.pool.near",
+    "id": "nativo.pool.near",
     "weight": 0
   },
   {
-    "validator": "gateomega.poolv1.near",
+    "id": "gateomega.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "apm.poolv1.near",
+    "id": "apm.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "abahmane.poolv1.near",
+    "id": "abahmane.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "hb436_pool.poolv1.near",
+    "id": "hb436_pool.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "sicmundus.poolv1.near",
+    "id": "sicmundus.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "solidstate.poolv1.near",
+    "id": "solidstate.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "cryptogarik.poolv1.near",
+    "id": "cryptogarik.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "steak.poolv1.near",
+    "id": "steak.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "swissstar.poolv1.near",
+    "id": "swissstar.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "lovali.poolv1.near",
+    "id": "lovali.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "2pilot.poolv1.near",
+    "id": "2pilot.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "ifedi.poolv1.near",
+    "id": "ifedi.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "inc4.poolv1.near",
+    "id": "inc4.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "agrestus.poolv1.near",
+    "id": "agrestus.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "sharpdarts.poolv1.near",
+    "id": "sharpdarts.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "chorusone.poolv1.near",
+    "id": "chorusone.poolv1.near",
     "weight": 10
   },
   {
-    "validator": "vcap.poolv1.near",
+    "id": "vcap.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "rekt.poolv1.near",
+    "id": "rekt.poolv1.near",
     "weight": 20
   },
   {
-    "validator": "ledgerbyfigment.poolv1.near",
+    "id": "ledgerbyfigment.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "meduza.poolv1.near",
+    "id": "meduza.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "dokiacapital.poolv1.near",
+    "id": "dokiacapital.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "minion.poolv1.near",
+    "id": "minion.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "pyro.poolv1.near",
+    "id": "pyro.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "huobi-pos.poolv1.near",
+    "id": "huobi-pos.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "northernlights.poolv1.near",
+    "id": "northernlights.poolv1.near",
     "weight": 10
   },
   {
-    "validator": "optimusvalidatornetwork.poolv1.near",
+    "id": "optimusvalidatornetwork.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "inotel.poolv1.near",
+    "id": "inotel.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "4ire.poolv1.near",
+    "id": "4ire.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "ruziev.poolv1.near",
+    "id": "ruziev.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "n_shoko.poolv1.near",
+    "id": "n_shoko.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "doubletop.poolv1.near",
+    "id": "doubletop.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "ideocolabventures.poolv1.near",
+    "id": "ideocolabventures.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "epic.poolv1.near",
+    "id": "epic.poolv1.near",
     "weight": 20
   },
   {
-    "validator": "satori.poolv1.near",
+    "id": "satori.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "leex.poolv1.near",
+    "id": "leex.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "hashquark.poolv1.near",
+    "id": "hashquark.poolv1.near",
     "weight": 15
   },
   {
-    "validator": "figment.poolv1.near",
+    "id": "figment.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "buildnear.poolv1.near",
+    "id": "buildnear.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "kiln-1.poolv1.near",
+    "id": "kiln-1.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "buildlinks.poolv1.near",
+    "id": "buildlinks.poolv1.near",
     "weight": 10
   },
   {
-    "validator": "ou812.poolv1.near",
+    "id": "ou812.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "stake1.poolv1.near",
+    "id": "stake1.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "snoopfear.poolv1.near",
+    "id": "snoopfear.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "hapi.poolv1.near",
+    "id": "hapi.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "nearweek.pool.near",
+    "id": "nearweek.pool.near",
     "weight": 0
   },
   {
-    "validator": "openbitlab.poolv1.near",
+    "id": "openbitlab.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "cryptoblossom.poolv1.near",
+    "id": "cryptoblossom.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "blockdaemon.poolv1.near",
+    "id": "blockdaemon.poolv1.near",
     "weight": 10
   },
   {
-    "validator": "anonymous.poolv1.near",
+    "id": "anonymous.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "udhc1.pool.near",
+    "id": "udhc1.pool.near",
     "weight": 0
   },
   {
-    "validator": "qibaocenter.poolv1.near",
+    "id": "qibaocenter.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "maia.poolv1.near",
+    "id": "maia.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "08investinwomen_runbybisontrails.poolv1.near",
+    "id": "08investinwomen_runbybisontrails.poolv1.near",
     "weight": 5
   },
   {
-    "validator": "chelovek_iz_naroda.poolv1.near",
+    "id": "chelovek_iz_naroda.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "neoprene-grunt-croft.pool.near",
+    "id": "neoprene-grunt-croft.pool.near",
     "weight": 0
   },
   {
-    "validator": "genesislab.poolv1.near",
+    "id": "genesislab.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "consensus_finoa_01.poolv1.near",
+    "id": "consensus_finoa_01.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "lscmval.poolv1.near",
+    "id": "lscmval.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "stingray.poolv1.near",
+    "id": "stingray.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "continue.poolv1.near",
+    "id": "continue.poolv1.near",
     "weight": 5
   },
   {
-    "validator": "binancenode1.poolv1.near",
+    "id": "binancenode1.poolv1.near",
     "weight": 10
   },
   {
-    "validator": "appload.poolv1.near",
+    "id": "appload.poolv1.near",
     "weight": 15
   },
   {
-    "validator": "stardust.poolv1.near",
+    "id": "stardust.poolv1.near",
     "weight": 10
   },
   {
-    "validator": "iamcryptobro.poolv1.near",
+    "id": "iamcryptobro.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "stardust.pool.near",
+    "id": "stardust.pool.near",
     "weight": 0
   },
   {
-    "validator": "magic.poolv1.near",
+    "id": "magic.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "gruberx.poolv1.near",
+    "id": "gruberx.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "pandateam.poolv1.near",
+    "id": "pandateam.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "dexagon.poolv1.near",
+    "id": "dexagon.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "fish.poolv1.near",
+    "id": "fish.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "anya-forger.poolv1.near",
+    "id": "anya-forger.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "stakin.poolv1.near",
+    "id": "stakin.poolv1.near",
     "weight": 10
   },
   {
-    "validator": "aurora.pool.near",
+    "id": "aurora.pool.near",
     "weight": 0
   },
   {
-    "validator": "stakesstone.poolv1.near",
+    "id": "stakesstone.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "mockingbird.poolv1.near",
+    "id": "mockingbird.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "finoa.poolv1.near",
+    "id": "finoa.poolv1.near",
     "weight": 5
   },
   {
-    "validator": "upgold.poolv1.near",
+    "id": "upgold.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "bisontrails.poolv1.near",
+    "id": "bisontrails.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "bitmanna.poolv1.near",
+    "id": "bitmanna.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "smart-stake.poolv1.near",
+    "id": "smart-stake.poolv1.near",
     "weight": 20
   },
   {
-    "validator": "yes_protocol1.poolv1.near",
+    "id": "yes_protocol1.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "projecttent.poolv1.near",
+    "id": "projecttent.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "lunanova.poolv1.near",
+    "id": "lunanova.poolv1.near",
     "weight": 10
   },
   {
-    "validator": "lionstake.poolv1.near",
+    "id": "lionstake.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "dragonfly.poolv1.near",
+    "id": "dragonfly.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "everstake.poolv1.near",
+    "id": "everstake.poolv1.near",
     "weight": 15
   },
   {
-    "validator": "allnodes.poolv1.near",
+    "id": "allnodes.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "d1.poolv1.near",
+    "id": "d1.poolv1.near",
     "weight": 10
   },
   {
-    "validator": "vortex_live.poolv1.near",
+    "id": "vortex_live.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "accomplice.poolv1.near",
+    "id": "accomplice.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "binancestaking.poolv1.near",
+    "id": "binancestaking.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "korchagin.poolv1.near",
+    "id": "korchagin.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "shurik.poolv1.near",
+    "id": "shurik.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "interstakeone.poolv1.near",
+    "id": "interstakeone.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "grassets.poolv1.near",
+    "id": "grassets.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "namdokmai.poolv1.near",
+    "id": "namdokmai.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "staking_opp_disc.poolv1.near",
+    "id": "staking_opp_disc.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "kiln.poolv1.near",
+    "id": "kiln.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "encipher.poolv1.near",
+    "id": "encipher.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "pathrocknetwork.poolv1.near",
+    "id": "pathrocknetwork.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "pandora.poolv1.near",
+    "id": "pandora.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "nearua.poolv1.near",
+    "id": "nearua.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "stakerrash.poolv1.near",
+    "id": "stakerrash.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "letsnode.poolv1.near",
+    "id": "letsnode.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "dqw9k3e4422cxt92masmy.poolv1.near",
+    "id": "dqw9k3e4422cxt92masmy.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "golden_whale.poolv1.near",
+    "id": "golden_whale.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "cunum.poolv1.near",
+    "id": "cunum.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "cryptium.poolv1.near",
+    "id": "cryptium.poolv1.near",
     "weight": 10
   },
   {
-    "validator": "mexa-staking.poolv1.near",
+    "id": "mexa-staking.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "sparkpool.poolv1.near",
+    "id": "sparkpool.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "beobeo.poolv1.near",
+    "id": "beobeo.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "p2p-org.poolv1.near",
+    "id": "p2p-org.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "astro-stakers.poolv1.near",
+    "id": "astro-stakers.poolv1.near",
     "weight": 20
   },
   {
-    "validator": "prophet.poolv1.near",
+    "id": "prophet.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "01node.poolv1.near",
+    "id": "01node.poolv1.near",
     "weight": 15
   },
   {
-    "validator": "readylayerone_staking.poolv1.near",
+    "id": "readylayerone_staking.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "kosmos_and_p2p.poolv1.near",
+    "id": "kosmos_and_p2p.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "polkachu.poolv1.near",
+    "id": "polkachu.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "near-fans.poolv1.near",
+    "id": "near-fans.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "ibsblock.poolv1.near",
+    "id": "ibsblock.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "consensus_finoa_00.poolv1.near",
+    "id": "consensus_finoa_00.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "wackazong.poolv1.near",
+    "id": "wackazong.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "galaxydigital.poolv1.near",
+    "id": "galaxydigital.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "republic.poolv1.near",
+    "id": "republic.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "chain0ps.poolv1.near",
+    "id": "chain0ps.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "staking4all.poolv1.near",
+    "id": "staking4all.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "zavodil.poolv1.near",
+    "id": "zavodil.poolv1.near",
     "weight": 20
   },
   {
-    "validator": "svarog.poolv1.near",
+    "id": "svarog.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "incrypted.poolv1.near",
+    "id": "incrypted.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "erm.poolv1.near",
+    "id": "erm.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "bitcoinsuisse.poolv1.near",
+    "id": "bitcoinsuisse.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "future_is_near.poolv1.near",
+    "id": "future_is_near.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "nodeasy.poolv1.near",
+    "id": "nodeasy.poolv1.near",
     "weight": 15
   },
   {
-    "validator": "lavenderfive.poolv1.near",
+    "id": "lavenderfive.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "jagon.poolv1.near",
+    "id": "jagon.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "spectrum.poolv1.near",
+    "id": "spectrum.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "neardevgov.poolv1.near",
+    "id": "neardevgov.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "openshards.poolv1.near",
+    "id": "openshards.poolv1.near",
     "weight": 15
   },
   {
-    "validator": "lux.poolv1.near",
+    "id": "lux.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "zkv_staketosupportprivacy.poolv1.near",
+    "id": "zkv_staketosupportprivacy.poolv1.near",
     "weight": 10
   },
   {
-    "validator": "pangdao.poolv1.near",
+    "id": "pangdao.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "nearkoreahub.poolv1.near",
+    "id": "nearkoreahub.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "stakely_io.poolv1.near",
+    "id": "stakely_io.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "nonli-near.poolv1.near",
+    "id": "nonli-near.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "eagleowl.poolv1.near",
+    "id": "eagleowl.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "atomic-nodes.poolv1.near",
+    "id": "atomic-nodes.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "validatrium.poolv1.near",
+    "id": "validatrium.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "n0ok.poolv1.near",
+    "id": "n0ok.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "moonlet.poolv1.near",
+    "id": "moonlet.poolv1.near",
     "weight": 10
   },
   {
-    "validator": "galactic.poolv1.near",
+    "id": "galactic.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "meria-staking.poolv1.near",
+    "id": "meria-staking.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "calimero.pool.near",
+    "id": "calimero.pool.near",
     "weight": 0
   },
   {
-    "validator": "v2krox0bkni00p4p.poolv1.near",
+    "id": "v2krox0bkni00p4p.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "qbit.poolv1.near",
+    "id": "qbit.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "gritsly.poolv1.near",
+    "id": "gritsly.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "legends.poolv1.near",
+    "id": "legends.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "annanow.poolv1.near",
+    "id": "annanow.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "stakeseeker.poolv1.near",
+    "id": "stakeseeker.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "blntmain.poolv1.near",
+    "id": "blntmain.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "evstigneeff.poolv1.near",
+    "id": "evstigneeff.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "dsrvlabs.poolv1.near",
+    "id": "dsrvlabs.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "stakedao_retail.poolv1.near",
+    "id": "stakedao_retail.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "shardlabs.poolv1.near",
+    "id": "shardlabs.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "nodeverse_2.poolv1.near",
+    "id": "nodeverse_2.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "cryptotribe.poolv1.near",
+    "id": "cryptotribe.poolv1.near",
     "weight": 0
   },
   {
-    "validator": "sharpdarts.poolv1.near",
+    "id": "sharpdarts.poolv1.near",
     "weight": 10
   }
 ]

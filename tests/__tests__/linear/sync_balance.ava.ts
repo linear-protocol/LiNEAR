@@ -106,8 +106,8 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
     'adjust_balance',
     {
       account_id: contract.accountId,
-      staked_delta: ONE_NEAR.toString(10),
-      unstaked_delta: ONE_NEAR.toString(10)
+      staked_delta: ONE_NEAR.addn(1).toString(10),
+      unstaked_delta: ONE_NEAR.addn(1).toString(10)
     },
   );
 

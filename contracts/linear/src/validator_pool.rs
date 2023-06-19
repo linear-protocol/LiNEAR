@@ -16,7 +16,7 @@ use std::cmp::min;
 
 const STAKE_SMALL_CHANGE_AMOUNT: Balance = ONE_NEAR;
 const UNSTAKE_FACTOR: u128 = 2;
-const MAX_SYNC_BALANCE_DIFF: Balance = 100;
+const MAX_SYNC_BALANCE_DIFF: Balance = ONE_NEAR;
 const MAX_UPDATE_WEIGHTS_COUNT: usize = 300;
 
 #[ext_contract(ext_staking_pool)]
@@ -865,10 +865,10 @@ impl Validator {
         staked_balance: Balance,
         unstaked_balance: Balance,
     ) {
-        // allow at most 1 yN diff in total balance
+        // allow at most 1 NEAR diff in total balance
         let new_total_balance = staked_balance + unstaked_balance;
         require!(
-            abs_diff_eq(new_total_balance, self.total_balance(), 1),
+            abs_diff_eq(new_total_balance, self.total_balance(), ONE_NEAR),
             format!(
                 "{}. new: {}, old: {}",
                 ERR_SYNC_BALANCE_BAD_TOTAL,
@@ -877,7 +877,7 @@ impl Validator {
             )
         );
 
-        // allow at most 100 yN diff in staked/unstaked balance
+        // allow at most 1 NEAR diff in staked/unstaked balance
         require!(
             abs_diff_eq(staked_balance, self.staked_amount, MAX_SYNC_BALANCE_DIFF),
             format!(

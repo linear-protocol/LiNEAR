@@ -1,416 +1,882 @@
 [
   {
-    "id": "astro-stakers.poolv1.near",
-    "weight": 20,
-    "fee": "1%",
-    "Delegators": 5274
+    "id": "gfi-validator.poolv1.near",
+    "weight": 0
   },
   {
-    "id": "bisontrails.poolv1.near",
-    "weight": 0,
-    "fee": "10%",
-    "Delegators": 772
+    "id": "sweat_validator.poolv1.near",
+    "weight": 0
   },
   {
-    "id": "dragonfly.poolv1.near",
-    "weight": 0,
-    "fee": "10%",
-    "Delegators": 351
-  },
-  {
-    "id": "foundry.poolv1.near",
-    "weight": 0,
-    "fee": "9%",
-    "Delegators": 250
-  },
-  {
-    "id": "finoa.poolv1.near",
-    "weight": 5,
-    "fee": "10%",
-    "Delegators": 258
-  },
-  {
-    "id": "blockdaemon.poolv1.near",
-    "weight": 10,
-    "fee": "5%",
-    "Delegators": 368
-  },
-  {
-    "id": "epic.poolv1.near",
-    "weight": 20,
-    "fee": "1%",
-    "Delegators": 3020
-  },
-  {
-    "id": "rekt.poolv1.near",
-    "weight": 20,
-    "fee": "2%",
-    "Delegators": 952
-  },
-  {
-    "id": "electric.poolv1.near",
-    "weight": 0,
-    "fee": "10%",
-    "Delegators": 206
-  },
-  {
-    "id": "zavodil.poolv1.near",
-    "weight": 20,
-    "fee": "1%",
-    "Delegators": 4397
-  },
-  {
-    "id": "d1.poolv1.near",
-    "weight": 10,
-    "fee": "5%",
-    "Delegators": 385
-  },
-  {
-    "id": "dokiacapital.poolv1.near",
-    "weight": 0,
-    "fee": "10%",
-    "Delegators": 283
-  },
-  {
-    "id": "chorusone.poolv1.near",
-    "weight": 10,
-    "fee": "8%",
-    "Delegators": 421
-  },
-  {
-    "id": "08investinwomen_runbybisontrails.poolv1.near",
-    "weight": 5,
-    "fee": "5%",
-    "Delegators": 347
-  },
-  {
-    "id": "continue.poolv1.near",
-    "weight": 5,
-    "fee": "5%",
-    "Delegators": 333
-  },
-  {
-    "id": "legends.poolv1.near",
-    "weight": 0,
-    "fee": "10%",
-    "Delegators": 334
-  },
-  {
-    "id": "binancenode1.poolv1.near",
-    "weight": 10,
-    "fee": "5%",
-    "Delegators": 303
-  },
-  {
-    "id": "future_is_near.poolv1.near",
-    "weight": 0,
-    "fee": "3%",
-    "Delegators": 384
-  },
-  {
-    "id": "hb436_pool.poolv1.near",
-    "weight": 0,
-    "fee": "10%",
-    "Delegators": 146
-  },
-  {
-    "id": "openshards.poolv1.near",
-    "weight": 15,
-    "fee": "5%",
-    "Delegators": 1659
-  },
-  {
-    "id": "figment.poolv1.near",
-    "weight": 0,
-    "fee": "10%",
-    "Delegators": 353
-  },
-  {
-    "id": "ideocolabventures.poolv1.near",
-    "weight": 0,
-    "fee": "10%",
-    "Delegators": 167
-  },
-  {
-    "id": "northernlights.poolv1.near",
-    "weight": 10,
-    "fee": "8%",
-    "Delegators": 196
-  },
-  {
-    "id": "buildlinks.poolv1.near",
-    "weight": 10,
-    "fee": "5%",
-    "Delegators": 1295
-  },
-  {
-    "id": "stakin.poolv1.near",
-    "weight": 10,
-    "fee": "1%",
-    "Delegators": 2316
-  },
-  {
-    "id": "smart-stake.poolv1.near",
-    "weight": 20,
-    "fee": "1%",
-    "Delegators": 2003
+    "id": "ni.poolv1.near",
+    "weight": 0
   },
   {
     "id": "nearfans.poolv1.near",
-    "weight": 0,
-    "fee": "5%",
-    "Delegators": 424
+    "weight": 0
   },
   {
-    "id": "nodeasy.poolv1.near",
-    "weight": 15,
-    "fee": "3%",
-    "Delegators": 489
+    "id": "luganodes.pool.near",
+    "weight": 0
   },
   {
-    "id": "erm.poolv1.near",
-    "weight": 0,
-    "fee": "8%",
-    "Delegators": 171
-  },
-  {
-    "id": "cryptium.poolv1.near",
-    "weight": 10,
-    "fee": "5%",
-    "Delegators": 353
-  },
-  {
-    "id": "everstake.poolv1.near",
-    "weight": 15,
-    "fee": "3%",
-    "Delegators": 2105
-  },
-  {
-    "id": "lux.poolv1.near",
-    "weight": 0,
-    "fee": "5%",
-    "Delegators": 320
-  },
-  {
-    "id": "sharpdarts.poolv1.near",
-    "weight": 10,
-    "fee": "5%",
-    "Delegators": 391
-  },
-  {
-    "id": "hashquark.poolv1.near",
-    "weight": 15,
-    "fee": "3%",
-    "Delegators": 564
-  },
-  {
-    "id": "dsrvlabs.poolv1.near",
-    "weight": 0,
-    "fee": "10%",
-    "Delegators": 194
-  },
-  {
-    "id": "baziliknear.poolv1.near",
-    "weight": 15,
-    "fee": "3%",
-    "Delegators": 492
-  },
-  {
-    "id": "stakesabai.poolv1.near",
-    "weight": 20,
-    "fee": "1%",
-    "Delegators": 1900
-  },
-  {
-    "id": "masternode24.poolv1.near",
-    "weight": 15,
-    "fee": "1%",
-    "Delegators": 1929
-  },
-  {
-    "id": "stardust.poolv1.near",
-    "weight": 10,
-    "fee": "5%",
-    "Delegators": 445
-  },
-  {
-    "id": "lunanova.poolv1.near",
-    "weight": 10,
-    "fee": "7%",
-    "Delegators": 265
-  },
-  {
-    "id": "appload.poolv1.near",
-    "weight": 15,
-    "fee": "3%",
-    "Delegators": 1036
-  },
-  {
-    "id": "republic.poolv1.near",
-    "weight": 0,
-    "fee": "5%",
-    "Delegators": 25
-  },
-  {
-    "id": "fish.poolv1.near",
-    "weight": 0,
-    "fee": "4%",
-    "Delegators": 627
-  },
-  {
-    "id": "moonlet.poolv1.near",
-    "weight": 10,
-    "fee": "5%",
-    "Delegators": 1094
-  },
-  {
-    "id": "01node.poolv1.near",
-    "weight": 15,
-    "fee": "3%",
-    "Delegators": 1861
-  },
-  {
-    "id": "jazza.poolv1.near",
-    "weight": 10,
-    "fee": "4%",
-    "Delegators": 317
-  },
-  {
-    "id": "inotel.poolv1.near",
-    "weight": 0,
-    "fee": "3%",
-    "Delegators": 455
-  },
-  {
-    "id": "fresh.poolv1.near",
-    "weight": 0,
-    "fee": "2%",
-    "Delegators": 882
-  },
-  {
-    "id": "zkv_staketosupportprivacy.poolv1.near",
-    "weight": 10,
-    "fee": "4%",
-    "Delegators": 320
-  },
-  {
-    "id": "monresearch.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
-  },
-  {
-    "id": "stakerrash.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "id": "bridgetower_v1.poolv1.near",
+    "weight": 0
   },
   {
     "id": "welldonestake.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "weight": 0
   },
   {
-    "id": "snsmln.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "id": "baziliknear.poolv1.near",
+    "weight": 15
   },
   {
-    "id": "ifedi.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "id": "omnistake.pool.near",
+    "weight": 0
   },
   {
-    "id": "smartnode.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "id": "gfs-ventures.poolv1.near",
+    "weight": 0
   },
   {
-    "id": "qibaocenter.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "id": "jazza.poolv1.near",
+    "weight": 10
+  },
+  {
+    "id": "foundry.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "fresh.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "staked.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "p2pstaking.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "staking_yes_protocol1.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "infiniteloop.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "brea.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "stakecito.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "trdm.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "electric.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "monresearch.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "staking_sp2.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "neardevvn.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "twinstake.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "synclub.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "masternode24.poolv1.near",
+    "weight": 15
+  },
+  {
+    "id": "bee1stake.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "frensvalidator.poolv1.near",
+    "weight": 0
   },
   {
     "id": "pinrocks.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "weight": 0
   },
   {
-    "id": "anya-forger.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "id": "avado.poolv1.near",
+    "weight": 0
   },
   {
-    "id": "lovali.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "id": "near.poolv1.near",
+    "weight": 0
   },
   {
-    "id": "ou812.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "id": "idtcn4.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "davaymne.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "restake.poolv1.near",
+    "weight": 0
   },
   {
     "id": "loyanix.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "weight": 0
   },
   {
-    "id": "meduza.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "id": "snsmln.poolv1.near",
+    "weight": 0
   },
   {
-    "id": "openbitlab.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "id": "autostake.poolv1.near",
+    "weight": 0
   },
   {
-    "id": "maia.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "id": "usn-unofficial.pool.near",
+    "weight": 0
   },
   {
-    "id": "svarog.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "id": "stakesabai.poolv1.near",
+    "weight": 20
   },
   {
-    "id": "jagon.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "id": "infstones-global.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "rockxv2.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "smartnode.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "owa.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "guli.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "staking-power.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "iamoskvin.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "sazhiv.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "nearuaguild.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "ignor.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "coinpayu.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "centurion.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "bzam6yjpnfnxsdmjf6pw.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "nepser.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "nativo.pool.near",
+    "weight": 0
+  },
+  {
+    "id": "gateomega.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "apm.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "abahmane.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "hb436_pool.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "sicmundus.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "solidstate.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "cryptogarik.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "steak.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "swissstar.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "lovali.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "2pilot.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "ifedi.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "inc4.poolv1.near",
+    "weight": 0
   },
   {
     "id": "agrestus.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "weight": 0
   },
   {
-    "id": "eagleowl.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "id": "sharpdarts.poolv1.near",
+    "weight": 10
+  },
+  {
+    "id": "chorusone.poolv1.near",
+    "weight": 10
+  },
+  {
+    "id": "vcap.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "rekt.poolv1.near",
+    "weight": 20
+  },
+  {
+    "id": "ledgerbyfigment.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "meduza.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "dokiacapital.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "minion.poolv1.near",
+    "weight": 0
   },
   {
     "id": "pyro.poolv1.near",
-    "weight": 0,
-    "fee": "1%",
-    "Delegators": 1
+    "weight": 0
+  },
+  {
+    "id": "huobi-pos.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "northernlights.poolv1.near",
+    "weight": 10
+  },
+  {
+    "id": "optimusvalidatornetwork.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "inotel.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "4ire.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "ruziev.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "n_shoko.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "doubletop.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "ideocolabventures.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "epic.poolv1.near",
+    "weight": 20
+  },
+  {
+    "id": "satori.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "leex.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "hashquark.poolv1.near",
+    "weight": 15
+  },
+  {
+    "id": "figment.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "buildnear.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "kiln-1.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "buildlinks.poolv1.near",
+    "weight": 10
+  },
+  {
+    "id": "ou812.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "stake1.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "snoopfear.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "hapi.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "nearweek.pool.near",
+    "weight": 0
+  },
+  {
+    "id": "openbitlab.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "cryptoblossom.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "blockdaemon.poolv1.near",
+    "weight": 10
+  },
+  {
+    "id": "anonymous.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "udhc1.pool.near",
+    "weight": 0
+  },
+  {
+    "id": "qibaocenter.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "maia.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "08investinwomen_runbybisontrails.poolv1.near",
+    "weight": 5
+  },
+  {
+    "id": "chelovek_iz_naroda.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "neoprene-grunt-croft.pool.near",
+    "weight": 0
+  },
+  {
+    "id": "genesislab.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "consensus_finoa_01.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "lscmval.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "stingray.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "continue.poolv1.near",
+    "weight": 5
+  },
+  {
+    "id": "binancenode1.poolv1.near",
+    "weight": 10
+  },
+  {
+    "id": "appload.poolv1.near",
+    "weight": 15
+  },
+  {
+    "id": "stardust.poolv1.near",
+    "weight": 10
+  },
+  {
+    "id": "iamcryptobro.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "stardust.pool.near",
+    "weight": 0
+  },
+  {
+    "id": "magic.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "gruberx.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "pandateam.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "dexagon.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "fish.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "anya-forger.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "stakin.poolv1.near",
+    "weight": 10
+  },
+  {
+    "id": "aurora.pool.near",
+    "weight": 0
+  },
+  {
+    "id": "stakesstone.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "mockingbird.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "finoa.poolv1.near",
+    "weight": 5
+  },
+  {
+    "id": "upgold.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "bisontrails.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "bitmanna.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "smart-stake.poolv1.near",
+    "weight": 20
+  },
+  {
+    "id": "yes_protocol1.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "projecttent.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "lunanova.poolv1.near",
+    "weight": 10
+  },
+  {
+    "id": "lionstake.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "dragonfly.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "everstake.poolv1.near",
+    "weight": 15
+  },
+  {
+    "id": "allnodes.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "d1.poolv1.near",
+    "weight": 10
+  },
+  {
+    "id": "vortex_live.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "accomplice.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "binancestaking.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "korchagin.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "shurik.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "interstakeone.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "grassets.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "namdokmai.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "staking_opp_disc.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "kiln.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "encipher.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "pathrocknetwork.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "pandora.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "nearua.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "stakerrash.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "letsnode.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "dqw9k3e4422cxt92masmy.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "golden_whale.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "cunum.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "cryptium.poolv1.near",
+    "weight": 10
+  },
+  {
+    "id": "mexa-staking.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "sparkpool.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "beobeo.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "p2p-org.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "astro-stakers.poolv1.near",
+    "weight": 20
+  },
+  {
+    "id": "prophet.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "01node.poolv1.near",
+    "weight": 15
+  },
+  {
+    "id": "readylayerone_staking.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "kosmos_and_p2p.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "polkachu.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "near-fans.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "ibsblock.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "consensus_finoa_00.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "wackazong.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "galaxydigital.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "republic.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "chain0ps.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "staking4all.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "zavodil.poolv1.near",
+    "weight": 20
+  },
+  {
+    "id": "svarog.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "incrypted.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "erm.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "bitcoinsuisse.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "future_is_near.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "nodeasy.poolv1.near",
+    "weight": 15
+  },
+  {
+    "id": "lavenderfive.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "jagon.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "spectrum.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "neardevgov.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "openshards.poolv1.near",
+    "weight": 15
+  },
+  {
+    "id": "lux.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "zkv_staketosupportprivacy.poolv1.near",
+    "weight": 10
+  },
+  {
+    "id": "pangdao.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "nearkoreahub.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "stakely_io.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "nonli-near.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "eagleowl.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "atomic-nodes.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "validatrium.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "n0ok.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "moonlet.poolv1.near",
+    "weight": 10
+  },
+  {
+    "id": "galactic.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "meria-staking.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "calimero.pool.near",
+    "weight": 0
+  },
+  {
+    "id": "v2krox0bkni00p4p.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "qbit.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "gritsly.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "legends.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "annanow.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "stakeseeker.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "blntmain.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "evstigneeff.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "dsrvlabs.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "stakedao_retail.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "shardlabs.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "nodeverse_2.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "cryptotribe.poolv1.near",
+    "weight": 0
   }
 ]

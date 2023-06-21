@@ -100,7 +100,7 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
   // v1 amount should not change
   await assertValidator(v1, '30000000000000000000000000', '0');
 
-  // -- 2. amount balance diff > 100 yN
+  // -- 2. amount balance diff > 1 NEAR
   await owner.call(
     v2,
     'adjust_balance',
@@ -174,7 +174,7 @@ workspace.test('sync balance', async (test, { root, contract, alice, owner }) =>
     );
   }
 
-  // -- amount balance diff < 100 yN
+  // -- amount balance diff < 1 NEAR
   await owner.call(
     v2,
     'adjust_balance',

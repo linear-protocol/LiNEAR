@@ -868,7 +868,11 @@ impl Validator {
         // allow at most 1 NEAR diff in total balance
         let new_total_balance = staked_balance + unstaked_balance;
         require!(
-            abs_diff_eq(new_total_balance, self.total_balance(), ONE_NEAR),
+            abs_diff_eq(
+                new_total_balance,
+                self.total_balance(),
+                MAX_SYNC_BALANCE_DIFF
+            ),
             format!(
                 "{}. new: {}, old: {}",
                 ERR_SYNC_BALANCE_BAD_TOTAL,

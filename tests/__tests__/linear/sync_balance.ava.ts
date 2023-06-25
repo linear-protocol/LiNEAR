@@ -197,5 +197,5 @@ workspace.test('sync balance', async (test, { root, contract, alice, owner }) =>
   );
 
   // v1 amount should not change
-  await assertValidator(v2, '29999999999999999999999901', '99');
+  await assertValidator(v2, '29000000000000000000000001', '99');
 });

@@ -1643,7 +1643,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unstake_candidate_select_v2_with_step_1_only() {
+    fn test_unstake_candidate_select_v2_with_testing_min_satisfy_delta() {
         let mut validator_pool = ValidatorPool::new();
 
         let mut v1 = validator_pool.add_validator(&AccountId::new_unchecked("v1".to_string()), 12);
@@ -1703,40 +1703,45 @@ mod tests {
             .validators
             .insert(&v10.account_id, &v10.clone().into());
 
+        let total_amount_to_unstake = 30 * ONE_NEAR;
+        let total_staked_near_amount = 23220 * ONE_NEAR;
+
         // v2 should be selected because it has min `delta` that satisfy the unstake amount
-        let candidate = validator_pool.get_candidate_to_unstake_v2(30 * ONE_NEAR, 23220 * ONE_NEAR);
+        let candidate = validator_pool
+            .get_candidate_to_unstake_v2(total_amount_to_unstake, total_staked_near_amount);
         assert!(candidate.is_some());
         let candidate = candidate.unwrap();
         assert_eq!(candidate.validator.account_id, v2.account_id);
-        assert_eq!(candidate.amount, 30 * ONE_NEAR);
+        let unstaked_amount = 30 * ONE_NEAR;
+        assert_eq!(candidate.amount, unstaked_amount);
     }
 
     #[test]
-    fn test_unstake_candidate_select_v2_with_step_2() {
+    fn test_unstake_candidate_select_v2_with_testing_largest_target_to_delta() {
         let mut validator_pool = ValidatorPool::new();
 
-        let mut v1 = validator_pool.add_validator(&AccountId::new_unchecked("v1".to_string()), 12);
+        let mut v1 = validator_pool.add_validator(&AccountId::new_unchecked("v1".to_string()), 8);
         let mut v2 = validator_pool.add_validator(&AccountId::new_unchecked("v2".to_string()), 11);
-        let mut v3 = validator_pool.add_validator(&AccountId::new_unchecked("v3".to_string()), 3);
+        let mut v3 = validator_pool.add_validator(&AccountId::new_unchecked("v3".to_string()), 0);
         let mut v4 = validator_pool.add_validator(&AccountId::new_unchecked("v4".to_string()), 7);
-        let mut v5 = validator_pool.add_validator(&AccountId::new_unchecked("v5".to_string()), 0);
-        let mut v6 = validator_pool.add_validator(&AccountId::new_unchecked("v6".to_string()), 5);
-        let mut v7 = validator_pool.add_validator(&AccountId::new_unchecked("v7".to_string()), 5);
+        let mut v5 = validator_pool.add_validator(&AccountId::new_unchecked("v5".to_string()), 5);
+        let mut v6 = validator_pool.add_validator(&AccountId::new_unchecked("v6".to_string()), 7);
+        let mut v7 = validator_pool.add_validator(&AccountId::new_unchecked("v7".to_string()), 0);
         let mut v8 = validator_pool.add_validator(&AccountId::new_unchecked("v8".to_string()), 6);
         let mut v9 = validator_pool.add_validator(&AccountId::new_unchecked("v9".to_string()), 8);
         let mut v10 = validator_pool.add_validator(&AccountId::new_unchecked("v10".to_string()), 8);
 
         // manually set staked amounts
-        v1.staked_amount = 3800 * ONE_NEAR; // target ≈ 2344.62, delta ≈ 1455.38
-        v2.staked_amount = 3000 * ONE_NEAR; // target ≈ 2149.23, delta ≈ 850.77
-        v3.staked_amount = 2000 * ONE_NEAR; // target ≈ 586.15,  delta ≈ 1413.85
-        v4.staked_amount = 300 * ONE_NEAR; // target ≈ 1367.69, delta ≈ -1067.69
-        v5.staked_amount = 1300 * ONE_NEAR; // target ≈ 0,       delta ≈ 1300
-        v6.staked_amount = 500 * ONE_NEAR; // target ≈ 976.92,  delta ≈ -476.92
-        v7.staked_amount = 600 * ONE_NEAR; // target ≈ 976.92,  delta ≈ -376.92
-        v8.staked_amount = 700 * ONE_NEAR; // target ≈ 1172.31, delta ≈ -472.31
-        v9.staked_amount = 800 * ONE_NEAR; // target ≈ 1563.08, delta ≈ -763.08
-        v10.staked_amount = 1200 * ONE_NEAR; // target ≈ 1563.08, delta ≈ -363.08
+        v1.staked_amount = 3000 * ONE_NEAR; // target ≈ 1546.67, delta ≈ 1453.33
+        v2.staked_amount = 4000 * ONE_NEAR; // target ≈ 2126.67, delta ≈ 1873.33
+        v3.staked_amount = 100 * ONE_NEAR; // target ≈ 0,  delta ≈ 100
+        v4.staked_amount = 300 * ONE_NEAR; // target ≈ 1353.33, delta ≈ -1053.33
+        v5.staked_amount = 1500 * ONE_NEAR; // target ≈ 966.67,       delta ≈ 533.33
+        v6.staked_amount = 2000 * ONE_NEAR; // target ≈ 1353.33,  delta ≈ 646.67
+        v7.staked_amount = 3000 * ONE_NEAR; // target ≈ 0,  delta ≈ 3000
+        v8.staked_amount = 700 * ONE_NEAR; // target ≈ 1160, delta ≈ -460
+        v9.staked_amount = 800 * ONE_NEAR; // target ≈ 1546.67, delta ≈ -746.67
+        v10.staked_amount = 1200 * ONE_NEAR; // target ≈ 1546.67, delta ≈ -346.67
 
         validator_pool
             .validators
@@ -1769,28 +1774,70 @@ mod tests {
             .validators
             .insert(&v10.account_id, &v10.clone().into());
 
+        // init params
+        let mut total_amount_to_unstake = 5000 * ONE_NEAR;
+        let total_staked_near_amount = 11600 * ONE_NEAR;
+
+        // unstake total 5000 NEAR
         // no validators satisfy step 1, so we should go into step 2
-        // v2 should be selected because its target is 0
-        let candidate =
-            validator_pool.get_candidate_to_unstake_v2(1500 * ONE_NEAR, 12700 * ONE_NEAR);
+        // v7 should be selected because its `target` is 0 and has largest `delta`
+        let candidate = validator_pool
+            .get_candidate_to_unstake_v2(total_amount_to_unstake, total_staked_near_amount);
+        assert!(candidate.is_some());
+        let candidate = candidate.unwrap();
+        assert_eq!(candidate.validator.account_id, v7.account_id);
+        let unstaked_amount = 3000 * ONE_NEAR;
+        assert_eq!(candidate.amount, unstaked_amount);
+
+        // 1st unstake 3000 NEAR from v7
+        total_amount_to_unstake -= unstaked_amount;
+        v7.staked_amount -= unstaked_amount; // target ≈ 0,  delta ≈ 0
+        validator_pool
+            .validators
+            .insert(&v7.account_id, &v7.clone().into());
+
+        // unstake left 2000 NEAR
+        // v3 should be selected because its `target` is 0 and has largest `delta`
+        let candidate = validator_pool
+            .get_candidate_to_unstake_v2(total_amount_to_unstake, total_staked_near_amount);
+        assert!(candidate.is_some());
+        let candidate = candidate.unwrap();
+        assert_eq!(candidate.validator.account_id, v3.account_id);
+        let unstaked_amount = 100 * ONE_NEAR;
+        assert_eq!(candidate.amount, unstaked_amount);
+
+        // 2nd unstake 100 NEAR from v3
+        total_amount_to_unstake -= unstaked_amount;
+        v3.staked_amount = 0; // target ≈ 0,  delta ≈ 0
+        validator_pool
+            .validators
+            .insert(&v3.account_id, &v3.clone().into());
+
+        // unstake left 1900 NEAR
+        // v1 should be selected because it has largest `delta / target`
+        let candidate = validator_pool
+            .get_candidate_to_unstake_v2(total_amount_to_unstake, total_staked_near_amount);
+        assert!(candidate.is_some());
+        let candidate = candidate.unwrap();
+        assert_eq!(candidate.validator.account_id, v1.account_id);
+        let unstaked_amount = 1453333333333333333333333334_u128;
+        assert_eq!(candidate.amount, unstaked_amount);
+
+        // 4th unstake around 1453.33 NEAR from v1
+        total_amount_to_unstake -= unstaked_amount;
+        v1.staked_amount -= unstaked_amount;
+        validator_pool
+            .validators
+            .insert(&v1.account_id, &v1.clone().into());
+
+        // unstake left around 446.67 NEAR
+        // v5 should be selected because it has min `delta` that satisfy the unstake amount
+        let candidate = validator_pool
+            .get_candidate_to_unstake_v2(total_amount_to_unstake, total_staked_near_amount);
         assert!(candidate.is_some());
         let candidate = candidate.unwrap();
         assert_eq!(candidate.validator.account_id, v5.account_id);
-        assert_eq!(candidate.amount, 1300 * ONE_NEAR);
-
-        // firstly unstake 1300 NEAR from v5
-        v5.staked_amount = 0;
-        validator_pool
-            .validators
-            .insert(&v5.account_id, &v5.clone().into());
-
-        // unstake left 200 NEAR
-        // v2 should be selected because it has min `delta` that satisfy the unstake amount
-        let candidate =
-            validator_pool.get_candidate_to_unstake_v2(200 * ONE_NEAR, 12700 * ONE_NEAR);
-        assert!(candidate.is_some());
-        let candidate = candidate.unwrap();
-        assert_eq!(candidate.validator.account_id, v2.account_id);
-        assert_eq!(candidate.amount, 200 * ONE_NEAR);
+        let unstaked_amount = 446666666666666666666666666_u128;
+        assert_eq!(candidate.amount, unstaked_amount);
     }
 }

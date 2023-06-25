@@ -180,8 +180,8 @@ workspace.test('sync balance', async (test, { root, contract, alice, owner }) =>
     'adjust_balance',
     {
       account_id: contract.accountId,
-      staked_delta: "99",
-      unstaked_delta: "99" 
+      staked_delta: ONE_NEAR.subn(1).toString(10),
+      unstaked_delta: ONE_NEAR.subn(1).toString(10), 
     },
   );
 

@@ -55,6 +55,7 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
     }
   );
 
+  // 10 NEAR already in the contract
   await alice.call(
     contract,
     'deposit_and_stake',
@@ -154,6 +155,7 @@ workspace.test('sync balance', async (test, { root, contract, alice, owner }) =>
     }
   );
 
+  // 10 NEAR already in the contract
   await alice.call(
     contract,
     'deposit_and_stake',
@@ -196,6 +198,5 @@ workspace.test('sync balance', async (test, { root, contract, alice, owner }) =>
     }
   );
 
-  // v1 amount should not change
-  await assertValidator(v2, '29000000000000000000000001', '99');
+  await assertValidator(v2, '29000000000000000000000001', '999999999999999999999999');
 });

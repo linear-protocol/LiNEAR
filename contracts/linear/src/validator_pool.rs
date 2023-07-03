@@ -161,6 +161,7 @@ impl ValidatorPool {
         old_weight
     }
 
+    // to mock pending release validators at the beginnings of simulation tests
     #[cfg(feature = "test")]
     pub fn set_unstake_fired_epoch(&mut self, validator_id: &AccountId, epoch_height: EpochHeight) {
         let mut validator: Validator = self
@@ -172,6 +173,7 @@ impl ValidatorPool {
         self.validators.insert(validator_id, &validator.into());
     }
 
+    // to mock draining validators at the beginnings of simulation tests
     #[cfg(feature = "test")]
     pub fn set_draining(&mut self, validator_id: &AccountId) {
         let mut validator: Validator = self

@@ -14,7 +14,7 @@ const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR;
 #[near_bindgen]
 impl LiquidStakingContract {
     // `stake_to_validator` and `unstake_from_validator` are used to mock
-    // stake amounts and unstake amounts of validators at the beginning
+    // stake amounts and unstake amounts of validators at the beginnings
     // of simulation tests
     #[payable]
     #[cfg(feature = "test")]
@@ -297,7 +297,7 @@ impl LiquidStakingContract {
         .emit();
     }
 
-    // To mock unsettled amounts at the beginning of simulation tests
+    // To mock unsettled amounts at the beginnings of simulation tests
     #[cfg(feature = "test")]
     pub fn epoch_cleanup_for_test(&mut self) {
         self.epoch_cleanup();

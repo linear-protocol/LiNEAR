@@ -17,7 +17,7 @@ use std::cmp::min;
 
 const STAKE_SMALL_CHANGE_AMOUNT: Balance = ONE_NEAR;
 const UNSTAKE_FACTOR: u128 = 2;
-const MAX_SYNC_BALANCE_DIFF: Balance = 100;
+const MAX_SYNC_BALANCE_DIFF: Balance = ONE_NEAR;
 const MAX_UPDATE_WEIGHTS_COUNT: usize = 300;
 
 #[ext_contract(ext_staking_pool)]
@@ -915,10 +915,14 @@ impl Validator {
         staked_balance: Balance,
         unstaked_balance: Balance,
     ) {
-        // allow at most 1 yN diff in total balance
+        // allow at most 1 NEAR diff in total balance
         let new_total_balance = staked_balance + unstaked_balance;
         require!(
-            abs_diff_eq(new_total_balance, self.total_balance(), 1),
+            abs_diff_eq(
+                new_total_balance,
+                self.total_balance(),
+                MAX_SYNC_BALANCE_DIFF
+            ),
             format!(
                 "{}. new: {}, old: {}",
                 ERR_SYNC_BALANCE_BAD_TOTAL,
@@ -927,7 +931,7 @@ impl Validator {
             )
         );
 
-        // allow at most 100 yN diff in staked/unstaked balance
+        // allow at most 1 NEAR diff in staked/unstaked balance
         require!(
             abs_diff_eq(staked_balance, self.staked_amount, MAX_SYNC_BALANCE_DIFF),
             format!(
@@ -1051,8 +1055,7 @@ mod tests {
             .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 600 in total, 500 already staked, 100 to stake,
-        // each weight point should be 150, thus zoo is the most unbalanced one.
-
+        // each weight point should be 150, thus foo is the most unbalanced one.
         let candidate = validator_pool.get_candidate_to_stake(100 * ONE_NEAR, 600 * ONE_NEAR);
         assert!(candidate.is_some());
         let candidate = candidate.unwrap();
@@ -1217,6 +1220,95 @@ mod tests {
         let candidate = candidate.unwrap();
         assert_eq!(candidate.validator.account_id, bar.account_id);
         assert_eq!(candidate.amount, 30 * ONE_NEAR);
+    }
+
+    #[test]
+    fn test_stake_candidate_select_with_testing_two_rounds() {
+        let mut validator_pool = ValidatorPool::new();
+
+        let mut v1 = validator_pool.add_validator(&AccountId::new_unchecked("v1".to_string()), 10);
+        let mut v2 = validator_pool.add_validator(&AccountId::new_unchecked("v2".to_string()), 3);
+        let mut v3 = validator_pool.add_validator(&AccountId::new_unchecked("v3".to_string()), 8);
+        let mut v4 = validator_pool.add_validator(&AccountId::new_unchecked("v4".to_string()), 5);
+        let mut v5 = validator_pool.add_validator(&AccountId::new_unchecked("v5".to_string()), 3);
+        let mut v6 = validator_pool.add_validator(&AccountId::new_unchecked("v6".to_string()), 1);
+        let mut v7 = validator_pool.add_validator(&AccountId::new_unchecked("v7".to_string()), 5);
+        let mut v8 = validator_pool.add_validator(&AccountId::new_unchecked("v8".to_string()), 7);
+        let mut v9 = validator_pool.add_validator(&AccountId::new_unchecked("v9".to_string()), 11);
+        let mut v10 = validator_pool.add_validator(&AccountId::new_unchecked("v10".to_string()), 2);
+
+        // manually set staked amounts
+        v1.staked_amount = 5200 * ONE_NEAR; // target ≈ 3291.64, delta ≈ 1908.36
+        v2.staked_amount = 500 * ONE_NEAR; // target ≈ 987.49, delta ≈ -487.49
+        v3.staked_amount = 250 * ONE_NEAR; // target ≈ 2633.31,  delta ≈ -2383.31
+        v4.staked_amount = 50 * ONE_NEAR; // target ≈ 1645.82, delta ≈ -1595.82
+        v5.staked_amount = 2000 * ONE_NEAR; // target ≈ 987.49,       delta ≈ 1012.51
+        v6.staked_amount = 1000 * ONE_NEAR; // target ≈ 329.16,  delta ≈ 670.84
+        v7.staked_amount = 1201 * ONE_NEAR; // target ≈ 1645.82,  delta ≈ -444.82
+        v8.staked_amount = 600 * ONE_NEAR; // target ≈ 2304.15, delta ≈ -1704.15
+        v9.staked_amount = 1300 * ONE_NEAR; // target ≈ 3620.80, delta ≈ -2320.80
+        v10.staked_amount = 3003 * ONE_NEAR; // target ≈ 658.33, delta ≈ 2344.67
+
+        validator_pool
+            .validators
+            .insert(&v1.account_id, &v1.clone().into());
+        validator_pool
+            .validators
+            .insert(&v2.account_id, &v2.clone().into());
+        validator_pool
+            .validators
+            .insert(&v3.account_id, &v3.clone().into());
+        validator_pool
+            .validators
+            .insert(&v4.account_id, &v4.clone().into());
+        validator_pool
+            .validators
+            .insert(&v5.account_id, &v5.clone().into());
+        validator_pool
+            .validators
+            .insert(&v6.account_id, &v6.clone().into());
+        validator_pool
+            .validators
+            .insert(&v7.account_id, &v7.clone().into());
+        validator_pool
+            .validators
+            .insert(&v8.account_id, &v8.clone().into());
+        validator_pool
+            .validators
+            .insert(&v9.account_id, &v9.clone().into());
+        validator_pool
+            .validators
+            .insert(&v10.account_id, &v10.clone().into());
+
+        let mut amount_to_stake = 3000 * ONE_NEAR;
+        let total_staked_near_amount = 18104 * ONE_NEAR;
+
+        // we have currently 18104 in total, 15104 already staked, 3000 to stake,
+        // v3 should be selected at round 1
+        let candidate =
+            validator_pool.get_candidate_to_stake(amount_to_stake, total_staked_near_amount);
+        assert!(candidate.is_some());
+        let candidate = candidate.unwrap();
+        assert_eq!(candidate.validator.account_id, v3.account_id);
+        let staked_amount = 2383309090909090909090909090;
+        assert_eq!(candidate.amount, staked_amount);
+
+        // 1st stake around 2383.31 NEAR
+        amount_to_stake -= staked_amount;
+        v3.staked_amount += staked_amount;
+        validator_pool
+            .validators
+            .insert(&v3.account_id, &v3.clone().into());
+
+        // stake left around 616.69 NEAR
+        // v9 should be selected at round 2
+        let candidate =
+            validator_pool.get_candidate_to_stake(amount_to_stake, total_staked_near_amount);
+        assert!(candidate.is_some());
+        let candidate = candidate.unwrap();
+        assert_eq!(candidate.validator.account_id, v9.account_id);
+        let staked_amount = 616690909090909090909090910;
+        assert_eq!(candidate.amount, staked_amount);
     }
 
     #[test]

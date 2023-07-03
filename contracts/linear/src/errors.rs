@@ -45,7 +45,7 @@ pub const ERR_CONTRACT_NO_STAKED_BALANCE: &str = "Invariant violation. The calcu
 
 // sync balance
 pub const ERR_SYNC_BALANCE_BAD_TOTAL: &str =
-    "Diff between new total balance and old balance > 1 yN";
+    "Diff between new total balance and old balance > 1 NEAR";
 pub const ERR_SYNC_BALANCE_BAD_STAKED: &str =
     "Diff between new staked balance and old balance too large";
 pub const ERR_SYNC_BALANCE_BAD_UNSTAKED: &str =

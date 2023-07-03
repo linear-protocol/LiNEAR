@@ -13,6 +13,9 @@ const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR;
 /// during each epoch.
 #[near_bindgen]
 impl LiquidStakingContract {
+    // `stake_to_validator` and `unstake_from_validator` are used to mock
+    // stake amounts and unstake amounts of validators at the beginning
+    // of simulation tests
     #[payable]
     #[cfg(feature = "test")]
     pub fn stake_to_validator(&mut self, validator_id: AccountId, amount: U128) {
@@ -267,7 +270,7 @@ impl LiquidStakingContract {
     /// Cleaning up stake requirements and unstake requirements,
     /// since some stake requirements could be eliminated if
     /// there are more unstake requirements, and vice versa.
-    pub fn epoch_cleanup(&mut self) {
+    fn epoch_cleanup(&mut self) {
         if self.last_settlement_epoch == get_epoch_height() {
             return;
         }
@@ -292,6 +295,12 @@ impl LiquidStakingContract {
             unstake_amount_to_settle: &U128(self.unstake_amount_to_settle),
         }
         .emit();
+    }
+
+    // To mock unsettled amounts at the beginning of simulation tests
+    #[cfg(feature = "test")]
+    pub fn epoch_cleanup_for_test(&mut self) {
+        self.epoch_cleanup();
     }
 
     /// Due to shares calculation and rounding of staking pool contract,

@@ -13,12 +13,6 @@ const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR;
 /// during each epoch.
 #[near_bindgen]
 impl LiquidStakingContract {
-    #[cfg(feature = "test")]
-    pub fn assert_zero_requested(&self) {
-        require!(self.epoch_requested_stake_amount == 0);
-        require!(self.epoch_requested_unstake_amount == 0);
-    }
-
     #[payable]
     #[cfg(feature = "test")]
     pub fn stake_to_validator(&mut self, validator_id: AccountId, amount: U128) {

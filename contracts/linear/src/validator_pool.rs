@@ -355,6 +355,9 @@ impl ValidatorPool {
         total_staked_near_amount: Balance,
     ) -> Option<CandidateValidator> {
         let mut candidate_validators = self.extract_candidate_validators(total_staked_near_amount);
+        if candidate_validators.is_empty() {
+            return None;
+        }
 
         Self::sort_candidate_validators_by_delta_asc(&mut candidate_validators);
 
@@ -369,17 +372,25 @@ impl ValidatorPool {
             });
         };
 
-        Self::sort_candidate_validators_by_delta_to_target_desc(&mut candidate_validators);
+        Self::sort_candidate_validators_by_ratio_of_delta_to_target_desc(&mut candidate_validators);
 
         candidate_validators
             .first()
             .map(|(validator, target_amount, delta)| {
                 let amount_to_unstake = min3(
-                    total_amount_to_unstake,        // unstake no more than total requirement
-                    max(target_amount / 2, *delta), // When `stake < 1.5 * target`, unstake `target_amount / 2`, else unstake `delta`
-                    validator
-                        .staked_amount
-                        .saturating_sub(validator.base_stake_amount), // leave at least base stake amount
+                    // unstake no more than total requirement
+                    total_amount_to_unstake,
+                    // When `stake < 1.5 * target`, unstake `target_amount / 2`, else unstake `delta`
+                    max(target_amount / 2, *delta),
+                    // guaranteed minimum staked amount even if `total_staked_near_amount` is less than `total_base_stake_amount`
+                    validator.staked_amount.saturating_sub(min(
+                        (U256::from(validator.base_stake_amount)
+                            * U256::from(total_staked_near_amount))
+                        .checked_div(U256::from(self.total_base_stake_amount))
+                        .unwrap_or_default()
+                        .as_u128(),
+                        validator.base_stake_amount,
+                    )),
                 );
                 CandidateValidator {
                     validator: validator.clone(),
@@ -402,9 +413,16 @@ impl ValidatorPool {
                 (validator, target_amount)
             })
             .filter(|(validator, target_amount)| {
-                !validator.pending_release() // validator is not in pending release
-                    && validator.staked_amount > *target_amount // delta must > 0
-                    && validator.staked_amount > validator.base_stake_amount // guaranteed minimum staked amount
+                // validator is not in pending release
+                !validator.pending_release()
+                    // delta must > 0
+                    && validator.staked_amount > *target_amount
+                    // guaranteed minimum staked amount
+                    && U256::from(validator.staked_amount) >
+                        min((U256::from(validator.base_stake_amount) *
+                        U256::from(total_staked_near_amount))
+                        .checked_div(U256::from(self.total_base_stake_amount))
+                        .unwrap_or_default(), U256::from(validator.base_stake_amount))
             })
             .map(|(validator, target_amount)| {
                 let delta = validator.staked_amount - target_amount; // safe sub
@@ -424,7 +442,7 @@ impl ValidatorPool {
     }
 
     // sort candidate validator by delta in descending
-    fn sort_candidate_validators_by_delta_to_target_desc(
+    fn sort_candidate_validators_by_ratio_of_delta_to_target_desc(
         candidate_validators: &mut [(Validator, Balance, Balance)],
     ) {
         candidate_validators.sort_by(
@@ -1634,7 +1652,7 @@ mod tests {
 
         // zoo has largest `delta / target`, so it will be selected.
         // zoo's `target / 2` is 40 NEAR, `stake - base` is 20 NEAR, in order to
-        // guarantee base stake amount, we can unstake no more than 20 NEAR
+        // guarantee minimum stake amount, we can unstake no more than 20 NEAR
         let candidate = validator_pool.get_candidate_to_unstake_v2(30 * ONE_NEAR, 400 * ONE_NEAR);
         assert!(candidate.is_some());
         let candidate = candidate.unwrap();

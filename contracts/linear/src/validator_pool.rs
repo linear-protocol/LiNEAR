@@ -417,12 +417,6 @@ impl ValidatorPool {
                 !validator.pending_release()
                     // delta must > 0
                     && validator.staked_amount > *target_amount
-                    // guaranteed minimum staked amount
-                    && U256::from(validator.staked_amount) >
-                        min((U256::from(validator.base_stake_amount) *
-                        U256::from(total_staked_near_amount))
-                        .checked_div(U256::from(self.total_base_stake_amount))
-                        .unwrap_or_default(), U256::from(validator.base_stake_amount))
             })
             .map(|(validator, target_amount)| {
                 let delta = validator.staked_amount - target_amount; // safe sub

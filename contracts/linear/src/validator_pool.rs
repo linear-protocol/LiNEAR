@@ -1590,18 +1590,18 @@ mod tests {
         assert_eq!(candidate.amount, 210 * ONE_NEAR);
 
         // add new validator with 0 weight
-        let mut ppt = validator_pool.add_validator(&AccountId::new_unchecked("ppt".to_string()), 0);
-        ppt.staked_amount = 100 * ONE_NEAR; // target is 0, delta is 100
+        let mut baz = validator_pool.add_validator(&AccountId::new_unchecked("baz".to_string()), 0);
+        baz.staked_amount = 100 * ONE_NEAR; // target is 0, delta is 100
         validator_pool
             .validators
-            .insert(&ppt.account_id, &ppt.clone().into());
+            .insert(&baz.account_id, &baz.clone().into());
 
         // test step 2 with zero target validator
-        // no `delta` is larger than `total_amount_to_unstake`, but ppt's `target` is zero, so ppt is selected
+        // no `delta` is larger than `total_amount_to_unstake`, but baz's `target` is zero, so baz is selected
         let candidate = validator_pool.get_candidate_to_unstake_v2(340 * ONE_NEAR, 400 * ONE_NEAR);
         assert!(candidate.is_some());
         let candidate = candidate.unwrap();
-        assert_eq!(candidate.validator.account_id, ppt.account_id);
+        assert_eq!(candidate.validator.account_id, baz.account_id);
         assert_eq!(candidate.amount, 100 * ONE_NEAR);
     }
 
@@ -1655,7 +1655,56 @@ mod tests {
     }
 
     #[test]
-    fn test_unstake_candidate_select_v2_with_testing_min_satisfy_delta() {
+    fn test_unstake_candidate_select_v2_with_total_staked_less_than_total_base() {
+        let mut validator_pool = ValidatorPool::new();
+
+        let mut foo = validator_pool.add_validator(&AccountId::new_unchecked("foo".to_string()), 1);
+        let mut bar = validator_pool.add_validator(&AccountId::new_unchecked("bar".to_string()), 1);
+        let mut zoo = validator_pool.add_validator(&AccountId::new_unchecked("zoo".to_string()), 1);
+
+        // set foo's base stake amount to 200
+        validator_pool.update_base_stake_amount(&foo.account_id, 200 * ONE_NEAR);
+        foo = validator_pool
+            .get_validator(&AccountId::new_unchecked("foo".to_string()))
+            .unwrap();
+        // set bar's base stake amount to 100
+        validator_pool.update_base_stake_amount(&bar.account_id, 500 * ONE_NEAR);
+        bar = validator_pool
+            .get_validator(&AccountId::new_unchecked("bar".to_string()))
+            .unwrap();
+        // set zoo's base stake amount to 70
+        validator_pool.update_base_stake_amount(&zoo.account_id, 300 * ONE_NEAR);
+        zoo = validator_pool
+            .get_validator(&AccountId::new_unchecked("zoo".to_string()))
+            .unwrap();
+
+        // manually set staked amount
+        foo.staked_amount = 220 * ONE_NEAR; // target is 165, delta is 55, base is 200
+        bar.staked_amount = 300 * ONE_NEAR; // target is 225, delta is 75, base is 500
+        zoo.staked_amount = 230 * ONE_NEAR; // target is 172.5, delta is 57.5, base is 300
+
+        validator_pool
+            .validators
+            .insert(&foo.account_id, &foo.clone().into());
+        validator_pool
+            .validators
+            .insert(&bar.account_id, &bar.clone().into());
+        validator_pool
+            .validators
+            .insert(&zoo.account_id, &zoo.clone().into());
+
+        // foo has the smallest delta that match the `total_amount_to_unstake`, it will be selected.
+        // the `staked_amount - base_stake_amount` of foo is 20 NEAR, but actually unstaked amount is 30 NEAR
+        // because `total_staked_near_amount` is less than `total_base_stake_amount`
+        let candidate = validator_pool.get_candidate_to_unstake_v2(30 * ONE_NEAR, 720 * ONE_NEAR);
+        assert!(candidate.is_some());
+        let candidate = candidate.unwrap();
+        assert_eq!(candidate.validator.account_id, foo.account_id);
+        assert_eq!(candidate.amount, 30 * ONE_NEAR);
+    }
+
+    #[test]
+    fn test_unstake_candidate_select_v2_that_selects_min_delta() {
         let mut validator_pool = ValidatorPool::new();
 
         let mut v1 = validator_pool.add_validator(&AccountId::new_unchecked("v1".to_string()), 12);
@@ -1807,7 +1856,7 @@ mod tests {
             .validators
             .insert(&v7.account_id, &v7.clone().into());
 
-        // unstake left 2000 NEAR
+        // 2000 NEAR needs to be unstaked
         // v3 should be selected because its `target` is 0 and has largest `delta`
         let candidate = validator_pool
             .get_candidate_to_unstake_v2(total_amount_to_unstake, total_staked_near_amount);
@@ -1824,7 +1873,7 @@ mod tests {
             .validators
             .insert(&v3.account_id, &v3.clone().into());
 
-        // unstake left 1900 NEAR
+        // 1900 NEAR needs to be unstaked
         // v1 should be selected because it has largest `delta / target`
         let candidate = validator_pool
             .get_candidate_to_unstake_v2(total_amount_to_unstake, total_staked_near_amount);
@@ -1841,7 +1890,7 @@ mod tests {
             .validators
             .insert(&v1.account_id, &v1.clone().into());
 
-        // unstake left around 446.67 NEAR
+        // around 446.67 NEAR needs to be unstaked
         // v5 should be selected because it has min `delta` that satisfy the unstake amount
         let candidate = validator_pool
             .get_candidate_to_unstake_v2(total_amount_to_unstake, total_staked_near_amount);
@@ -1853,7 +1902,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unstake_candidate_select_v2_with_testing_unstake_half_target() {
+    fn test_unstake_candidate_select_v2_that_unstakes_half_target() {
         let mut validator_pool = ValidatorPool::new();
 
         let mut v1 = validator_pool.add_validator(&AccountId::new_unchecked("v1".to_string()), 12);
@@ -1931,7 +1980,7 @@ mod tests {
             .validators
             .insert(&v2.account_id, &v2.clone().into());
 
-        // unstake left 723.08 NEAR
+        // 723.08 NEAR needs to be unstaked
         // v7 should be selected because it has largest `delta / target`
         let candidate = validator_pool
             .get_candidate_to_unstake_v2(total_amount_to_unstake, total_staked_near_amount);
@@ -1948,7 +1997,7 @@ mod tests {
             .validators
             .insert(&v7.account_id, &v7.clone().into());
 
-        // unstake left around 307.69 NEAR
+        // around 307.69 NEAR needs to be unstaked
         // v3 should be selected because it has min `delta` that satisfy the unstake amount
         let candidate = validator_pool
             .get_candidate_to_unstake_v2(total_amount_to_unstake, total_staked_near_amount);

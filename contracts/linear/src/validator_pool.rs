@@ -1778,7 +1778,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unstake_candidate_select_v2_with_testing_largest_target_to_delta() {
+    fn test_unstake_candidate_select_v2_that_selects_largest_ratio_of_delta_to_target() {
         let mut validator_pool = ValidatorPool::new();
 
         let mut v1 = validator_pool.add_validator(&AccountId::new_unchecked("v1".to_string()), 8);

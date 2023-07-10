@@ -344,17 +344,17 @@ impl ValidatorPool {
 impl ValidatorPool {
     /// Strategy
     /// Step 1. If there is a validator whose `delta` is greater than `total_amount_to_unstake`,
-    ///         it will be selected (If more than one validator match the condition, select one
-    ///         which has smallest `delta`).
-    /// Step 2. If we didn't find any valid validator in step 1, we should select a validator which
-    ///         has largest `delta / target_amount` (If `target_amount` is 0, select one which
-    ///         has largest `delta`).
+    ///         it will be selected (If more than one validators match the condition, select the one
+    ///         which has the smallest `delta`).
+    /// Step 2. If we didn't find any valid validator in step 1, we should select a validator with
+    ///         the largest `delta / target_amount` (If `target_amount` is 0 for all candidates, select the one which
+    ///         has the largest `delta`).
     pub fn get_candidate_to_unstake_v2(
         &self,
         total_amount_to_unstake: Balance,
         total_staked_near_amount: Balance,
     ) -> Option<CandidateValidator> {
-        let mut candidate_validators = self.extract_candidate_validators(total_staked_near_amount);
+        let mut candidate_validators = self.filter_candidate_validators(total_staked_near_amount);
         if candidate_validators.is_empty() {
             return None;
         }
@@ -380,7 +380,7 @@ impl ValidatorPool {
                 let amount_to_unstake = min3(
                     // unstake no more than total requirement
                     total_amount_to_unstake,
-                    // When `stake < 1.5 * target`, unstake `target_amount / 2`, else unstake `delta`
+                    // If `staked amount < 1.5 * target`, unstake `target_amount / 2`, else unstake `delta`
                     max(target_amount / 2, *delta),
                     // guaranteed minimum staked amount even if `total_staked_near_amount` is less than `total_base_stake_amount`
                     validator.staked_amount.saturating_sub(min(
@@ -399,8 +399,8 @@ impl ValidatorPool {
             })
     }
 
-    // extract from validator list, return Vec<(validator, target_amount, delta)>
-    fn extract_candidate_validators(
+    // Filter and return valid validator candidates. Return `Vec<(validator, target_amount, delta)>`
+    fn filter_candidate_validators(
         &self,
         total_staked_near_amount: Balance,
     ) -> Vec<(Validator, Balance, Balance)> {
@@ -425,7 +425,7 @@ impl ValidatorPool {
             .collect()
     }
 
-    // sort candidate validator by delta in ascending
+    // Sort candidate validators by delta in ascending order
     fn sort_candidate_validators_by_delta_asc(
         candidate_validators: &mut [(Validator, Balance, Balance)],
     ) {
@@ -435,7 +435,7 @@ impl ValidatorPool {
         );
     }
 
-    // sort candidate validator by delta in descending
+    // Sort candidate validators by (delta / target) in descending order
     fn sort_candidate_validators_by_ratio_of_delta_to_target_desc(
         candidate_validators: &mut [(Validator, Balance, Balance)],
     ) {

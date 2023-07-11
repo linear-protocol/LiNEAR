@@ -29,7 +29,7 @@
   },
   {
     "id": "baziliknear.poolv1.near",
-    "weight": 15
+    "weight": 0
   },
   {
     "id": "omnistake.pool.near",
@@ -41,7 +41,7 @@
   },
   {
     "id": "jazza.poolv1.near",
-    "weight": 10
+    "weight": 0
   },
   {
     "id": "foundry.poolv1.near",
@@ -105,7 +105,7 @@
   },
   {
     "id": "masternode24.poolv1.near",
-    "weight": 15
+    "weight": 0
   },
   {
     "id": "bee1stake.poolv1.near",
@@ -157,7 +157,7 @@
   },
   {
     "id": "stakesabai.poolv1.near",
-    "weight": 20
+    "weight": 0
   },
   {
     "id": "infstones-global.poolv1.near",
@@ -205,6 +205,10 @@
   },
   {
     "id": "centurion.poolv1.near",
+    "weight": 0
+  },
+  {
+    "id": "openprojects_staking-platform.pool.near",
     "weight": 0
   },
   {
@@ -277,11 +281,11 @@
   },
   {
     "id": "sharpdarts.poolv1.near",
-    "weight": 10
+    "weight": 0
   },
   {
     "id": "chorusone.poolv1.near",
-    "weight": 10
+    "weight": 0
   },
   {
     "id": "vcap.poolv1.near",
@@ -289,7 +293,7 @@
   },
   {
     "id": "rekt.poolv1.near",
-    "weight": 20
+    "weight": 0
   },
   {
     "id": "ledgerbyfigment.poolv1.near",
@@ -317,7 +321,7 @@
   },
   {
     "id": "northernlights.poolv1.near",
-    "weight": 10
+    "weight": 0
   },
   {
     "id": "optimusvalidatornetwork.poolv1.near",
@@ -349,7 +353,7 @@
   },
   {
     "id": "epic.poolv1.near",
-    "weight": 20
+    "weight": 10
   },
   {
     "id": "satori.poolv1.near",
@@ -361,7 +365,7 @@
   },
   {
     "id": "hashquark.poolv1.near",
-    "weight": 15
+    "weight": 0
   },
   {
     "id": "figment.poolv1.near",
@@ -377,7 +381,7 @@
   },
   {
     "id": "buildlinks.poolv1.near",
-    "weight": 10
+    "weight": 0
   },
   {
     "id": "ou812.poolv1.near",
@@ -409,7 +413,7 @@
   },
   {
     "id": "blockdaemon.poolv1.near",
-    "weight": 10
+    "weight": 15
   },
   {
     "id": "anonymous.poolv1.near",
@@ -429,7 +433,7 @@
   },
   {
     "id": "08investinwomen_runbybisontrails.poolv1.near",
-    "weight": 5
+    "weight": 0
   },
   {
     "id": "chelovek_iz_naroda.poolv1.near",
@@ -457,19 +461,19 @@
   },
   {
     "id": "continue.poolv1.near",
-    "weight": 5
+    "weight": 0
   },
   {
     "id": "binancenode1.poolv1.near",
-    "weight": 10
+    "weight": 0
   },
   {
     "id": "appload.poolv1.near",
-    "weight": 15
+    "weight": 0
   },
   {
     "id": "stardust.poolv1.near",
-    "weight": 10
+    "weight": 0
   },
   {
     "id": "iamcryptobro.poolv1.near",
@@ -505,7 +509,7 @@
   },
   {
     "id": "stakin.poolv1.near",
-    "weight": 10
+    "weight": 0
   },
   {
     "id": "aurora.pool.near",
@@ -521,7 +525,7 @@
   },
   {
     "id": "finoa.poolv1.near",
-    "weight": 5
+    "weight": 0
   },
   {
     "id": "upgold.poolv1.near",
@@ -537,7 +541,7 @@
   },
   {
     "id": "smart-stake.poolv1.near",
-    "weight": 20
+    "weight": 0
   },
   {
     "id": "yes_protocol1.poolv1.near",
@@ -549,7 +553,7 @@
   },
   {
     "id": "lunanova.poolv1.near",
-    "weight": 10
+    "weight": 0
   },
   {
     "id": "lionstake.poolv1.near",
@@ -561,7 +565,7 @@
   },
   {
     "id": "everstake.poolv1.near",
-    "weight": 15
+    "weight": 0
   },
   {
     "id": "allnodes.poolv1.near",
@@ -569,7 +573,7 @@
   },
   {
     "id": "d1.poolv1.near",
-    "weight": 10
+    "weight": 0
   },
   {
     "id": "vortex_live.poolv1.near",
@@ -649,7 +653,7 @@
   },
   {
     "id": "cryptium.poolv1.near",
-    "weight": 10
+    "weight": 0
   },
   {
     "id": "mexa-staking.poolv1.near",
@@ -669,7 +673,7 @@
   },
   {
     "id": "astro-stakers.poolv1.near",
-    "weight": 20
+    "weight": 10
   },
   {
     "id": "prophet.poolv1.near",
@@ -677,7 +681,7 @@
   },
   {
     "id": "01node.poolv1.near",
-    "weight": 15
+    "weight": 0
   },
   {
     "id": "readylayerone_staking.poolv1.near",
@@ -725,7 +729,7 @@
   },
   {
     "id": "zavodil.poolv1.near",
-    "weight": 20
+    "weight": 0
   },
   {
     "id": "svarog.poolv1.near",
@@ -749,7 +753,7 @@
   },
   {
     "id": "nodeasy.poolv1.near",
-    "weight": 15
+    "weight": 0
   },
   {
     "id": "lavenderfive.poolv1.near",
@@ -769,7 +773,7 @@
   },
   {
     "id": "openshards.poolv1.near",
-    "weight": 15
+    "weight": 0
   },
   {
     "id": "lux.poolv1.near",
@@ -777,7 +781,7 @@
   },
   {
     "id": "zkv_staketosupportprivacy.poolv1.near",
-    "weight": 10
+    "weight": 0
   },
   {
     "id": "pangdao.poolv1.near",
@@ -813,7 +817,7 @@
   },
   {
     "id": "moonlet.poolv1.near",
-    "weight": 10
+    "weight": 0
   },
   {
     "id": "galactic.poolv1.near",

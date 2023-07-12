@@ -455,7 +455,11 @@ impl ValidatorPool {
                     // to `(delta_2 * target_amount_1) cmp (delta_1 * target_amount_2)`
                     let mul_1 = U256::from(*delta_1) * U256::from(target_amount_2);
                     let mul_2 = U256::from(*delta_2) * U256::from(target_amount_1);
-                    mul_2.cmp(&mul_1)
+                    match mul_2.cmp(&mul_1) {
+                        Ordering::Equal => delta_2.cmp(delta_1),
+                        Ordering::Less => Ordering::Less,
+                        Ordering::Greater => Ordering::Greater,
+                    }
                 }
             },
         );

@@ -10,9 +10,9 @@ linear: contracts/linear
 
 linear_test: contracts/linear
 	rustup target add wasm32-unknown-unknown
-	RUSTFLAGS=$(RFLAGS) cargo build -p linear --target wasm32-unknown-unknown --features "test"
+	RUSTFLAGS=$(RFLAGS) cargo build -p linear --target wasm32-unknown-unknown --release --features "test"
 	mkdir -p res
-	cp target/wasm32-unknown-unknown/debug/linear.wasm ./res/linear_test.wasm
+	cp target/wasm32-unknown-unknown/release/linear.wasm ./res/linear_test.wasm
 
 mock-staking-pool: contracts/mock-staking-pool
 	rustup target add wasm32-unknown-unknown

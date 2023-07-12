@@ -164,11 +164,11 @@ impl MockStakingPool {
     pub fn adjust_balance(
         &mut self,
         account_id: AccountId,
-        staked_delta: u128,
-        unstaked_delta: u128,
+        staked_delta: U128,
+        unstaked_delta: U128,
     ) {
-        let staked_amount = self.internal_get_staked(&account_id) - staked_delta;
-        let unstaked_amount = self.internal_get_unstaked_deposit(&account_id) + unstaked_delta;
+        let staked_amount = self.internal_get_staked(&account_id) - staked_delta.0;
+        let unstaked_amount = self.internal_get_unstaked_deposit(&account_id) + unstaked_delta.0;
 
         self.staked.insert(&account_id, &staked_amount);
         self.deposits.insert(&account_id, &unstaked_amount);

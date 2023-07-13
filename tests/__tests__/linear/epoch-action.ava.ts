@@ -1,4 +1,4 @@
-import { Gas, NEAR, NearAccount, stake, } from "near-workspaces-ava";
+import { BN, Gas, NEAR, NearAccount, stake, } from "near-workspaces-ava";
 import {
   assertFailure,
   initWorkSpace,
@@ -6,7 +6,8 @@ import {
   updateBaseStakeAmounts,
   setManager,
   assertValidatorAmountHelper,
-  getSummary
+  getSummary,
+  skip
 } from "./helper";
 
 const workspace = initWorkSpace();
@@ -261,9 +262,9 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
   await unstakeAll(owner, contract);
 
   // 60 NEAR was initially staked, 30 was taken out
-  await assertValidator(v1, '12.5', '7.5');
-  await assertValidator(v2, '25', '15');
-  await assertValidator(v3, '52.5', '7.5');
+  await assertValidator(v1, '20', '0');
+  await assertValidator(v2, '32.5', '7.5');
+  await assertValidator(v3, '37.5', '22.5');
 
   // unstake more
   await alice.call(
@@ -273,9 +274,9 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
   );
 
   // epoch unstake should not take effect now
-  await assertValidator(v1, '12.5', '7.5');
-  await assertValidator(v2, '25', '15');
-  await assertValidator(v3, '52.5', '7.5');
+  await assertValidator(v1, '20', '0');
+  await assertValidator(v2, '32.5', '7.5');
+  await assertValidator(v3, '37.5', '22.5');
 
   // fast-forward 
   await owner.call(
@@ -286,9 +287,9 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
 
   await unstakeAll(owner, contract);
 
-  await assertValidator(v1, '12.5', '7.5');
-  await assertValidator(v2, '25', '15');
-  await assertValidator(v3, '34.5', '25.5');
+  await assertValidator(v1, '12', '8');
+  await assertValidator(v2, '22.5', '17.5');
+  await assertValidator(v3, '37.5', '22.5');
 
 
   // ---- Test base stake amount ----
@@ -326,11 +327,11 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
   await unstakeAll(owner, contract);
 
   // validators should have target stake amount based on weights + base stake amounts
-  // - 1st epoch_unstake() unstaked 13 NEAR (amount = delta) from validator v2
-  // - 2nd epoch_unstake() unstaked 13 NEAR (amount = rest) from validator v3
-  await assertValidator(v1, '12.5', '7.5', '10', '16');   // target = 10 (base) + 6 (weighted) = 16; delta (1st) = 12.5 - 16 = -3.5; delta (2nd) = 12.5 - 16 = -3.5;
-  await assertValidator(v2, '12', '28', '0', '12');  // target = 12 (weighted); delta (1st) = 25 - 12 = 13; delta (2nd) = 13 - 12 = 1; 
-  await assertValidator(v3, '21.5', '38.5', '0', '18');   // target = 18 (weighted); delta (1st) = 34.5 - 18 = 16.5; delta (2nd) = 34.5 - 18 = 16.5;
+  // - 1st epoch_unstake() unstaked 19.5 NEAR (amount = delta) from validator v3
+  // - 2nd epoch_unstake() unstaked 6.5 NEAR (amount = rest) from validator v2
+  await assertValidator(v1, '12', '8', '10', '16');   // target = 10 (base) + 6 (weighted) = 16; delta (1st) = 12 - 16 = -4; delta (2nd) = 12 - 16 = -4;
+  await assertValidator(v2, '16', '24', '0', '12');  // target = 12 (weighted); delta (1st) = 22.5 - 12 = 10.5; delta (2nd) = 16 - 12 = 4; 
+  await assertValidator(v3, '18', '42', '0', '18');   // target = 18 (weighted); delta (1st) = 37.5 - 18 = 19.5; delta (2nd) = 18 - 18 = 0;
 
  
   // reset base stake amount of v1 to 0
@@ -363,11 +364,11 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
   await unstakeAll(owner, contract);
 
   // validators should have target stake amount based on weights + base stake amounts
-  // - 1st epoch_unstake() unstaked 6.5 NEAR (amount = delta) from validator v1;
-  // - 2nd epoch_unstake() unstaked 3.5 NEAR (amount = delta) from validator v3;
-  await assertValidator(v1, '6', '14', '0', '6');   // target = 6 (weighted); delta (1st) = 12.5 - 6 = 6.5; delta (2nd) = 6 - 6 = 0;
-  await assertValidator(v2, '12', '28', '0', '12');  // target = 12 (weighted); delta (1st) = 12 - 12 = 0; delta (2nd) = 12 - 12 = 0;
-  await assertValidator(v3, '18', '42', '0', '18');   // target = 18 (weighted); delta (1st) = 21.5 - 18 = 3.5; delta (2nd) = 21.5 - 18 = 3.5; 
+  // - 1st epoch_unstake() unstaked 6 NEAR (amount = delta) from validator v1;
+  // - 2nd epoch_unstake() unstaked 4 NEAR (amount = rest) from validator v2;
+  await assertValidator(v1, '6', '14', '0', '6');   // target = 6 (weighted); delta (1st) = 12 - 6 = 6; delta (2nd) = 6 - 6 = 0;
+  await assertValidator(v2, '12', '28', '0', '12');  // target = 12 (weighted); delta (1st) = 16 - 12 = 4; delta (2nd) = 12 - 12 = 0;
+  await assertValidator(v3, '18', '42', '0', '18');   // target = 18 (weighted); delta (1st) = 18 - 18 = 0; delta (2nd) = 18 - 18 = 0; 
 });
 
 workspace.test('epoch collect rewards', async (test, {root, contract, alice, owner}) => {
@@ -602,7 +603,7 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, owner}) =>
     'deposit_and_stake',
     {},
     {
-      attachedDeposit: NEAR.parse('50')
+      attachedDeposit: NEAR.parse('110')
     }
   );
 
@@ -620,31 +621,15 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, owner}) =>
   await alice.call(
     contract,
     'unstake',
-    { amount: NEAR.parse('18') }
+    { amount: NEAR.parse('30') }
   );
 
   // epoch unstake
   await unstakeAll(owner, contract);
 
-  await assertValidator(v1, '6.5', '3.5');
-  await assertValidator(v2, '13', '7');
-  await assertValidator(v3, '22.5', '7.5');
-
-  // withdraw should fail now
-  await assertFailure(
-    test,
-    owner.call(
-      contract,
-      'epoch_withdraw',
-      {
-        validator_id: v1.accountId
-      },
-      {
-        gas: Gas.parse('200 Tgas')
-      }
-    ),
-    'Cannot withdraw from a pending release validator'
-  );
+  await assertValidator(v1, '20', '0');
+  await assertValidator(v2, '32.5', '7.5');
+  await assertValidator(v3, '37.5', '22.5');
 
   // withdraw should fail now
   await assertFailure(
@@ -690,18 +675,6 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, owner}) =>
     contract,
     'epoch_withdraw',
     {
-      validator_id: v1.accountId
-    },
-    {
-      gas: Gas.parse('200 Tgas')
-    }
-  );
-
-  // withdraw again
-  await owner.call(
-    contract,
-    'epoch_withdraw',
-    {
       validator_id: v2.accountId
     },
     {
@@ -721,7 +694,96 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, owner}) =>
     }
   );
 
-  await assertValidator(v1, '6.5', '0');
-  await assertValidator(v2, '13', '0');
-  await assertValidator(v3, '22.5', '0');
+  await assertValidator(v1, '20', '0');
+  await assertValidator(v2, '32.5', '0');
+  await assertValidator(v3, '37.5', '0');
+});
+
+skip('estimate gas of epoch unstake', async (test, {contract, alice, root, owner}) => {
+  const validatorsNum = 255
+
+  const names = Array.from({ length: validatorsNum }, (_, index) => `v${index + 1}`)
+  const weights = names.map((_, index) => Math.floor(index * 51 / validatorsNum))
+
+  const shuffleArray = (array: any[]) => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  shuffleArray(weights)
+
+  const validators: NearAccount[] = []
+  for (const name of names) {
+    validators.push(await createStakingPool(root, name))
+  }
+
+  let sliceIndex = 0
+  const sliceSize = 6
+  while(sliceIndex < validators.length) {
+    const validatorIdSlice = validators.slice(sliceIndex, sliceSize).map(v => v.accountId)
+    const weightSlice = weights.slice(sliceIndex, sliceSize)
+    await owner.call(
+      contract,
+      'add_validators',
+      {
+        validator_ids: validatorIdSlice,
+        weights: weightSlice
+      },
+      {
+        gas: Gas.parse('300 Tgas')
+      }
+    )
+    sliceIndex += sliceSize
+  }
+
+  // user stake
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    {
+      attachedDeposit: NEAR.parse('10000')
+    }
+  );
+
+  // epoch stake
+  await stakeAll(owner, contract);
+
+  // fast-forward
+  await owner.call(
+    contract,
+    'set_epoch_height',
+    { epoch: 11 }
+  );
+
+  // user unstake
+  await alice.call(
+    contract,
+    'unstake',
+    { amount: NEAR.parse('2000') }
+  );
+
+  // epoch unstake
+  let run = true;
+  const gasBurnts: Gas[] = []
+  while (run) {
+    const outcome = await owner.call_raw(
+      contract,
+      'epoch_unstake',
+      {},
+      {
+        gas: Gas.parse('300 Tgas')
+      }
+    );
+
+    const receiptsGasBurnt = outcome.result.receipts_outcome
+      .map(receipt => receipt.outcome.gas_burnt)
+      .reduce((pre, gas) => pre + gas)
+    gasBurnts.push(outcome.gas_burnt.add(new BN(receiptsGasBurnt)))
+    const json = Buffer.from(outcome.SuccessValue, 'base64').toString()
+    run = JSON.parse(json)
+  }
+  console.log(gasBurnts.map(gas => gas.toBigInt()));
 });

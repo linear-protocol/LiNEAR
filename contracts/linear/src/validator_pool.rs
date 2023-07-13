@@ -373,7 +373,6 @@ impl ValidatorPool {
                 let amount_to_unstake = min3(
                     // unstake no more than total requirement
                     total_amount_to_unstake,
-                    // If `staked amount < 1.5 * target`, unstake `target_amount / 2`, else unstake `delta`
                     max(target_amount / 2, *delta),
                     // guaranteed minimum staked amount even if `total_staked_near_amount` is less than `total_base_stake_amount`
                     validator.staked_amount.saturating_sub(min(

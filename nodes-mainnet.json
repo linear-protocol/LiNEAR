@@ -878,5 +878,9 @@
   {
     "id": "cryptotribe.poolv1.near",
     "weight": 0
+  },
+  {
+    "id": "colossus.poolv1.near",
+    "weight": 0
   }
 ]

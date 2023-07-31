@@ -95,17 +95,13 @@ impl StakingPool for MockStakingPool {
     #[payable]
     fn deposit(&mut self) {
         require!(!self.panic, "Test Panic!");
-        self.internal_deposit()
+        self.internal_deposit();
     }
 
     #[payable]
     fn deposit_and_stake(&mut self) {
         require!(!self.panic, "Test Panic!");
-        let account_id = env::predecessor_account_id();
-
-        self.internal_deposit();
-
-        let amount = self.internal_get_unstaked_deposit(&account_id);
+        let amount = self.internal_deposit();
         self.internal_stake(amount);
     }
 
@@ -176,7 +172,7 @@ impl MockStakingPool {
 }
 
 impl MockStakingPool {
-    fn internal_deposit(&mut self) {
+    fn internal_deposit(&mut self) -> u128 {
         let account_id = env::predecessor_account_id();
         let amount = env::attached_deposit();
         assert!(amount > 0);
@@ -185,6 +181,7 @@ impl MockStakingPool {
         let new_deposit = current_deposit + amount;
 
         self.deposits.insert(&account_id, &new_deposit);
+        amount
     }
 
     fn internal_stake(&mut self, amount: u128) {

@@ -628,7 +628,7 @@ impl LiquidStakingContract {
             .emit();
         } else {
             // unstake failed, revert
-            validator.on_unstake_failed(&mut self.validator_pool, amount);
+            validator.on_unstake_failed(&mut self.validator_pool);
 
             Event::DrainUnstakeFailed {
                 validator_id: &validator_id,
@@ -799,6 +799,9 @@ impl Validator {
     }
 
     pub fn unstake(&mut self, pool: &mut ValidatorPool, amount: Balance) -> Promise {
+        // avoid unstake from a validator which is pending release
+        require!(!self.pending_release(), ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED);
+
         require!(
             amount <= self.staked_amount,
             format!(
@@ -807,10 +810,6 @@ impl Validator {
             )
         );
 
-        // avoid unstake from a validator which is pending release
-        require!(!self.pending_release(), ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED);
-
-        self.staked_amount -= amount;
         self.last_unstake_fired_epoch = self.unstake_fired_epoch;
         self.unstake_fired_epoch = get_epoch_height();
 
@@ -825,12 +824,12 @@ impl Validator {
     }
 
     pub fn on_unstake_success(&mut self, pool: &mut ValidatorPool, amount: Balance) {
+        self.staked_amount -= amount;
         self.unstaked_amount += amount;
         pool.save_validator(self);
     }
 
-    pub fn on_unstake_failed(&mut self, pool: &mut ValidatorPool, amount: Balance) {
-        self.staked_amount += amount;
+    pub fn on_unstake_failed(&mut self, pool: &mut ValidatorPool) {
         self.unstake_fired_epoch = self.last_unstake_fired_epoch;
         pool.save_validator(self);
     }

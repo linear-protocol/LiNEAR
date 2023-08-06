@@ -319,7 +319,7 @@ impl LiquidStakingContract {
             self.unstake_amount_to_settle += amount;
 
             // 2. revert validator states
-            validator.on_unstake_failed(&mut self.validator_pool, amount);
+            validator.on_unstake_failed(&mut self.validator_pool);
 
             Event::EpochUnstakeFailed {
                 validator_id: &validator_id,

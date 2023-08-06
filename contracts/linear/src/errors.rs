@@ -87,8 +87,7 @@ pub const ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED: &str =
     "Cannot unstake from a pending release validator";
 pub const ERR_VALIDATOR_WITHDRAW_WHEN_LOCKED: &str =
     "Cannot withdraw from a pending release validator";
-pub const ERR_VALIDATOR_BALANCE_CHANGED: &str =
-    "Validator balance changed when refreshing total balance";
+pub const ERR_VALIDATOR_ALREADY_EXECUTING_ACTION: &str = "Validator is already executing action";
 
 // liquidity pool
 pub const ERR_NON_POSITIVE_MIN_FEE: &str = "The min fee basis points should be positive";

@@ -146,11 +146,13 @@ impl LiquidStakingContract {
         if validator.staked_amount == 0 && validator.unstaked_amount == 0 {
             return;
         }
+        let prev_total_balance = validator.total_balance();
 
         validator
             .refresh_total_balance()
             .then(ext_self_action_cb::validator_get_balance_callback(
                 validator.account_id,
+                prev_total_balance.into(),
                 env::current_account_id(),
                 NO_DEPOSIT,
                 GAS_CB_VALIDATOR_GET_BALANCE,
@@ -259,7 +261,7 @@ trait EpochActionCallbacks {
 
     fn validator_unstaked_callback(&mut self, validator_id: AccountId, amount: U128);
 
-    fn validator_get_balance_callback(&mut self, validator_id: AccountId);
+    fn validator_get_balance_callback(&mut self, validator_id: AccountId, prev_total_balance: U128);
 
     fn validator_get_account_callback(&mut self, validator_id: AccountId);
 
@@ -333,12 +335,18 @@ impl LiquidStakingContract {
     pub fn validator_get_balance_callback(
         &mut self,
         validator_id: AccountId,
+        prev_total_balance: U128,
         #[callback] total_balance: U128,
     ) {
         let mut validator = self
             .validator_pool
             .get_validator(&validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        require!(
+            prev_total_balance.0 == validator.total_balance(),
+            ERR_VALIDATOR_BALANCE_CHANGED
+        );
 
         let new_balance = total_balance.0;
         let rewards = new_balance - validator.total_balance();

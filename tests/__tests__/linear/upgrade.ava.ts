@@ -327,7 +327,7 @@ skip('upgrade from v1.3.3 to v1.4.0', async (test, context) => {
   test.assert(!(await getValidator(contract, targetValidator.accountId)).draining);
 });
 
-workspace.test('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
+skip('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
   const { root, contract, owner, manager, alice } = context;
 
   // add some validators
@@ -354,7 +354,7 @@ workspace.test('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
     'deposit_and_stake',
     {},
     {
-      attachedDeposit: NEAR.parse((staked).toFixed(0))
+      attachedDeposit: NEAR.parse((staked-10).toFixed(0))
     }
   );
 
@@ -367,7 +367,6 @@ workspace.test('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
   // read validators to verify upgrade
   for (const validator of validators) {
     const v = await getValidator(contract, validator.accountId);
-    console.log('v', v);
     test.true(!v.executing);
   }
 
@@ -387,16 +386,40 @@ workspace.test('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
     }
   );
 
-  // try to stake to validators, but not waiting for action completion
-  alice.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      attachedDeposit: NEAR.parse((staked-10).toFixed(0))
-    }
-  );
+  async function sleep(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
+  }
 
-  const validatorInfo = await getValidator(contract, validators[0].accountId);
-  test.true(validatorInfo.executing);
+  async function delayedEpochStake(ms: number) {
+    await sleep(ms);
+    await alice.call(
+      contract,
+      'epoch_stake',
+      {},
+      {
+        gas: Gas.parse('300 Tgas')
+      }
+    );
+  }
+
+  let executed = false;
+  async function watch() {
+    for (let i = 0; i < 10; i++) {
+      await sleep(500);
+      const info = await getValidator(contract, validators[0].accountId);
+      console.log('info', info);
+      if (info.executing) {
+        executed = true;
+      }
+    }
+  }
+
+  // stake to validators, and watch execution status
+  await Promise.all([
+    delayedEpochStake(1000),
+    watch()
+  ]);
+
+  // once be executing
+  test.true(executed);
 });

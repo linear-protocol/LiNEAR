@@ -77,7 +77,7 @@ function initWorkSpace(version: string) {
   });
 }
 
-const baseVersion = 'v1_3_3';  // change this to the version that you want to upgrade from
+const baseVersion = 'v1_4_4';  // change this to the version that you want to upgrade from
 const workspace = initWorkSpace(baseVersion);
 
 // The upgrade() test has run successfully in sandbox by migrating the states of 50 validators.
@@ -325,4 +325,78 @@ skip('upgrade from v1.3.3 to v1.4.0', async (test, context) => {
   );
 
   test.assert(!(await getValidator(contract, targetValidator.accountId)).draining);
+});
+
+workspace.test('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
+  const { root, contract, owner, manager, alice } = context;
+
+  // add some validators
+  const names = Array.from({ length: 5 }, (_, i) => `validator-${i}`);
+  const weights = names.map(_ => 1);
+  const validators = await Promise.all(names.map(name => createStakingPool(root, name)));
+
+  await manager.call(
+    contract,
+    'add_validators',
+    {
+      validator_ids: validators.map(v => v.accountId),
+      weights
+    },
+    {
+      gas: Gas.parse('300 Tgas')
+    }
+  );
+
+  // user stake
+  const staked = 500;
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    {
+      attachedDeposit: NEAR.parse((staked).toFixed(0))
+    }
+  );
+
+  // run epoch stake
+  await stakeAll(manager, contract);
+
+  // upgrade linear contract to the latest
+  await upgrade(contract, owner);
+
+  // read validators to verify upgrade
+  for (const validator of validators) {
+    const v = await getValidator(contract, validator.accountId);
+    console.log('v', v);
+    test.true(!v.executing);
+  }
+
+  // fast-forward
+  await owner.call(
+    contract,
+    'set_epoch_height',
+    { epoch: 11 }
+  );
+
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    {
+      attachedDeposit: NEAR.parse((staked).toFixed(0))
+    }
+  );
+
+  // try to stake to validators, but not waiting for action completion
+  alice.call(
+    contract,
+    'epoch_stake',
+    {},
+    {
+      attachedDeposit: NEAR.parse((staked-10).toFixed(0))
+    }
+  );
+
+  const validatorInfo = await getValidator(contract, validators[0].accountId);
+  test.true(validatorInfo.executing);
 });

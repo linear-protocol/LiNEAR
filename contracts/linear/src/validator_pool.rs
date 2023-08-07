@@ -649,6 +649,7 @@ impl LiquidStakingContract {
 
         if is_promise_success() {
             validator.set_draining(&mut self.validator_pool, false);
+            validator.on_withdraw_success(&mut self.validator_pool);
 
             Event::DrainWithdrawSuccess {
                 validator_id: &validator_id,

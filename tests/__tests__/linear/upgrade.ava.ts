@@ -407,7 +407,6 @@ skip('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
     for (let i = 0; i < 10; i++) {
       await sleep(500);
       const info = await getValidator(contract, validators[0].accountId);
-      console.log('info', info);
       if (info.executing) {
         executed = true;
       }

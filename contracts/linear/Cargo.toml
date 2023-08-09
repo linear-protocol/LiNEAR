@@ -1,6 +1,6 @@
 [package]
 name = "linear"
-version = "1.4.4-hf.1"
+version = "1.4.4-hf.2"
 authors = ["linguists", "dongcool"]
 edition = "2018"
 publish = false

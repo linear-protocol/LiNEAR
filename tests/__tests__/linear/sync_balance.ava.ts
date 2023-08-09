@@ -1,6 +1,8 @@
 import { assertFailure, createStakingPool, getValidator, initWorkSpace } from "./helper";
 import { Gas, NEAR, NearAccount, ONE_NEAR, stake, } from "near-workspaces-ava";
 
+const MAX_SYNC_BALANCE_DIFF = NEAR.from(100);
+
 const workspace = initWorkSpace();
 
 function assertValidatorAmountHelper(
@@ -76,14 +78,15 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
     );
   }
 
-  // -- 1. total balance diff > 1 N
+  // -- 1. total balance diff > MAX_SYNC_BALANCE_DIFF
+  const diff = MAX_SYNC_BALANCE_DIFF.addn(1);
   await owner.call(
     v1,
     'adjust_balance',
     {
       account_id: contract.accountId,
       staked_delta: "0",
-      unstaked_delta: ONE_NEAR.addn(1).toString(10)
+      unstaked_delta: diff.toString(10)
     },
   );
 
@@ -101,14 +104,14 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
   // v1 amount should not change
   await assertValidator(v1, '30000000000000000000000000', '0');
 
-  // -- 2. amount balance diff > 1 NEAR
+  // -- 2. amount balance diff > MAX_SYNC_BALANCE_DIFF
   await owner.call(
     v2,
     'adjust_balance',
     {
       account_id: contract.accountId,
-      staked_delta: ONE_NEAR.addn(1).toString(10),
-      unstaked_delta: ONE_NEAR.addn(1).toString(10)
+      staked_delta: diff.toString(10),
+      unstaked_delta: diff.toString(10)
     },
   );
 
@@ -176,14 +179,15 @@ workspace.test('sync balance', async (test, { root, contract, alice, owner }) =>
     );
   }
 
-  // -- amount balance diff < 1 NEAR
+  // -- amount balance diff < MAX_SYNC_BALANCE_DIFF
+  const diff = MAX_SYNC_BALANCE_DIFF.subn(1);
   await owner.call(
     v2,
     'adjust_balance',
     {
       account_id: contract.accountId,
-      staked_delta: ONE_NEAR.subn(1).toString(10),
-      unstaked_delta: ONE_NEAR.subn(1).toString(10), 
+      staked_delta: diff.toString(10),
+      unstaked_delta: diff.toString(10),
     },
   );
 
@@ -198,5 +202,5 @@ workspace.test('sync balance', async (test, { root, contract, alice, owner }) =>
     }
   );
 
-  await assertValidator(v2, '29000000000000000000000001', '999999999999999999999999');
+  await assertValidator(v2, NEAR.parse("30").sub(diff).toString(10), diff.toString(10));
 });

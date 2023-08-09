@@ -81,10 +81,23 @@ pub enum Event<'a> {
         amount: &'a U128,
     },
     // Sync validator balance
-    BalanceSyncedFromValidator {
+    SyncValidatorBalanceSuccess {
         validator_id: &'a AccountId,
-        staked_balance: &'a U128,
-        unstaked_balance: &'a U128,
+        old_staked_balance: &'a U128,
+        old_unstaked_balance: &'a U128,
+        old_total_balance: &'a U128,
+        new_staked_balance: &'a U128,
+        new_unstaked_balance: &'a U128,
+        new_total_balance: &'a U128,
+    },
+    SyncValidatorBalanceFailed {
+        validator_id: &'a AccountId,
+        old_staked_balance: &'a U128,
+        old_unstaked_balance: &'a U128,
+        old_total_balance: &'a U128,
+        new_staked_balance: &'a U128,
+        new_unstaked_balance: &'a U128,
+        new_total_balance: &'a U128,
     },
     // Staking Pool Interface
     Deposit {
@@ -470,17 +483,25 @@ mod tests {
     #[test]
     fn balance_synced_from_validator() {
         let validator_id = &alice();
-        let staked_balance = &U128(300);
-        let unstaked_balance = &U128(200);
-        Event::BalanceSyncedFromValidator {
+        let old_staked_balance = &U128(300);
+        let old_unstaked_balance = &U128(200);
+        let old_total_balance = &U128(old_staked_balance.0 + old_unstaked_balance.0);
+        let new_staked_balance = &U128(299);
+        let new_unstaked_balance = &U128(202);
+        let new_total_balance = &U128(new_staked_balance.0 + new_unstaked_balance.0);
+        Event::SyncValidatorBalanceSuccess {
             validator_id,
-            staked_balance,
-            unstaked_balance,
+            old_staked_balance,
+            old_unstaked_balance,
+            old_total_balance,
+            new_staked_balance,
+            new_unstaked_balance,
+            new_total_balance,
         }
         .emit();
         assert_eq!(
             test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"balance_synced_from_validator","data":[{"validator_id":"alice","staked_balance":"300","unstaked_balance":"200"}]}"#
+            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"sync_validator_balance_success","data":[{"validator_id":"alice","old_staked_balance":"300","old_unstaked_balance":"200","old_total_balance":"500","new_staked_balance":"299","new_unstaked_balance":"202","new_total_balance":"501"}]}"#
         );
     }
 

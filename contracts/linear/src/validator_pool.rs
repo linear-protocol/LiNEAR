@@ -17,7 +17,6 @@ use std::cmp::min;
 
 const STAKE_SMALL_CHANGE_AMOUNT: Balance = ONE_NEAR;
 const UNSTAKE_FACTOR: u128 = 2;
-const MAX_SYNC_BALANCE_DIFF: Balance = ONE_NEAR;
 const MAX_UPDATE_WEIGHTS_COUNT: usize = 300;
 
 #[ext_contract(ext_staking_pool)]
@@ -887,51 +886,16 @@ impl Validator {
         )
     }
 
-    pub fn on_sync_account_balance(
+    pub fn on_sync_account_balance_success(
         &mut self,
         pool: &mut ValidatorPool,
         staked_balance: Balance,
         unstaked_balance: Balance,
     ) {
-        // allow at most 1 NEAR diff in total balance
-        let new_total_balance = staked_balance + unstaked_balance;
-        require!(
-            abs_diff_eq(
-                new_total_balance,
-                self.total_balance(),
-                MAX_SYNC_BALANCE_DIFF
-            ),
-            format!(
-                "{}. new: {}, old: {}",
-                ERR_SYNC_BALANCE_BAD_TOTAL,
-                new_total_balance,
-                self.total_balance()
-            )
-        );
-
-        // allow at most 1 NEAR diff in staked/unstaked balance
-        require!(
-            abs_diff_eq(staked_balance, self.staked_amount, MAX_SYNC_BALANCE_DIFF),
-            format!(
-                "{}. new: {}, old: {}",
-                ERR_SYNC_BALANCE_BAD_STAKED, staked_balance, self.staked_amount
-            )
-        );
-        require!(
-            abs_diff_eq(
-                unstaked_balance,
-                self.unstaked_amount,
-                MAX_SYNC_BALANCE_DIFF
-            ),
-            format!(
-                "{}. new: {}, old: {}",
-                ERR_SYNC_BALANCE_BAD_UNSTAKED, unstaked_balance, self.unstaked_amount
-            )
-        );
-
         self.post_execution(pool);
 
         // sync base stake amount
+        let new_total_balance = staked_balance + unstaked_balance;
         self.sync_base_stake_amount(pool, new_total_balance);
 
         // update balance
@@ -939,6 +903,10 @@ impl Validator {
         self.unstaked_amount = unstaked_balance;
 
         pool.save_validator(self);
+    }
+
+    pub fn on_sync_account_balance_failed(&mut self, pool: &mut ValidatorPool) {
+        self.post_execution(pool);
     }
 
     fn sync_base_stake_amount(&mut self, pool: &mut ValidatorPool, new_total_balance: Balance) {

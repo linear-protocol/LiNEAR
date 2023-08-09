@@ -8,6 +8,7 @@ use crate::utils::*;
 
 const MIN_AMOUNT_TO_PERFORM_STAKE: Balance = ONE_NEAR;
 const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR;
+const MAX_SYNC_BALANCE_DIFF: Balance = 100;
 
 /// Actions that should be called by off-chain actors
 /// during each epoch.
@@ -375,18 +376,49 @@ impl LiquidStakingContract {
             .get_validator(&validator_id)
             .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
-        validator.on_sync_account_balance(
-            &mut self.validator_pool,
+        // allow at most MAX_SYNC_BALANCE_DIFF diff in total balance, staked balance and unstake balance
+        let new_total_balance = account.staked_balance.0 + account.unstaked_balance.0;
+        if abs_diff_eq(
+            new_total_balance,
+            validator.total_balance(),
+            MAX_SYNC_BALANCE_DIFF,
+        ) && abs_diff_eq(
             account.staked_balance.0,
+            validator.staked_amount,
+            MAX_SYNC_BALANCE_DIFF,
+        ) && abs_diff_eq(
             account.unstaked_balance.0,
-        );
-
-        Event::BalanceSyncedFromValidator {
-            validator_id: &validator_id,
-            staked_balance: &account.staked_balance,
-            unstaked_balance: &account.unstaked_balance,
+            validator.unstaked_amount,
+            MAX_SYNC_BALANCE_DIFF,
+        ) {
+            Event::SyncValidatorBalanceSuccess {
+                validator_id: &validator_id,
+                old_staked_balance: &validator.staked_amount.into(),
+                old_unstaked_balance: &validator.unstaked_amount.into(),
+                old_total_balance: &validator.total_balance().into(),
+                new_staked_balance: &account.staked_balance,
+                new_unstaked_balance: &account.unstaked_balance,
+                new_total_balance: &new_total_balance.into(),
+            }
+            .emit();
+            validator.on_sync_account_balance_success(
+                &mut self.validator_pool,
+                account.staked_balance.0,
+                account.unstaked_balance.0,
+            );
+        } else {
+            Event::SyncValidatorBalanceFailed {
+                validator_id: &validator_id,
+                old_staked_balance: &validator.staked_amount.into(),
+                old_unstaked_balance: &validator.unstaked_amount.into(),
+                old_total_balance: &validator.total_balance().into(),
+                new_staked_balance: &account.staked_balance,
+                new_unstaked_balance: &account.unstaked_balance,
+                new_total_balance: &new_total_balance.into(),
+            }
+            .emit();
+            validator.on_sync_account_balance_failed(&mut self.validator_pool);
         }
-        .emit();
     }
 
     #[private]

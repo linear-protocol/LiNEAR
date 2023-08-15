@@ -530,7 +530,7 @@ checksum = "8521a1b57e76b1ec69af7599e75e38e7b7fad6610f037db8c79b127201b5d119"
 
 [[package]]
 name = "linear"
-version = "1.4.4"
+version = "1.4.4-hf.2"
 dependencies = [
  "near-contract-standards",
  "near-sdk 4.0.0-pre.7",

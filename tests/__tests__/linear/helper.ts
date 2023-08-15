@@ -266,7 +266,8 @@ interface Validator {
   unstaked_amount: string,
   base_stake_amount: string,
   target_stake_amount: string,
-  draining: boolean
+  draining: boolean,
+  executing: boolean,
 }
 
 export function getValidator(

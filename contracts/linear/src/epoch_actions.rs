@@ -17,7 +17,11 @@ impl LiquidStakingContract {
     pub fn epoch_stake(&mut self) -> bool {
         self.assert_running();
         // make sure enough gas was given
-        let min_gas = GAS_EPOCH_STAKE + GAS_EXT_DEPOSIT_AND_STAKE + GAS_CB_VALIDATOR_STAKED;
+        let min_gas = GAS_EPOCH_STAKE
+            + GAS_EXT_DEPOSIT_AND_STAKE
+            + GAS_CB_VALIDATOR_STAKED
+            + GAS_SYNC_BALANCE
+            + GAS_CB_VALIDATOR_SYNC_BALANCE;
         require!(
             env::prepaid_gas() >= min_gas,
             format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
@@ -70,7 +74,7 @@ impl LiquidStakingContract {
                 amount_to_stake.into(),
                 env::current_account_id(),
                 NO_DEPOSIT,
-                GAS_CB_VALIDATOR_STAKED,
+                GAS_CB_VALIDATOR_STAKED + GAS_SYNC_BALANCE + GAS_CB_VALIDATOR_SYNC_BALANCE,
             ));
 
         true
@@ -79,7 +83,11 @@ impl LiquidStakingContract {
     pub fn epoch_unstake(&mut self) -> bool {
         self.assert_running();
         // make sure enough gas was given
-        let min_gas = GAS_EPOCH_UNSTAKE + GAS_EXT_UNSTAKE + GAS_CB_VALIDATOR_UNSTAKED;
+        let min_gas = GAS_EPOCH_UNSTAKE
+            + GAS_EXT_UNSTAKE
+            + GAS_CB_VALIDATOR_UNSTAKED
+            + GAS_SYNC_BALANCE
+            + GAS_CB_VALIDATOR_SYNC_BALANCE;
         require!(
             env::prepaid_gas() >= min_gas,
             format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
@@ -126,7 +134,7 @@ impl LiquidStakingContract {
                 amount_to_unstake.into(),
                 env::current_account_id(),
                 NO_DEPOSIT,
-                GAS_CB_VALIDATOR_UNSTAKED,
+                GAS_CB_VALIDATOR_UNSTAKED + GAS_SYNC_BALANCE + GAS_CB_VALIDATOR_SYNC_BALANCE,
             ));
 
         true
@@ -289,6 +297,15 @@ impl LiquidStakingContract {
                 amount: &U128(amount),
             }
             .emit();
+
+            validator
+                .sync_account_balance(&mut self.validator_pool)
+                .then(ext_self_action_cb::validator_get_account_callback(
+                    validator.account_id,
+                    env::current_account_id(),
+                    NO_DEPOSIT,
+                    GAS_CB_VALIDATOR_SYNC_BALANCE,
+                ));
         } else {
             validator.on_stake_failed(&mut self.validator_pool);
 
@@ -319,6 +336,15 @@ impl LiquidStakingContract {
                 amount: &U128(amount),
             }
             .emit();
+
+            validator
+                .sync_account_balance(&mut self.validator_pool)
+                .then(ext_self_action_cb::validator_get_account_callback(
+                    validator.account_id,
+                    env::current_account_id(),
+                    NO_DEPOSIT,
+                    GAS_CB_VALIDATOR_SYNC_BALANCE,
+                ));
         } else {
             // unstake failed, revert
             // 1. revert contract states

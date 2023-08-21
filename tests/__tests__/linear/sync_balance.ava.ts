@@ -73,7 +73,7 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
       'epoch_stake',
       {},
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     );
   }
@@ -174,7 +174,7 @@ workspace.test('sync balance', async (test, { root, contract, alice, owner }) =>
       'epoch_stake',
       {},
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     );
   }

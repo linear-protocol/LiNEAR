@@ -20,7 +20,7 @@ async function stakeAll (owner: NearAccount, contract: NearAccount) {
       'epoch_stake',
       {},
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     );
   }
@@ -34,7 +34,7 @@ async function unstakeAll (owner: NearAccount, contract: NearAccount) {
       'epoch_unstake',
       {},
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     );
   }
@@ -774,7 +774,7 @@ skip('estimate gas of epoch unstake', async (test, {contract, alice, root, owner
       'epoch_unstake',
       {},
       {
-        gas: Gas.parse('300 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     );
 

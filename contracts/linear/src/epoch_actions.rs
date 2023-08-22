@@ -262,7 +262,26 @@ impl LiquidStakingContract {
             .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
         if is_promise_success() {
-            validator.on_stake_success(&mut self.validator_pool, amount);
+            validator.on_stake_success(
+                &mut self.validator_pool,
+                amount,
+                false, /* release_lock */
+            );
+
+            Event::EpochStakeSuccess {
+                validator_id: &validator_id,
+                amount: &U128(amount),
+            }
+            .emit();
+
+            validator.sync_account_balance().then(
+                ext_self_action_cb::validator_get_account_callback(
+                    validator_id,
+                    env::current_account_id(),
+                    NO_DEPOSIT,
+                    GAS_CB_VALIDATOR_SYNC_BALANCE,
+                ),
+            );
         } else {
             validator.on_stake_failed(&mut self.validator_pool);
 
@@ -286,7 +305,26 @@ impl LiquidStakingContract {
             .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
         if is_promise_success() {
-            validator.on_unstake_success(&mut self.validator_pool, amount);
+            validator.on_unstake_success(
+                &mut self.validator_pool,
+                amount,
+                false, /* release_lock */
+            );
+
+            Event::EpochUnstakeSuccess {
+                validator_id: &validator_id,
+                amount: &U128(amount),
+            }
+            .emit();
+
+            validator.sync_account_balance().then(
+                ext_self_action_cb::validator_get_account_callback(
+                    validator_id,
+                    env::current_account_id(),
+                    NO_DEPOSIT,
+                    GAS_CB_VALIDATOR_SYNC_BALANCE,
+                ),
+            );
         } else {
             // unstake failed, revert
             // 1. revert contract states

@@ -1,4 +1,3 @@
-use crate::epoch_actions::ext_self_action_cb;
 use crate::errors::*;
 use crate::events::Event;
 use crate::legacy::ValidatorV1_0_0;
@@ -744,7 +743,11 @@ impl LiquidStakingContract {
             .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
         if is_promise_success() {
-            validator.on_unstake_success(&mut self.validator_pool, amount);
+            validator.on_unstake_success(
+                &mut self.validator_pool,
+                amount,
+                true, /* release_lock */
+            );
             validator.set_draining(&mut self.validator_pool, true);
 
             Event::DrainUnstakeSuccess {
@@ -927,23 +930,17 @@ impl Validator {
         )
     }
 
-    pub fn on_stake_success(&mut self, pool: &mut ValidatorPool, amount: Balance) {
+    pub fn on_stake_success(
+        &mut self,
+        pool: &mut ValidatorPool,
+        amount: Balance,
+        release_lock: bool,
+    ) {
+        if release_lock {
+            self.post_execution(pool);
+        }
         self.staked_amount += amount;
         pool.save_validator(self);
-
-        Event::EpochStakeSuccess {
-            validator_id: &self.account_id,
-            amount: &U128(amount),
-        }
-        .emit();
-
-        self.sync_account_balance()
-            .then(ext_self_action_cb::validator_get_account_callback(
-                self.account_id.clone(),
-                env::current_account_id(),
-                NO_DEPOSIT,
-                GAS_CB_VALIDATOR_SYNC_BALANCE,
-            ));
     }
 
     pub fn on_stake_failed(&mut self, pool: &mut ValidatorPool) {
@@ -977,24 +974,19 @@ impl Validator {
         )
     }
 
-    pub fn on_unstake_success(&mut self, pool: &mut ValidatorPool, amount: Balance) {
+    pub fn on_unstake_success(
+        &mut self,
+        pool: &mut ValidatorPool,
+        amount: Balance,
+        release_lock: bool,
+    ) {
+        if release_lock {
+            self.post_execution(pool);
+        }
+
         self.staked_amount -= amount;
         self.unstaked_amount += amount;
         pool.save_validator(self);
-
-        Event::EpochUnstakeSuccess {
-            validator_id: &self.account_id,
-            amount: &U128(amount),
-        }
-        .emit();
-
-        self.sync_account_balance()
-            .then(ext_self_action_cb::validator_get_account_callback(
-                self.account_id.clone(),
-                env::current_account_id(),
-                NO_DEPOSIT,
-                GAS_CB_VALIDATOR_SYNC_BALANCE,
-            ));
     }
 
     pub fn on_unstake_failed(&mut self, pool: &mut ValidatorPool) {
@@ -1029,7 +1021,7 @@ impl Validator {
     /// the amount of staked and unstaked balance might be a little bit
     /// different than we requested.
     /// This method is to sync the actual numbers with the validator.
-    fn sync_account_balance(&mut self) -> Promise {
+    pub fn sync_account_balance(&mut self) -> Promise {
         require!(self.executing, ERR_VALIDATOR_SYNC_WHEN_UNLOCKED);
 
         ext_staking_pool::get_account(

@@ -232,34 +232,6 @@ impl LiquidStakingContract {
         }
         .emit();
     }
-
-    /// Due to shares calculation and rounding of staking pool contract,
-    /// the amount of staked and unstaked balance might be a little bit
-    /// different than we requested.
-    /// This method is to sync the actual numbers with the validator.
-    pub fn sync_balance_from_validator(&mut self, validator_id: AccountId) {
-        self.assert_running();
-
-        let min_gas = GAS_SYNC_BALANCE + GAS_EXT_GET_ACCOUNT + GAS_CB_VALIDATOR_SYNC_BALANCE;
-        require!(
-            env::prepaid_gas() >= min_gas,
-            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
-        );
-
-        let mut validator = self
-            .validator_pool
-            .get_validator(&validator_id)
-            .expect(ERR_VALIDATOR_NOT_EXIST);
-
-        validator
-            .sync_account_balance(&mut self.validator_pool)
-            .then(ext_self_action_cb::validator_get_account_callback(
-                validator.account_id,
-                env::current_account_id(),
-                NO_DEPOSIT,
-                GAS_CB_VALIDATOR_SYNC_BALANCE,
-            ));
-    }
 }
 
 /// -- callbacks
@@ -291,21 +263,6 @@ impl LiquidStakingContract {
 
         if is_promise_success() {
             validator.on_stake_success(&mut self.validator_pool, amount);
-
-            Event::EpochStakeSuccess {
-                validator_id: &validator_id,
-                amount: &U128(amount),
-            }
-            .emit();
-
-            validator
-                .sync_account_balance(&mut self.validator_pool)
-                .then(ext_self_action_cb::validator_get_account_callback(
-                    validator.account_id,
-                    env::current_account_id(),
-                    NO_DEPOSIT,
-                    GAS_CB_VALIDATOR_SYNC_BALANCE,
-                ));
         } else {
             validator.on_stake_failed(&mut self.validator_pool);
 
@@ -330,21 +287,6 @@ impl LiquidStakingContract {
 
         if is_promise_success() {
             validator.on_unstake_success(&mut self.validator_pool, amount);
-
-            Event::EpochUnstakeSuccess {
-                validator_id: &validator_id,
-                amount: &U128(amount),
-            }
-            .emit();
-
-            validator
-                .sync_account_balance(&mut self.validator_pool)
-                .then(ext_self_action_cb::validator_get_account_callback(
-                    validator.account_id,
-                    env::current_account_id(),
-                    NO_DEPOSIT,
-                    GAS_CB_VALIDATOR_SYNC_BALANCE,
-                ));
         } else {
             // unstake failed, revert
             // 1. revert contract states

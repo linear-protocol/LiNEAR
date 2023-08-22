@@ -49,6 +49,9 @@ pub struct MockStakingPool {
     staked: LookupMap<AccountId, u128>,
     /// for testing purpose, simulates contract panic
     panic: bool,
+
+    staked_delta: u128,
+    unstaked_delta: u128,
 }
 
 #[near_bindgen]
@@ -59,6 +62,8 @@ impl MockStakingPool {
             deposits: LookupMap::new(b"d"),
             staked: LookupMap::new(b"s"),
             panic: false,
+            staked_delta: 0,
+            unstaked_delta: 0,
         }
     }
 }
@@ -157,17 +162,9 @@ impl MockStakingPool {
         self.panic = panic;
     }
 
-    pub fn adjust_balance(
-        &mut self,
-        account_id: AccountId,
-        staked_delta: U128,
-        unstaked_delta: U128,
-    ) {
-        let staked_amount = self.internal_get_staked(&account_id) - staked_delta.0;
-        let unstaked_amount = self.internal_get_unstaked_deposit(&account_id) + unstaked_delta.0;
-
-        self.staked.insert(&account_id, &staked_amount);
-        self.deposits.insert(&account_id, &unstaked_amount);
+    pub fn set_balance_delta(&mut self, staked_delta: U128, unstaked_delta: U128) {
+        self.staked_delta = staked_delta.0;
+        self.unstaked_delta = unstaked_delta.0;
     }
 }
 
@@ -190,7 +187,7 @@ impl MockStakingPool {
         assert!(unstaked_deposit >= amount);
 
         let new_deposit = unstaked_deposit - amount;
-        let new_staked = self.internal_get_staked(&account_id) + amount;
+        let new_staked = self.internal_get_staked(&account_id) + amount - self.staked_delta;
 
         self.deposits.insert(&account_id, &new_deposit);
         self.staked.insert(&account_id, &new_staked);
@@ -202,7 +199,7 @@ impl MockStakingPool {
         assert!(staked >= amount);
 
         let unstaked_deposit = self.internal_get_unstaked_deposit(&account_id);
-        let new_deposit = unstaked_deposit + amount;
+        let new_deposit = unstaked_deposit + amount + self.unstaked_delta;
         let new_staked = staked - amount;
 
         self.deposits.insert(&account_id, &new_deposit);

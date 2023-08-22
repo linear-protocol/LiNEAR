@@ -30,7 +30,6 @@ function assertValidatorAmountHelper(
 }
 
 workspace.test('sync balance failure', async (test, { root, contract, alice, owner }) => {
-  /*
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
   const v1 = await createStakingPool(root, 'v1');
   const v2 = await createStakingPool(root, 'v2');
@@ -68,6 +67,18 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
     }
   );
 
+  // -- 1. total balance diff > MAX_SYNC_BALANCE_DIFF
+  const diff = MAX_SYNC_BALANCE_DIFF.addn(1);
+
+  await owner.call(
+    v1,
+    'set_balance_delta',
+    {
+      staked_delta: diff.toString(10),
+      unstaked_delta: diff.toString(10),
+    },
+  );
+
   for (let i = 0; i < 2; i++) {
     await owner.call(
       contract,
@@ -79,56 +90,34 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
     );
   }
 
-  // -- 1. total balance diff > MAX_SYNC_BALANCE_DIFF
-  const diff = MAX_SYNC_BALANCE_DIFF.addn(1);
-  await owner.call(
-    v1,
-    'adjust_balance',
-    {
-      account_id: contract.accountId,
-      staked_delta: "0",
-      unstaked_delta: diff.toString(10)
-    },
-  );
-
-  await owner.call(
-    contract,
-    'sync_balance_from_validator',
-    {
-      validator_id: v1.accountId
-    },
-    {
-      gas: Gas.parse('200 Tgas')
-    }
-  );
-
   // v1 amount should not change
   await assertValidator(v1, '30000000000000000000000000', '0');
 
-  // -- 2. amount balance diff > MAX_SYNC_BALANCE_DIFF
-  await owner.call(
-    v2,
-    'adjust_balance',
-    {
-      account_id: contract.accountId,
-      staked_delta: diff.toString(10),
-      unstaked_delta: diff.toString(10)
-    },
-  );
-
   await owner.call(
     contract,
-    'sync_balance_from_validator',
-    {
-      validator_id: v2.accountId
-    },
-    {
-      gas: Gas.parse('200 Tgas')
-    }
+    'set_epoch_height',
+    { epoch: 11 }
   );
 
+  await alice.call(
+    contract,
+    'unstake_all',
+    {},
+  );
+
+  for (let i = 0; i < 2; i++) {
+    await owner.call(
+      contract,
+      'epoch_unstake',
+      {},
+      {
+        gas: Gas.parse('275 Tgas')
+      }
+    );
+  }
+
   // v2 amount should not change
-  await assertValidator(v2, '30000000000000000000000000', '0');
+  await assertValidator(v2, '5000000000000000000000000', '25000000000000000000000000');
 });
 
 workspace.test('sync balance', async (test, { root, contract, alice, owner }) => {
@@ -169,6 +158,17 @@ workspace.test('sync balance', async (test, { root, contract, alice, owner }) =>
     }
   );
 
+   // -- amount balance diff < MAX_SYNC_BALANCE_DIFF
+   const diff = MAX_SYNC_BALANCE_DIFF.subn(1);
+   await owner.call(
+     v2,
+     'set_balance_delta',
+     {
+       staked_delta: diff.toString(10),
+       unstaked_delta: diff.toString(10),
+     },
+   );
+
   for (let i = 0; i < 2; i++) {
     await owner.call(
       contract,
@@ -180,29 +180,39 @@ workspace.test('sync balance', async (test, { root, contract, alice, owner }) =>
     );
   }
 
-  // -- amount balance diff < MAX_SYNC_BALANCE_DIFF
-  const diff = MAX_SYNC_BALANCE_DIFF.subn(1);
+  await assertValidator(v2, NEAR.parse("30").sub(diff).toString(10), '0');
+
   await owner.call(
-    v2,
-    'adjust_balance',
+    contract,
+    'set_epoch_height',
+    { epoch: 11 }
+  );
+
+  await owner.call(
+    v1,
+    'set_balance_delta',
     {
-      account_id: contract.accountId,
       staked_delta: diff.toString(10),
       unstaked_delta: diff.toString(10),
     },
   );
 
-  await owner.call(
+  await alice.call(
     contract,
-    'sync_balance_from_validator',
-    {
-      validator_id: v2.accountId
-    },
-    {
-      gas: Gas.parse('200 Tgas')
-    }
+    'unstake_all',
+    {},
   );
 
-  await assertValidator(v2, NEAR.parse("30").sub(diff).toString(10), diff.toString(10));
-  */
+  for (let i = 0; i < 2; i++) {
+    await owner.call(
+      contract,
+      'epoch_unstake',
+      {},
+      {
+        gas: Gas.parse('275 Tgas')
+      }
+    );
+  }
+
+  await assertValidator(v1, NEAR.parse("5").toString(10),  NEAR.parse("25").add(diff).toString(10));
 });

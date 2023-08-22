@@ -91,7 +91,7 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
   }
 
   // v1 amount should not change
-  await assertValidator(v1, '30000000000000000000000000', '0');
+  await assertValidator(v1, NEAR.parse('30').toString(10), '0');
 
   await owner.call(
     contract,
@@ -117,7 +117,7 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
   }
 
   // v2 amount should not change
-  await assertValidator(v2, '5000000000000000000000000', '25000000000000000000000000');
+  await assertValidator(v2, NEAR.parse('5').toString(10), NEAR.parse('25').toString(10));
 });
 
 workspace.test('sync balance', async (test, { root, contract, alice, owner }) => {

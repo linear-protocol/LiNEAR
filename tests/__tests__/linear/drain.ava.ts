@@ -33,6 +33,9 @@ workspace.test('Non-manager call drain methods', async (test, {contract, alice})
             'drain_unstake',
             {
                 validator_id: 'foo'
+            },
+            {
+              gas: "275 Tgas"
             }
         ),
         'Only manager can perform this action'
@@ -99,7 +102,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
         validator_id: v1.accountId
       },
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     ),
     'Validator weight must be zero for drain operation'
@@ -125,7 +128,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
         validator_id: v1.accountId
       },
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     ),
     'Validator base stake amount must be zero for drain operation'
@@ -180,7 +183,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
         validator_id: v1.accountId
       },
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     ),
     'Cannot unstake from a pending release validator'
@@ -203,7 +206,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
         validator_id: v1.accountId
       },
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     ),
     'Validator unstaked amount too large for drain unstake'
@@ -302,7 +305,7 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
       validator_id: v1.accountId
     },
     {
-      gas: Gas.parse('200 Tgas')
+      gas: Gas.parse('275 Tgas')
     }
   );
 

@@ -300,7 +300,7 @@ skip('upgrade from v1.3.3 to v1.4.0', async (test, context) => {
       validator_id: targetValidator.accountId
     },
     {
-      gas: Gas.parse('200 Tgas')
+      gas: Gas.parse('275 Tgas')
     }
   );
 

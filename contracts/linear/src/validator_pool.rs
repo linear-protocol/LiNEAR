@@ -1,3 +1,4 @@
+use crate::epoch_actions::ext_self_action_cb;
 use crate::errors::*;
 use crate::events::Event;
 use crate::legacy::ValidatorV1_0_0;
@@ -626,7 +627,11 @@ impl LiquidStakingContract {
         self.assert_manager();
 
         // make sure enough gas was given
-        let min_gas = GAS_DRAIN_UNSTAKE + GAS_EXT_UNSTAKE + GAS_CB_VALIDATOR_UNSTAKED;
+        let min_gas = GAS_DRAIN_UNSTAKE
+            + GAS_EXT_UNSTAKE
+            + GAS_CB_VALIDATOR_UNSTAKED
+            + GAS_SYNC_BALANCE
+            + GAS_CB_VALIDATOR_SYNC_BALANCE;
         require!(
             env::prepaid_gas() >= min_gas,
             format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
@@ -676,7 +681,7 @@ impl LiquidStakingContract {
                     unstake_amount.into(),
                     env::current_account_id(),
                     NO_DEPOSIT,
-                    GAS_CB_VALIDATOR_UNSTAKED,
+                    GAS_CB_VALIDATOR_UNSTAKED + GAS_SYNC_BALANCE + GAS_CB_VALIDATOR_SYNC_BALANCE,
                 ),
             );
     }
@@ -755,6 +760,15 @@ impl LiquidStakingContract {
                 amount: &U128(amount),
             }
             .emit();
+
+            validator.sync_account_balance().then(
+                ext_self_action_cb::validator_get_account_callback(
+                    validator_id,
+                    env::current_account_id(),
+                    NO_DEPOSIT,
+                    GAS_CB_VALIDATOR_SYNC_BALANCE,
+                ),
+            );
         } else {
             // unstake failed, revert
             validator.on_unstake_failed(&mut self.validator_pool);

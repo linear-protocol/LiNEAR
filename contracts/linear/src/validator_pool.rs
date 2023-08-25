@@ -944,15 +944,8 @@ impl Validator {
         )
     }
 
-    pub fn on_stake_success(
-        &mut self,
-        pool: &mut ValidatorPool,
-        amount: Balance,
-        release_lock: bool,
-    ) {
-        if release_lock {
-            self.post_execution(pool);
-        }
+    pub fn on_stake_success(&mut self, pool: &mut ValidatorPool, amount: Balance) {
+        // Do not post execution here because we need to sync account balance later
         self.staked_amount += amount;
         pool.save_validator(self);
     }

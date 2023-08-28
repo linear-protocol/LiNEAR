@@ -7,6 +7,7 @@ use crate::legacy::ValidatorV1_4_0;
 use crate::types::*;
 use crate::utils::*;
 use crate::*;
+use near_sdk::PromiseOrValue;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     collections::UnorderedMap,
@@ -622,7 +623,7 @@ impl LiquidStakingContract {
     /// This method is designed to drain a validator.
     /// The weight of target validator should be set to 0 before calling this.
     /// And a following call to drain_withdraw MUST be made after 4 epoches.
-    pub fn drain_unstake(&mut self, validator_id: AccountId) {
+    pub fn drain_unstake(&mut self, validator_id: AccountId) -> Promise {
         self.assert_running();
         self.assert_manager();
 
@@ -683,7 +684,7 @@ impl LiquidStakingContract {
                     NO_DEPOSIT,
                     GAS_CB_VALIDATOR_UNSTAKED + GAS_SYNC_BALANCE + GAS_CB_VALIDATOR_SYNC_BALANCE,
                 ),
-            );
+            )
     }
 
     /// Withdraw from a drained validator
@@ -740,7 +741,11 @@ impl LiquidStakingContract {
     }
 
     #[private]
-    pub fn validator_drain_unstaked_callback(&mut self, validator_id: AccountId, amount: U128) {
+    pub fn validator_drain_unstaked_callback(
+        &mut self,
+        validator_id: AccountId,
+        amount: U128,
+    ) -> PromiseOrValue<()> {
         let amount = amount.into();
         let mut validator = self
             .validator_pool
@@ -761,14 +766,15 @@ impl LiquidStakingContract {
             }
             .emit();
 
-            validator.sync_account_balance().then(
-                ext_self_action_cb::validator_get_account_callback(
+            validator
+                .sync_account_balance()
+                .then(ext_self_action_cb::validator_get_account_callback(
                     validator_id,
                     env::current_account_id(),
                     NO_DEPOSIT,
                     GAS_CB_VALIDATOR_SYNC_BALANCE,
-                ),
-            );
+                ))
+                .into()
         } else {
             // unstake failed, revert
             validator.on_unstake_failed(&mut self.validator_pool);
@@ -778,6 +784,8 @@ impl LiquidStakingContract {
                 amount: &U128(amount),
             }
             .emit();
+
+            PromiseOrValue::Value(())
         }
     }
 

@@ -64,6 +64,7 @@ pub const GAS_CB_VALIDATOR_GET_BALANCE: Gas = Gas(25 * TGAS);
 pub const GAS_CB_VALIDATOR_SYNC_BALANCE: Gas = Gas(25 * TGAS);
 pub const GAS_CB_VALIDATOR_WITHDRAW: Gas = Gas(25 * TGAS);
 pub const GAS_CB_WHITELIST: Gas = Gas(15 * TGAS);
+pub const GAS_CB_VALIDATOR_RETURN_TRUE: Gas = Gas(5 * TGAS);
 
 // -- COMMON TYPES
 

@@ -39,7 +39,7 @@ async function stakeAll (signer: NearAccount, contract: NearAccount) {
       'epoch_stake',
       {},
       {
-        gas: Gas.parse('275 Tgas')
+        gas: Gas.parse('280 Tgas')
       }
     );
   }
@@ -397,7 +397,7 @@ skip('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
       'epoch_stake',
       {},
       {
-        gas: Gas.parse('275 Tgas')
+        gas: Gas.parse('280 Tgas')
       }
     );
   }

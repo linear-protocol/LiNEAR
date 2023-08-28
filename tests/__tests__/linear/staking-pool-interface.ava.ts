@@ -273,7 +273,7 @@ workspace.test('late unstake and withdraw', async (test, { contract ,alice }) =>
     'epoch_stake',
     {},
     {
-      gas: Gas.parse('275 Tgas')
+      gas: Gas.parse('280 Tgas')
     }
   );
 

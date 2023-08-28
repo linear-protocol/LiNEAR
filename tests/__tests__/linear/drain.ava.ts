@@ -19,7 +19,7 @@ async function stakeAll (signer: NearAccount, contract: NearAccount) {
       'epoch_stake',
       {},
       {
-        gas: Gas.parse('275 Tgas')
+        gas: Gas.parse('280 Tgas')
       }
     );
   }
@@ -88,7 +88,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
     'epoch_stake',
     {},
     {
-      gas: Gas.parse('275 Tgas')
+      gas: Gas.parse('280 Tgas')
     }
   );
 

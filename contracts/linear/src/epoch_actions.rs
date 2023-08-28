@@ -1,4 +1,5 @@
 use crate::*;
+use near_sdk::PromiseOrValue;
 use near_sdk::{is_promise_success, log, near_bindgen, Balance};
 
 use crate::errors::*;
@@ -14,14 +15,15 @@ const MAX_SYNC_BALANCE_DIFF: Balance = 100;
 /// during each epoch.
 #[near_bindgen]
 impl LiquidStakingContract {
-    pub fn epoch_stake(&mut self) -> bool {
+    pub fn epoch_stake(&mut self) -> PromiseOrValue<bool> {
         self.assert_running();
         // make sure enough gas was given
         let min_gas = GAS_EPOCH_STAKE
             + GAS_EXT_DEPOSIT_AND_STAKE
             + GAS_CB_VALIDATOR_STAKED
             + GAS_SYNC_BALANCE
-            + GAS_CB_VALIDATOR_SYNC_BALANCE;
+            + GAS_CB_VALIDATOR_SYNC_BALANCE
+            + GAS_CB_VALIDATOR_RETURN_TRUE;
         require!(
             env::prepaid_gas() >= min_gas,
             format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
@@ -31,7 +33,7 @@ impl LiquidStakingContract {
         // after cleanup, there might be no need to stake
         if self.stake_amount_to_settle == 0 {
             log!("no need to stake, amount to settle is zero");
-            return false;
+            return PromiseOrValue::Value(false);
         }
 
         let candidate = self
@@ -40,7 +42,7 @@ impl LiquidStakingContract {
 
         if candidate.is_none() {
             log!("no candidate found to stake");
-            return false;
+            return PromiseOrValue::Value(false);
         }
 
         let mut candidate = candidate.unwrap();
@@ -48,7 +50,7 @@ impl LiquidStakingContract {
 
         if amount_to_stake < MIN_AMOUNT_TO_PERFORM_STAKE {
             log!("stake amount too low: {}", amount_to_stake);
-            return false;
+            return PromiseOrValue::Value(false);
         }
 
         require!(
@@ -75,9 +77,13 @@ impl LiquidStakingContract {
                 env::current_account_id(),
                 NO_DEPOSIT,
                 GAS_CB_VALIDATOR_STAKED + GAS_SYNC_BALANCE + GAS_CB_VALIDATOR_SYNC_BALANCE,
-            ));
-
-        true
+            ))
+            .then(ext_self_action_cb::validator_return_true_callback(
+                env::current_account_id(),
+                NO_DEPOSIT,
+                GAS_CB_VALIDATOR_RETURN_TRUE,
+            ))
+            .into()
     }
 
     pub fn epoch_unstake(&mut self) -> bool {
@@ -242,6 +248,8 @@ trait EpochActionCallbacks {
 
     fn validator_unstaked_callback(&mut self, validator_id: AccountId, amount: U128);
 
+    fn validator_return_true_callback(&mut self) -> bool;
+
     fn validator_get_balance_callback(&mut self, validator_id: AccountId);
 
     fn validator_get_account_callback(&mut self, validator_id: AccountId);
@@ -254,7 +262,16 @@ trait EpochActionCallbacks {
 #[near_bindgen]
 impl LiquidStakingContract {
     #[private]
-    pub fn validator_staked_callback(&mut self, validator_id: AccountId, amount: U128) {
+    pub fn validator_return_true_callback(&mut self) -> bool {
+        true
+    }
+
+    #[private]
+    pub fn validator_staked_callback(
+        &mut self,
+        validator_id: AccountId,
+        amount: U128,
+    ) -> PromiseOrValue<()> {
         let amount = amount.into();
         let mut validator = self
             .validator_pool
@@ -270,14 +287,15 @@ impl LiquidStakingContract {
             }
             .emit();
 
-            validator.sync_account_balance().then(
-                ext_self_action_cb::validator_get_account_callback(
+            validator
+                .sync_account_balance()
+                .then(ext_self_action_cb::validator_get_account_callback(
                     validator_id,
                     env::current_account_id(),
                     NO_DEPOSIT,
                     GAS_CB_VALIDATOR_SYNC_BALANCE,
-                ),
-            );
+                ))
+                .into()
         } else {
             validator.on_stake_failed(&mut self.validator_pool);
 
@@ -289,6 +307,8 @@ impl LiquidStakingContract {
                 amount: &U128(amount),
             }
             .emit();
+
+            PromiseOrValue::Value(())
         }
     }
 

@@ -71,7 +71,7 @@ workspace.test('epoch stake failure', async (test, { root, contract, owner, alic
     'epoch_stake',
     {},
     {
-      gas: Gas.parse('275 Tgas')
+      gas: Gas.parse('280 Tgas')
     }
   );
 
@@ -111,7 +111,7 @@ workspace.test('unstake failure', async (test, { root, contract, owner, alice })
     'epoch_stake',
     {},
     {
-      gas: Gas.parse('275 Tgas')
+      gas: Gas.parse('280 Tgas')
     }
   );
 
@@ -171,7 +171,7 @@ workspace.test('withdraw failure', async (test, { root, contract, owner, alice }
     'epoch_stake',
     {},
     {
-      gas: Gas.parse('275 Tgas')
+      gas: Gas.parse('280 Tgas')
     }
   );
 
@@ -259,7 +259,7 @@ workspace.test('get balance failure', async (test, { root, contract, owner, alic
     'epoch_stake',
     {},
     {
-      gas: Gas.parse('275 Tgas')
+      gas: Gas.parse('280 Tgas')
     }
   );
 

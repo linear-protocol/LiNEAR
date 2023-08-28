@@ -20,7 +20,7 @@ async function stakeAll (owner: NearAccount, contract: NearAccount) {
       'epoch_stake',
       {},
       {
-        gas: Gas.parse('275 Tgas')
+        gas: Gas.parse('280 Tgas')
       }
     );
   }

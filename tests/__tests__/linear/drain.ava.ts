@@ -165,7 +165,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
     'epoch_unstake',
     {},
     {
-      gas: Gas.parse('275 Tgas')
+      gas: Gas.parse('280 Tgas')
     }
   );
 

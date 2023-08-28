@@ -301,11 +301,7 @@ impl LiquidStakingContract {
             .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
         if is_promise_success() {
-            validator.on_unstake_success(
-                &mut self.validator_pool,
-                amount,
-                false, /* release_lock */
-            );
+            validator.on_unstake_success(&mut self.validator_pool, amount);
 
             Event::EpochUnstakeSuccess {
                 validator_id: &validator_id,

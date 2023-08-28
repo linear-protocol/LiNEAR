@@ -753,11 +753,7 @@ impl LiquidStakingContract {
             .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
         if is_promise_success() {
-            validator.on_unstake_success(
-                &mut self.validator_pool,
-                amount,
-                true, /* release_lock */
-            );
+            validator.on_unstake_success(&mut self.validator_pool, amount);
             validator.set_draining(&mut self.validator_pool, true);
 
             Event::DrainUnstakeSuccess {
@@ -989,16 +985,7 @@ impl Validator {
         )
     }
 
-    pub fn on_unstake_success(
-        &mut self,
-        pool: &mut ValidatorPool,
-        amount: Balance,
-        release_lock: bool,
-    ) {
-        if release_lock {
-            self.post_execution(pool);
-        }
-
+    pub fn on_unstake_success(&mut self, pool: &mut ValidatorPool, amount: Balance) {
         self.staked_amount -= amount;
         self.unstaked_amount += amount;
         pool.save_validator(self);

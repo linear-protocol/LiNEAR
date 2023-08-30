@@ -81,7 +81,7 @@ impl LiquidStakingContract {
             .into()
     }
 
-    pub fn epoch_unstake(&mut self) -> PromiseOrValue<bool> {
+    pub fn epoch_unstake(&mut self) -> PromiseOrValue<Option<bool>> {
         self.assert_running();
         // make sure enough gas was given
         let min_gas = GAS_EPOCH_UNSTAKE
@@ -99,7 +99,7 @@ impl LiquidStakingContract {
         // after cleanup, there might be no need to unstake
         if self.unstake_amount_to_settle == 0 {
             log!("no need to unstake, amount to settle is zero");
-            return PromiseOrValue::Value(false);
+            return PromiseOrValue::Value(Some(false));
         }
 
         let candidate = self.validator_pool.get_candidate_to_unstake_v2(
@@ -108,14 +108,14 @@ impl LiquidStakingContract {
         );
         if candidate.is_none() {
             log!("no candidate found to unstake");
-            return PromiseOrValue::Value(false);
+            return PromiseOrValue::Value(Some(false));
         }
         let mut candidate = candidate.unwrap();
         let amount_to_unstake = candidate.amount;
 
         if amount_to_unstake < MIN_AMOUNT_TO_PERFORM_UNSTAKE {
             log!("unstake amount too low: {}", amount_to_unstake);
-            return PromiseOrValue::Value(false);
+            return PromiseOrValue::Value(Some(false));
         }
 
         // update internal state
@@ -137,11 +137,6 @@ impl LiquidStakingContract {
                 env::current_account_id(),
                 NO_DEPOSIT,
                 GAS_CB_VALIDATOR_UNSTAKED + GAS_SYNC_BALANCE + GAS_CB_VALIDATOR_SYNC_BALANCE,
-            ))
-            .then(ext_self_action_cb::validator_return_true_callback(
-                env::current_account_id(),
-                NO_DEPOSIT,
-                GAS_CB_VALIDATOR_RETURN_TRUE,
             ))
             .into()
     }
@@ -250,9 +245,11 @@ trait EpochActionCallbacks {
         amount: U128,
     ) -> PromiseOrValue<Option<bool>>;
 
-    fn validator_unstaked_callback(&mut self, validator_id: AccountId, amount: U128);
-
-    fn validator_return_true_callback(&mut self) -> bool;
+    fn validator_unstaked_callback(
+        &mut self,
+        validator_id: AccountId,
+        amount: U128,
+    ) -> PromiseOrValue<Option<bool>>;
 
     fn validator_get_balance_callback(&mut self, validator_id: AccountId);
 
@@ -265,11 +262,6 @@ trait EpochActionCallbacks {
 /// functions here SHOULD NOT PANIC!
 #[near_bindgen]
 impl LiquidStakingContract {
-    #[private]
-    pub fn validator_return_true_callback(&mut self) -> bool {
-        true
-    }
-
     #[private]
     pub fn validator_staked_callback(
         &mut self,
@@ -321,7 +313,7 @@ impl LiquidStakingContract {
         &mut self,
         validator_id: AccountId,
         amount: U128,
-    ) -> PromiseOrValue<()> {
+    ) -> PromiseOrValue<Option<bool>> {
         let amount = amount.into();
         let mut validator = self
             .validator_pool
@@ -360,7 +352,7 @@ impl LiquidStakingContract {
             }
             .emit();
 
-            PromiseOrValue::Value(())
+            PromiseOrValue::Value(None)
         }
     }
 

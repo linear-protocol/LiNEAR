@@ -58,7 +58,7 @@ test-unit:
 
 TEST_FILE ?= **
 LOGS ?=
-test-linear: linear_test mock-staking-pool mock-fungible-token mock-dex mock-lockup mock-whitelist
+test-contracts: linear_test mock-staking-pool mock-fungible-token mock-dex mock-lockup mock-whitelist
 	@mkdir -p ./tests/compiled-contracts/
 	@cp ./res/linear_test.wasm ./tests/compiled-contracts/linear.wasm
 	@cp ./res/mock_staking_pool.wasm ./tests/compiled-contracts/mock_staking_pool.wasm
@@ -66,6 +66,8 @@ test-linear: linear_test mock-staking-pool mock-fungible-token mock-dex mock-loc
 	@cp ./res/mock_dex.wasm ./tests/compiled-contracts/mock_dex.wasm
 	@cp ./res/mock_lockup.wasm ./tests/compiled-contracts/mock_lockup.wasm
 	@cp ./res/mock_whitelist.wasm ./tests/compiled-contracts/mock_whitelist.wasm
+
+test-linear: test-contracts
 	cd tests && NEAR_PRINT_LOGS=$(LOGS) npx near-workspaces-ava --timeout=2m __tests__/linear/$(TEST_FILE).ava.ts --verbose
 
 test-mock-staking-pool: mock-staking-pool

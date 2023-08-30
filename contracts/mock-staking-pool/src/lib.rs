@@ -49,6 +49,7 @@ pub struct MockStakingPool {
     staked: LookupMap<AccountId, u128>,
     /// for testing purpose, simulates contract panic
     panic: bool,
+    get_account_fail: bool,
 
     staked_delta: u128,
     unstaked_delta: u128,
@@ -62,6 +63,7 @@ impl MockStakingPool {
             deposits: LookupMap::new(b"d"),
             staked: LookupMap::new(b"s"),
             panic: false,
+            get_account_fail: false,
             staked_delta: 0,
             unstaked_delta: 0,
         }
@@ -89,6 +91,10 @@ impl StakingPool for MockStakingPool {
 
     fn get_account(&self, account_id: AccountId) -> HumanReadableAccount {
         require!(!self.panic, "Test Panic!");
+        require!(
+            !self.get_account_fail,
+            "get_account() failed, for testing purpose",
+        );
         HumanReadableAccount {
             account_id: account_id.clone(),
             staked_balance: U128::from(self.internal_get_staked(&account_id)),
@@ -160,6 +166,10 @@ impl MockStakingPool {
 
     pub fn set_panic(&mut self, panic: bool) {
         self.panic = panic;
+    }
+
+    pub fn set_get_account_fail(&mut self, value: bool) {
+        self.get_account_fail = value;
     }
 
     pub fn set_balance_delta(&mut self, staked_delta: U128, unstaked_delta: U128) {

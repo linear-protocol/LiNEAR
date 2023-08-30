@@ -90,7 +90,7 @@ pub enum Event<'a> {
         new_unstaked_balance: &'a U128,
         new_total_balance: &'a U128,
     },
-    SyncValidatorBalanceFailed {
+    SyncValidatorBalanceFailedLargeDiff {
         validator_id: &'a AccountId,
         old_staked_balance: &'a U128,
         old_unstaked_balance: &'a U128,
@@ -98,6 +98,12 @@ pub enum Event<'a> {
         new_staked_balance: &'a U128,
         new_unstaked_balance: &'a U128,
         new_total_balance: &'a U128,
+    },
+    SyncValidatorBalanceFailedCantGetAccount {
+        validator_id: &'a AccountId,
+        old_staked_balance: &'a U128,
+        old_unstaked_balance: &'a U128,
+        old_total_balance: &'a U128,
     },
     // Staking Pool Interface
     Deposit {

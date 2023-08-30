@@ -1,4 +1,4 @@
-import { assertFailure, createStakingPool, getValidator, initWorkSpace } from "./helper";
+import { assertFailure, createStakingPool, epochStake, epochUnstake, getValidator, initWorkSpace } from "./helper";
 import { Gas, NEAR, NearAccount, ONE_NEAR, stake, } from "near-workspaces-ava";
 
 const MAX_SYNC_BALANCE_DIFF = NEAR.from(100);
@@ -80,14 +80,7 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
   );
 
   for (let i = 0; i < 2; i++) {
-    await owner.call(
-      contract,
-      'epoch_stake',
-      {},
-      {
-        gas: Gas.parse('280 Tgas')
-      }
-    );
+    await epochStake(owner, contract);
   }
 
   // v1 amount should not change
@@ -106,14 +99,7 @@ workspace.test('sync balance failure', async (test, { root, contract, alice, own
   );
 
   for (let i = 0; i < 2; i++) {
-    await owner.call(
-      contract,
-      'epoch_unstake',
-      {},
-      {
-        gas: Gas.parse('280 Tgas')
-      }
-    );
+    await epochUnstake(owner, contract);
   }
 
   // v2 amount should not change
@@ -170,14 +156,7 @@ workspace.test('sync balance', async (test, { root, contract, alice, owner }) =>
    );
 
   for (let i = 0; i < 2; i++) {
-    await owner.call(
-      contract,
-      'epoch_stake',
-      {},
-      {
-        gas: Gas.parse('280 Tgas')
-      }
-    );
+    await epochStake(owner, contract);
   }
 
   await assertValidator(v2, NEAR.parse("30").sub(diff).toString(10), '0');
@@ -204,14 +183,7 @@ workspace.test('sync balance', async (test, { root, contract, alice, owner }) =>
   );
 
   for (let i = 0; i < 2; i++) {
-    await owner.call(
-      contract,
-      'epoch_unstake',
-      {},
-      {
-        gas: Gas.parse('280 Tgas')
-      }
-    );
+    await epochUnstake(owner, contract);
   }
 
   await assertValidator(v1, NEAR.parse("5").toString(10),  NEAR.parse("25").add(diff).toString(10));

@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { Gas, NEAR } from "near-units";
 import { NearAccount, Workspace } from "near-workspaces-ava";
-import { createStakingPool, getValidator, initAndSetWhitelist, skip, updateBaseStakeAmounts, } from "./helper";
+import { createStakingPool, epochStake, getValidator, initAndSetWhitelist, skip, updateBaseStakeAmounts, } from "./helper";
 
 async function deployLinearAtVersion(
   root: NearAccount,
@@ -34,14 +34,7 @@ async function upgrade(contract: NearAccount, owner: NearAccount) {
 async function stakeAll (signer: NearAccount, contract: NearAccount) {
   let run = true;
   while (run) {
-    run = await signer.call(
-      contract,
-      'epoch_stake',
-      {},
-      {
-        gas: Gas.parse('280 Tgas')
-      }
-    );
+    run = await epochStake(signer, contract);
   }
 }
 
@@ -392,14 +385,7 @@ skip('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
 
   async function delayedEpochStake(ms: number) {
     await sleep(ms);
-    await alice.call(
-      contract,
-      'epoch_stake',
-      {},
-      {
-        gas: Gas.parse('280 Tgas')
-      }
-    );
+    await epochStake(alice, contract);
   }
 
   let executed = false;

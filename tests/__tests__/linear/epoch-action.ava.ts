@@ -6,8 +6,9 @@ import {
   updateBaseStakeAmounts,
   setManager,
   assertValidatorAmountHelper,
-  getSummary,
-  skip
+  skip,
+  epochStake,
+  epochUnstake
 } from "./helper";
 
 const workspace = initWorkSpace();
@@ -15,28 +16,14 @@ const workspace = initWorkSpace();
 async function stakeAll (owner: NearAccount, contract: NearAccount) {
   let run = true;
   while (run) {
-    run = await owner.call(
-      contract,
-      'epoch_stake',
-      {},
-      {
-        gas: Gas.parse('280 Tgas')
-      }
-    );
+    run = await epochStake(owner, contract);
   }
 }
 
 async function unstakeAll (owner: NearAccount, contract: NearAccount) {
   let run = true;
   while (run) {
-    run = await owner.call(
-      contract,
-      'epoch_unstake',
-      {},
-      {
-        gas: Gas.parse('280 Tgas')
-      }
-    );
+    run = await epochUnstake(owner, contract);
   }
 }
 

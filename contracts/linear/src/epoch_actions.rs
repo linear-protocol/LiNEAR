@@ -22,8 +22,7 @@ impl LiquidStakingContract {
             + GAS_EXT_DEPOSIT_AND_STAKE
             + GAS_CB_VALIDATOR_STAKED
             + GAS_SYNC_BALANCE
-            + GAS_CB_VALIDATOR_SYNC_BALANCE
-            + GAS_CB_VALIDATOR_RETURN_TRUE;
+            + GAS_CB_VALIDATOR_SYNC_BALANCE;
         require!(
             env::prepaid_gas() >= min_gas,
             format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
@@ -88,8 +87,7 @@ impl LiquidStakingContract {
             + GAS_EXT_UNSTAKE
             + GAS_CB_VALIDATOR_UNSTAKED
             + GAS_SYNC_BALANCE
-            + GAS_CB_VALIDATOR_SYNC_BALANCE
-            + GAS_CB_VALIDATOR_RETURN_TRUE;
+            + GAS_CB_VALIDATOR_SYNC_BALANCE;
         require!(
             env::prepaid_gas() >= min_gas,
             format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)

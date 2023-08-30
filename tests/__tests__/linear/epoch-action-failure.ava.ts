@@ -1,5 +1,5 @@
 import { NearAccount, NEAR, Gas } from "near-workspaces-ava";
-import { assertFailure, initWorkSpace, createStakingPool, getValidator } from "./helper";
+import { initWorkSpace, createStakingPool, getValidator, epochStake, epochUnstake } from "./helper";
 
 const workspace = initWorkSpace();
 
@@ -66,14 +66,7 @@ workspace.test('epoch stake failure: deposit_and_stake fails', async (test, { ro
 
   await setPanic(v1);
 
-  const ret = await owner.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      gas: Gas.parse('280 Tgas')
-    }
-  );
+  const ret = await epochStake(owner, contract);
 
   test.is(ret, null);
 
@@ -116,14 +109,7 @@ workspace.test('epoch stake failure: get_account fails', async (test, { root, co
     }
   );
 
-  const ret = await owner.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      gas: Gas.parse('280 Tgas')
-    }
-  );
+  const ret = await epochStake(owner, contract);
 
   test.is(ret, null);
 
@@ -170,14 +156,7 @@ workspace.test('epoch stake failure: balance diff too large', async (test, { roo
     },
   );
 
-  const ret = await owner.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      gas: Gas.parse('280 Tgas')
-    }
-  );
+  const ret = await epochStake(owner, contract);
 
   test.is(ret, null);
 
@@ -212,14 +191,7 @@ workspace.test('epoch unstake failure: unstake fails', async (test, { root, cont
     }
   );
 
-  await owner.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      gas: Gas.parse('280 Tgas')
-    }
-  );
+  await epochStake(owner, contract);
 
   await assertValidator(v1, '60', '0');
 
@@ -238,14 +210,7 @@ workspace.test('epoch unstake failure: unstake fails', async (test, { root, cont
 
   await setPanic(v1);
 
-  const ret = await owner.call(
-    contract,
-    'epoch_unstake',
-    {},
-    {
-      gas: Gas.parse('280 Tgas')
-    }
-  );
+  const ret = await epochUnstake(owner, contract);
 
   test.is(ret, null);
 
@@ -280,14 +245,7 @@ workspace.test('epoch unstake failure: get_account fails', async (test, { root, 
     }
   );
 
-  await owner.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      gas: Gas.parse('280 Tgas')
-    }
-  );
+  await epochStake(owner, contract);
 
   await assertValidator(v1, '60', '0');
 
@@ -312,14 +270,7 @@ workspace.test('epoch unstake failure: get_account fails', async (test, { root, 
     }
   );
 
-  const ret = await owner.call(
-    contract,
-    'epoch_unstake',
-    {},
-    {
-      gas: Gas.parse('280 Tgas')
-    }
-  );
+  const ret = await epochUnstake(owner, contract);
 
   test.is(ret, null);
 
@@ -354,14 +305,7 @@ workspace.test('epoch unstake failure: balance diff too large', async (test, { r
     }
   );
 
-  await owner.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      gas: Gas.parse('280 Tgas')
-    }
-  );
+  await epochStake(owner, contract);
 
   await assertValidator(v1, '60', '0');
 
@@ -390,14 +334,7 @@ workspace.test('epoch unstake failure: balance diff too large', async (test, { r
     },
   );
 
-  const ret = await owner.call(
-    contract,
-    'epoch_unstake',
-    {},
-    {
-      gas: Gas.parse('280 Tgas')
-    }
-  );
+  const ret = await epochUnstake(owner, contract);
 
   test.is(ret, null);
 
@@ -432,14 +369,7 @@ workspace.test('withdraw failure', async (test, { root, contract, owner, alice }
     }
   );
 
-  await owner.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      gas: Gas.parse('280 Tgas')
-    }
-  );
+  await epochStake(owner, contract);
 
   // fast-forward 4 epoch
   await owner.call(
@@ -457,14 +387,7 @@ workspace.test('withdraw failure', async (test, { root, contract, owner, alice }
     { amount: NEAR.parse('10') }
   );
 
-  await owner.call(
-    contract,
-    'epoch_unstake',
-    {},
-    {
-      gas: Gas.parse('280 Tgas')
-    }
-  );
+  await epochUnstake(owner, contract);
 
   await assertValidator(v1, '50', '10');
 
@@ -520,14 +443,7 @@ workspace.test('get balance failure', async (test, { root, contract, owner, alic
     }
   );
 
-  await owner.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      gas: Gas.parse('280 Tgas')
-    }
-  );
+  await epochStake(owner, contract);
 
   await assertValidator(v1, '60', '0');
 

@@ -6,7 +6,9 @@ import {
   setManager,
   assertValidatorAmountHelper,
   updateBaseStakeAmounts,
-  getValidator
+  getValidator,
+  epochUnstake,
+  epochStake
 } from "./helper";
 
 const workspace = initWorkSpace();
@@ -14,14 +16,7 @@ const workspace = initWorkSpace();
 async function stakeAll (signer: NearAccount, contract: NearAccount) {
   let run = true;
   while (run) {
-    run = await signer.call(
-      contract,
-      'epoch_stake',
-      {},
-      {
-        gas: Gas.parse('280 Tgas')
-      }
-    );
+    run = await epochStake(signer, contract);
   }
 }
 
@@ -83,14 +78,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
   );
 
   // run stake
-  await bob.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      gas: Gas.parse('280 Tgas')
-    }
-  );
+  await epochStake(bob, contract);
 
   // 1. cannot drain unstake when weight > 0
   await assertFailure(
@@ -160,14 +148,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
     {}
   );
 
-  await bob.call(
-    contract,
-    'epoch_unstake',
-    {},
-    {
-      gas: Gas.parse('280 Tgas')
-    }
-  );
+  await epochUnstake(bob, contract);
 
   // validator now have unstaked balance > 0
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);

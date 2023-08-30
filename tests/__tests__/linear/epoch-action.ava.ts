@@ -167,9 +167,6 @@ workspace.test('epoch stake', async (test, {root, contract, alice, owner, bob}) 
   await assertValidator(v3, `${30 + 45 + 15}`, '0', '0');
 });
 
-workspace.test('epoch stake', async (test, {root, contract, alice, owner, bob}) => {
-});
-
 workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => {
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
 

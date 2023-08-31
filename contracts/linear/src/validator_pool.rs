@@ -11,10 +11,13 @@ use near_sdk::{
     collections::UnorderedMap,
     ext_contract, is_promise_success,
     json_types::U128,
-    json_types::U64,
     near_bindgen, require, AccountId, Balance, EpochHeight, Promise,
 };
+
 use std::cmp::{max, min, Ordering};
+
+#[cfg(feature = "test")]
+use near_sdk::U64;
 
 const STAKE_SMALL_CHANGE_AMOUNT: Balance = ONE_NEAR;
 const UNSTAKE_FACTOR: u128 = 2;

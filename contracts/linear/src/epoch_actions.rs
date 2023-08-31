@@ -14,6 +14,81 @@ const MAX_SYNC_BALANCE_DIFF: Balance = 100;
 /// during each epoch.
 #[near_bindgen]
 impl LiquidStakingContract {
+    // `stake_to_validator` and `unstake_from_validator` are used to mock
+    // stake amounts and unstake amounts of validators at the beginnings
+    // of simulation tests
+    #[payable]
+    #[cfg(feature = "test")]
+    pub fn stake_to_validator(&mut self, validator_id: AccountId, amount: U128) {
+        self.assert_running();
+        // make sure enough gas was given
+        let min_gas = GAS_EPOCH_STAKE + GAS_EXT_DEPOSIT_AND_STAKE + GAS_CB_VALIDATOR_STAKED;
+
+        require!(
+            env::prepaid_gas() >= min_gas,
+            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+        );
+
+        let mut validator = self
+            .validator_pool
+            .get_validator(&validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        Event::EpochStakeAttempt {
+            validator_id: &validator_id,
+            amount: &amount,
+        }
+        .emit();
+
+        self.epoch_requested_stake_amount -= amount.0;
+
+        // do staking on selected validator
+        validator
+            .deposit_and_stake(&mut self.validator_pool, amount.into())
+            .then(ext_self_action_cb::validator_staked_callback(
+                validator.account_id.clone(),
+                amount.into(),
+                env::current_account_id(),
+                NO_DEPOSIT,
+                GAS_CB_VALIDATOR_STAKED,
+            ));
+    }
+
+    #[cfg(feature = "test")]
+    pub fn unstake_from_validator(&mut self, validator_id: AccountId, amount: U128) {
+        self.assert_running();
+        // make sure enough gas was given
+        let min_gas = GAS_EPOCH_UNSTAKE + GAS_EXT_UNSTAKE + GAS_CB_VALIDATOR_UNSTAKED;
+        require!(
+            env::prepaid_gas() >= min_gas,
+            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+        );
+
+        let mut validator = self
+            .validator_pool
+            .get_validator(&validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        Event::EpochUnstakeAttempt {
+            validator_id: &validator_id,
+            amount: &amount,
+        }
+        .emit();
+
+        self.epoch_requested_unstake_amount -= amount.0;
+
+        // do staking on selected validator
+        validator
+            .unstake(&mut self.validator_pool, amount.into())
+            .then(ext_self_action_cb::validator_unstaked_callback(
+                validator.account_id.clone(),
+                amount.into(),
+                env::current_account_id(),
+                NO_DEPOSIT,
+                GAS_CB_VALIDATOR_STAKED,
+            ));
+    }
+
     pub fn epoch_stake(&mut self) -> bool {
         self.assert_running();
         // make sure enough gas was given
@@ -223,6 +298,12 @@ impl LiquidStakingContract {
             unstake_amount_to_settle: &U128(self.unstake_amount_to_settle),
         }
         .emit();
+    }
+
+    // To mock unsettled amounts at the beginnings of simulation tests
+    #[cfg(feature = "test")]
+    pub fn epoch_cleanup_for_test(&mut self) {
+        self.epoch_cleanup();
     }
 
     /// Due to shares calculation and rounding of staking pool contract,

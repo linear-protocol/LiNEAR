@@ -13,7 +13,11 @@ use near_sdk::{
     json_types::U128,
     near_bindgen, require, AccountId, Balance, EpochHeight, Promise,
 };
+
 use std::cmp::{max, min, Ordering};
+
+#[cfg(feature = "test")]
+use near_sdk::json_types::U64;
 
 const STAKE_SMALL_CHANGE_AMOUNT: Balance = ONE_NEAR;
 const UNSTAKE_FACTOR: u128 = 2;
@@ -158,6 +162,29 @@ impl ValidatorPool {
         self.validators.insert(validator_id, &validator.into());
 
         old_weight
+    }
+
+    // to mock pending release validators at the beginnings of simulation tests
+    #[cfg(feature = "test")]
+    pub fn set_unstake_fired_epoch(&mut self, validator_id: &AccountId, epoch_height: EpochHeight) {
+        let mut validator: Validator = self
+            .validators
+            .get(validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST)
+            .into();
+        validator.unstake_fired_epoch = epoch_height;
+        self.validators.insert(validator_id, &validator.into());
+    }
+
+    // to mock draining validators at the beginnings of simulation tests
+    #[cfg(feature = "test")]
+    pub fn set_draining(&mut self, validator_id: &AccountId) {
+        let mut validator: Validator = self
+            .validators
+            .get(validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST)
+            .into();
+        validator.set_draining(self, true);
     }
 
     /// Update base stake amount of the validator
@@ -582,6 +609,32 @@ impl LiquidStakingContract {
             self.validator_pool
                 .update_base_stake_amount(&validator_ids[i], amounts[i].into());
         }
+    }
+
+    #[cfg(feature = "test")]
+    pub fn batch_set_unstake_fired_epoch(
+        &mut self,
+        validator_ids: Vec<AccountId>,
+        epoch_heights: Vec<U64>,
+    ) {
+        self.assert_running();
+        self.assert_manager();
+        for i in 0..validator_ids.len() {
+            self.validator_pool
+                .set_unstake_fired_epoch(&validator_ids[i], epoch_heights[i].into());
+        }
+    }
+
+    #[cfg(feature = "test")]
+    pub fn set_drainings(&mut self, validator_ids: Vec<AccountId>) {
+        for i in 0..validator_ids.len() {
+            self.validator_pool.set_draining(&validator_ids[i]);
+        }
+    }
+
+    #[cfg(feature = "test")]
+    pub fn set_total_staked_near_amount(&mut self, amount: U128) {
+        self.total_staked_near_amount = amount.0;
     }
 
     // --- View Functions ---

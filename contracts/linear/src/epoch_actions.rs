@@ -1,6 +1,5 @@
 use crate::*;
-use near_sdk::PromiseOrValue;
-use near_sdk::{is_promise_success, log, near_bindgen, Balance};
+use near_sdk::{is_promise_success, log, near_bindgen, Balance, PromiseError, PromiseOrValue};
 
 use crate::errors::*;
 use crate::events::Event;
@@ -389,7 +388,7 @@ impl LiquidStakingContract {
     pub fn validator_get_account_callback(
         &mut self,
         validator_id: AccountId,
-        #[callback_result] result: Result<HumanReadableAccount, near_sdk::PromiseError>,
+        #[callback_result] result: Result<HumanReadableAccount, PromiseError>,
     ) -> Option<bool> {
         let mut validator = self
             .validator_pool

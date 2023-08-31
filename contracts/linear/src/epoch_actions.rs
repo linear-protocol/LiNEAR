@@ -43,15 +43,15 @@ impl LiquidStakingContract {
         self.epoch_requested_stake_amount -= amount.0;
 
         // do staking on selected validator
-        validator.deposit_and_stake(amount.into()).then(
-            ext_self_action_cb::validator_staked_callback(
+        validator
+            .deposit_and_stake(&mut self.validator_pool, amount.into())
+            .then(ext_self_action_cb::validator_staked_callback(
                 validator.account_id.clone(),
                 amount.into(),
                 env::current_account_id(),
                 NO_DEPOSIT,
                 GAS_CB_VALIDATOR_STAKED,
-            ),
-        );
+            ));
     }
 
     #[cfg(feature = "test")]

@@ -335,13 +335,26 @@ export function assertValidatorAmountHelper (
   }
 }
 
+const EPOCH_STAKE_AND_UNSTAKE_GAS = Gas.parse('280 Tgas');
+
 export function epochStake(caller: NearAccount, contract: NearAccount): Promise<any> {
   return caller.call(
     contract,
     'epoch_stake',
     {},
     {
-      gas: Gas.parse('275 Tgas')
+      gas: EPOCH_STAKE_AND_UNSTAKE_GAS
+    }
+  );
+}
+
+export function epochStakeCallRaw(caller: NearAccount, contract: NearAccount): Promise<any> {
+  return caller.call_raw(
+    contract,
+    'epoch_stake',
+    {},
+    {
+      gas: EPOCH_STAKE_AND_UNSTAKE_GAS
     }
   );
 }
@@ -352,7 +365,18 @@ export function epochUnstake(caller: NearAccount, contract: NearAccount): Promis
     'epoch_unstake',
     {},
     {
-      gas: Gas.parse('275 Tgas')
+      gas: EPOCH_STAKE_AND_UNSTAKE_GAS
+    }
+  );
+}
+
+export function epochUnstakeCallRaw(caller: NearAccount, contract: NearAccount): Promise<any> {
+  return caller.call_raw(
+    contract,
+    'epoch_unstake',
+    {},
+    {
+      gas: EPOCH_STAKE_AND_UNSTAKE_GAS
     }
   );
 }

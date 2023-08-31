@@ -290,8 +290,6 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
     }
   );
 
-  test.is(ret, true);
-
   // make sure the validator is in draining mode
   test.assert((await getValidator(contract, v1.accountId)).draining);
 

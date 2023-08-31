@@ -17,7 +17,7 @@ use near_sdk::{
 use std::cmp::{max, min, Ordering};
 
 #[cfg(feature = "test")]
-use near_sdk::U64;
+use near_sdk::json_types::U64;
 
 const STAKE_SMALL_CHANGE_AMOUNT: Balance = ONE_NEAR;
 const UNSTAKE_FACTOR: u128 = 2;

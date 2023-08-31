@@ -2,7 +2,7 @@
 //! when upgrading contract.
 use crate::account::Account;
 use crate::types::*;
-use crate::validator_pool::Validator;
+use crate::validator_pool::{Validator, VersionedValidator};
 use crate::Farm;
 use crate::Fraction;
 use crate::LiquidityPool;
@@ -13,6 +13,52 @@ use near_sdk::{
     collections::{UnorderedMap, UnorderedSet, Vector},
     near_bindgen, AccountId, Balance, EpochHeight, StorageUsage,
 };
+
+/// The ValidatorPool struct has no change in v1.4.0 since v1.3.0
+#[derive(BorshSerialize, BorshDeserialize)]
+pub struct ValidatorPoolV1_4_0 {
+    pub validators: UnorderedMap<AccountId, VersionedValidator>,
+    pub total_weight: u16,
+    pub total_base_stake_amount: Balance,
+}
+
+/// The Validator struct added `draining` in v1.4.0
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct ValidatorV1_4_0 {
+    pub account_id: AccountId,
+    pub weight: u16,
+
+    pub staked_amount: Balance,
+    pub unstaked_amount: Balance,
+
+    /// The base stake amount on this validator.
+    pub base_stake_amount: Balance,
+
+    /// the epoch num when latest unstake action happened on this validator
+    pub unstake_fired_epoch: EpochHeight,
+    /// this is to save the last value of unstake_fired_epoch,
+    /// so that when unstake revert we can restore it
+    pub last_unstake_fired_epoch: EpochHeight,
+
+    /// Whether the validator is in draining process
+    pub draining: bool,
+}
+
+impl From<ValidatorV1_4_0> for Validator {
+    fn from(v: ValidatorV1_4_0) -> Self {
+        Validator {
+            account_id: v.account_id,
+            weight: v.weight,
+            staked_amount: v.staked_amount,
+            unstaked_amount: v.unstaked_amount,
+            base_stake_amount: v.base_stake_amount,
+            unstake_fired_epoch: v.unstake_fired_epoch,
+            last_unstake_fired_epoch: v.last_unstake_fired_epoch,
+            draining: v.draining,
+            executing: false,
+        }
+    }
+}
 
 /// There's no root state change in v1.3.0 since v1.1.0
 #[near_bindgen]
@@ -115,6 +161,7 @@ impl From<ValidatorV1_3_0> for Validator {
             unstake_fired_epoch: v.unstake_fired_epoch,
             last_unstake_fired_epoch: v.last_unstake_fired_epoch,
             draining: false,
+            executing: false,
         }
     }
 }
@@ -278,6 +325,7 @@ impl From<ValidatorV1_0_0> for Validator {
             unstake_fired_epoch: v.unstake_fired_epoch,
             last_unstake_fired_epoch: v.last_unstake_fired_epoch,
             draining: false,
+            executing: false,
         }
     }
 }

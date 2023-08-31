@@ -2,6 +2,7 @@ use crate::errors::*;
 use crate::events::Event;
 use crate::legacy::ValidatorV1_0_0;
 use crate::legacy::ValidatorV1_3_0;
+use crate::legacy::ValidatorV1_4_0;
 use crate::types::*;
 use crate::utils::*;
 use crate::*;
@@ -17,7 +18,6 @@ use std::cmp::{max, min, Ordering};
 
 const STAKE_SMALL_CHANGE_AMOUNT: Balance = ONE_NEAR;
 const UNSTAKE_FACTOR: u128 = 2;
-const MAX_SYNC_BALANCE_DIFF: Balance = ONE_NEAR;
 const MAX_UPDATE_WEIGHTS_COUNT: usize = 300;
 
 #[ext_contract(ext_staking_pool)]
@@ -803,7 +803,7 @@ impl LiquidStakingContract {
             .emit();
         } else {
             // unstake failed, revert
-            validator.on_unstake_failed(&mut self.validator_pool, amount);
+            validator.on_unstake_failed(&mut self.validator_pool);
 
             Event::DrainUnstakeFailed {
                 validator_id: &validator_id,
@@ -822,6 +822,7 @@ impl LiquidStakingContract {
             .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
         if is_promise_success() {
+            validator.on_withdraw_success(&mut self.validator_pool);
             validator.set_draining(&mut self.validator_pool, false);
 
             Event::DrainWithdrawSuccess {
@@ -861,6 +862,7 @@ impl LiquidStakingContract {
 pub enum VersionedValidator {
     V0(ValidatorV1_0_0),
     V1(ValidatorV1_3_0),
+    V2(ValidatorV1_4_0),
     Current(Validator),
 }
 
@@ -891,6 +893,8 @@ pub struct Validator {
 
     /// Whether the validator is in draining process
     pub draining: bool,
+    /// Whether the validator is executing actions
+    pub executing: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -910,6 +914,7 @@ impl From<VersionedValidator> for Validator {
     fn from(value: VersionedValidator) -> Self {
         match value {
             VersionedValidator::Current(v) => v,
+            VersionedValidator::V2(v2) => v2.into(),
             VersionedValidator::V1(v1) => v1.into(),
             VersionedValidator::V0(v0) => v0.into(),
         }
@@ -927,6 +932,7 @@ impl Validator {
             unstake_fired_epoch: 0,
             last_unstake_fired_epoch: 0,
             draining: false,
+            executing: false,
         }
     }
 
@@ -960,7 +966,9 @@ impl Validator {
             && current_epoch < self.unstake_fired_epoch + NUM_EPOCHS_TO_UNLOCK
     }
 
-    pub fn deposit_and_stake(&mut self, amount: Balance) -> Promise {
+    pub fn deposit_and_stake(&mut self, pool: &mut ValidatorPool, amount: Balance) -> Promise {
+        self.pre_execution(pool);
+
         ext_staking_pool::deposit_and_stake(
             self.account_id.clone(),
             amount,
@@ -969,11 +977,20 @@ impl Validator {
     }
 
     pub fn on_stake_success(&mut self, pool: &mut ValidatorPool, amount: Balance) {
+        self.post_execution(pool);
+
         self.staked_amount += amount;
         pool.save_validator(self);
     }
 
+    pub fn on_stake_failed(&mut self, pool: &mut ValidatorPool) {
+        self.post_execution(pool);
+    }
+
     pub fn unstake(&mut self, pool: &mut ValidatorPool, amount: Balance) -> Promise {
+        // avoid unstake from a validator which is pending release
+        require!(!self.pending_release(), ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED);
+
         require!(
             amount <= self.staked_amount,
             format!(
@@ -982,10 +999,8 @@ impl Validator {
             )
         );
 
-        // avoid unstake from a validator which is pending release
-        require!(!self.pending_release(), ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED);
+        self.pre_execution(pool);
 
-        self.staked_amount -= amount;
         self.last_unstake_fired_epoch = self.unstake_fired_epoch;
         self.unstake_fired_epoch = get_epoch_height();
 
@@ -1000,17 +1015,23 @@ impl Validator {
     }
 
     pub fn on_unstake_success(&mut self, pool: &mut ValidatorPool, amount: Balance) {
+        self.post_execution(pool);
+
+        self.staked_amount -= amount;
         self.unstaked_amount += amount;
         pool.save_validator(self);
     }
 
-    pub fn on_unstake_failed(&mut self, pool: &mut ValidatorPool, amount: Balance) {
-        self.staked_amount += amount;
+    pub fn on_unstake_failed(&mut self, pool: &mut ValidatorPool) {
+        self.post_execution(pool);
+
         self.unstake_fired_epoch = self.last_unstake_fired_epoch;
         pool.save_validator(self);
     }
 
-    pub fn refresh_total_balance(&self) -> Promise {
+    pub fn refresh_total_balance(&mut self, pool: &mut ValidatorPool) -> Promise {
+        self.pre_execution(pool);
+
         ext_staking_pool::get_account_total_balance(
             env::current_account_id(),
             self.account_id.clone(),
@@ -1020,6 +1041,8 @@ impl Validator {
     }
 
     pub fn on_new_total_balance(&mut self, pool: &mut ValidatorPool, new_total_balance: Balance) {
+        self.post_execution(pool);
+
         // sync base stake amount
         self.sync_base_stake_amount(pool, new_total_balance);
         // update staked amount
@@ -1027,7 +1050,9 @@ impl Validator {
         pool.save_validator(self);
     }
 
-    pub fn sync_account_balance(&self) -> Promise {
+    pub fn sync_account_balance(&mut self, pool: &mut ValidatorPool) -> Promise {
+        self.pre_execution(pool);
+
         ext_staking_pool::get_account(
             env::current_account_id(),
             self.account_id.clone(),
@@ -1036,49 +1061,16 @@ impl Validator {
         )
     }
 
-    pub fn on_sync_account_balance(
+    pub fn on_sync_account_balance_success(
         &mut self,
         pool: &mut ValidatorPool,
         staked_balance: Balance,
         unstaked_balance: Balance,
     ) {
-        // allow at most 1 NEAR diff in total balance
-        let new_total_balance = staked_balance + unstaked_balance;
-        require!(
-            abs_diff_eq(
-                new_total_balance,
-                self.total_balance(),
-                MAX_SYNC_BALANCE_DIFF
-            ),
-            format!(
-                "{}. new: {}, old: {}",
-                ERR_SYNC_BALANCE_BAD_TOTAL,
-                new_total_balance,
-                self.total_balance()
-            )
-        );
-
-        // allow at most 1 NEAR diff in staked/unstaked balance
-        require!(
-            abs_diff_eq(staked_balance, self.staked_amount, MAX_SYNC_BALANCE_DIFF),
-            format!(
-                "{}. new: {}, old: {}",
-                ERR_SYNC_BALANCE_BAD_STAKED, staked_balance, self.staked_amount
-            )
-        );
-        require!(
-            abs_diff_eq(
-                unstaked_balance,
-                self.unstaked_amount,
-                MAX_SYNC_BALANCE_DIFF
-            ),
-            format!(
-                "{}. new: {}, old: {}",
-                ERR_SYNC_BALANCE_BAD_UNSTAKED, unstaked_balance, self.unstaked_amount
-            )
-        );
+        self.post_execution(pool);
 
         // sync base stake amount
+        let new_total_balance = staked_balance + unstaked_balance;
         self.sync_base_stake_amount(pool, new_total_balance);
 
         // update balance
@@ -1086,6 +1078,10 @@ impl Validator {
         self.unstaked_amount = unstaked_balance;
 
         pool.save_validator(self);
+    }
+
+    pub fn on_sync_account_balance_failed(&mut self, pool: &mut ValidatorPool) {
+        self.post_execution(pool);
     }
 
     fn sync_base_stake_amount(&mut self, pool: &mut ValidatorPool, new_total_balance: Balance) {
@@ -1103,6 +1099,8 @@ impl Validator {
     }
 
     pub fn withdraw(&mut self, pool: &mut ValidatorPool, amount: Balance) -> Promise {
+        self.pre_execution(pool);
+
         require!(
             self.unstaked_amount >= amount,
             ERR_NO_ENOUGH_WITHDRAW_BALANCE
@@ -1120,13 +1118,30 @@ impl Validator {
         )
     }
 
+    pub fn on_withdraw_success(&mut self, pool: &mut ValidatorPool) {
+        self.post_execution(pool);
+    }
+
     pub fn on_withdraw_failed(&mut self, pool: &mut ValidatorPool, amount: Balance) {
+        self.post_execution(pool);
+
         self.unstaked_amount += amount;
         pool.save_validator(self);
     }
 
     pub fn set_draining(&mut self, pool: &mut ValidatorPool, draining: bool) {
         self.draining = draining;
+        pool.save_validator(self);
+    }
+
+    fn pre_execution(&mut self, pool: &mut ValidatorPool) {
+        require!(!self.executing, ERR_VALIDATOR_ALREADY_EXECUTING_ACTION);
+        self.executing = true;
+        pool.save_validator(self);
+    }
+
+    fn post_execution(&mut self, pool: &mut ValidatorPool) {
+        self.executing = false;
         pool.save_validator(self);
     }
 }

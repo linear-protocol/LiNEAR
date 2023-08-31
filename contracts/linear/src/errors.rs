@@ -43,14 +43,6 @@ pub const ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE: &str = "The total staked balanc
 pub const ERR_NON_POSITIVE_TOTAL_STAKE_SHARES: &str = "The total number of stake shares can't be 0";
 pub const ERR_CONTRACT_NO_STAKED_BALANCE: &str = "Invariant violation. The calculated number of \"stake\" shares for unstaking should be positive";
 
-// sync balance
-pub const ERR_SYNC_BALANCE_BAD_TOTAL: &str =
-    "Diff between new total balance and old balance > 1 NEAR";
-pub const ERR_SYNC_BALANCE_BAD_STAKED: &str =
-    "Diff between new staked balance and old balance too large";
-pub const ERR_SYNC_BALANCE_BAD_UNSTAKED: &str =
-    "Diff between new unstaked balance and old balance too large";
-
 // drain operations
 pub const ERR_NON_ZERO_WEIGHT: &str = "Validator weight must be zero for drain operation";
 pub const ERR_NON_ZERO_BASE_STAKE_AMOUNT: &str =
@@ -87,6 +79,7 @@ pub const ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED: &str =
     "Cannot unstake from a pending release validator";
 pub const ERR_VALIDATOR_WITHDRAW_WHEN_LOCKED: &str =
     "Cannot withdraw from a pending release validator";
+pub const ERR_VALIDATOR_ALREADY_EXECUTING_ACTION: &str = "Validator is already executing action";
 
 // liquidity pool
 pub const ERR_NON_POSITIVE_MIN_FEE: &str = "The min fee basis points should be positive";

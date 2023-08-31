@@ -1,5 +1,5 @@
 import { NearAccount, NEAR, Gas } from "near-workspaces-ava";
-import { initWorkSpace, createStakingPool, getValidator, epochStake, epochUnstake } from "./helper";
+import { initWorkSpace, createStakingPool, getValidator, epochStake, epochUnstake, epochUnstakeCallRaw, epochStakeCallRaw } from "./helper";
 
 const workspace = initWorkSpace();
 
@@ -66,9 +66,17 @@ workspace.test('epoch stake failure: deposit_and_stake fails', async (test, { ro
 
   await setPanic(v1);
 
-  const ret = await epochStake(owner, contract);
+  const ret = await epochStakeCallRaw(owner, contract);
 
-  test.is(ret, false);
+  test.is(ret.parseResult(), false);
+
+  test.truthy(
+    ret.result.receipts_outcome.find(
+      (outcome: any) => outcome.outcome.logs.find(
+        (log: any) => log.includes('epoch_stake_failed')
+      )
+    )
+  );
 
   // nothing should be staked
   await assertValidator(v1, '0', '0');
@@ -109,9 +117,17 @@ workspace.test('epoch stake failure: get_account fails', async (test, { root, co
     }
   );
 
-  const ret = await epochStake(owner, contract);
+  const ret = await epochStakeCallRaw(owner, contract);
 
-  test.is(ret, true);
+  test.is(ret.parseResult(), true);
+
+  test.truthy(
+    ret.result.receipts_outcome.find(
+      (outcome: any) => outcome.outcome.logs.find(
+        (log: any) => log.includes('sync_validator_balance_failed_cant_get_account')
+      )
+    )
+  );
 
   // stake still succeeded
   await assertValidator(v1, '60', '0');
@@ -156,9 +172,17 @@ workspace.test('epoch stake failure: balance diff too large', async (test, { roo
     },
   );
 
-  const ret = await epochStake(owner, contract);
+  const ret = await epochStakeCallRaw(owner, contract);
 
-  test.is(ret, true);
+  test.is(ret.parseResult(), true);
+
+  test.truthy(
+    ret.result.receipts_outcome.find(
+      (outcome: any) => outcome.outcome.logs.find(
+        (log: any) => log.includes('sync_validator_balance_failed_large_diff')
+      )
+    )
+  );
 
   // stake still succeeded
   await assertValidator(v1, '60', '0');
@@ -210,9 +234,17 @@ workspace.test('epoch unstake failure: unstake fails', async (test, { root, cont
 
   await setPanic(v1);
 
-  const ret = await epochUnstake(owner, contract);
+  const ret = await epochUnstakeCallRaw(owner, contract);
 
-  test.is(ret, false);
+  test.is(ret.parseResult(), false);
+
+  test.truthy(
+    ret.result.receipts_outcome.find(
+      (outcome: any) => outcome.outcome.logs.find(
+        (log: any) => log.includes('epoch_unstake_failed')
+      )
+    )
+  );
 
   // no unstake should actual happen
   await assertValidator(v1, '60', '0');
@@ -270,9 +302,17 @@ workspace.test('epoch unstake failure: get_account fails', async (test, { root, 
     }
   );
 
-  const ret = await epochUnstake(owner, contract);
+  const ret = await epochUnstakeCallRaw(owner, contract);
 
-  test.is(ret, true);
+  test.is(ret.parseResult(), true);
+
+  test.truthy(
+    ret.result.receipts_outcome.find(
+      (outcome: any) => outcome.outcome.logs.find(
+        (log: any) => log.includes('sync_validator_balance_failed_cant_get_account')
+      )
+    )
+  );
 
   // unstake still succeeded
   await assertValidator(v1, '50', '10');
@@ -334,9 +374,17 @@ workspace.test('epoch unstake failure: balance diff too large', async (test, { r
     },
   );
 
-  const ret = await epochUnstake(owner, contract);
+  const ret = await epochUnstakeCallRaw(owner, contract);
 
-  test.is(ret, true);
+  test.is(ret.parseResult(), true);
+
+  test.truthy(
+    ret.result.receipts_outcome.find(
+      (outcome: any) => outcome.outcome.logs.find(
+        (log: any) => log.includes('sync_validator_balance_failed_large_diff')
+      )
+    )
+  );
 
   // unstake still succeeded
   await assertValidator(v1, '50', '10');

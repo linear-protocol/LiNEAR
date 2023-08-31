@@ -279,7 +279,7 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
     ]
   );
 
-  await manager.call(
+  const ret = await manager.call(
     contract,
     'drain_unstake',
     {
@@ -289,6 +289,8 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
       gas: Gas.parse('275 Tgas')
     }
   );
+
+  test.is(ret, true);
 
   // make sure the validator is in draining mode
   test.assert((await getValidator(contract, v1.accountId)).draining);

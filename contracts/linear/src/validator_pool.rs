@@ -613,7 +613,11 @@ impl LiquidStakingContract {
 
 #[ext_contract(ext_self_validator_drain_cb)]
 trait ValidatorDrainCallbacks {
-    fn validator_drain_unstaked_callback(&mut self, validator_id: AccountId, amount: U128);
+    fn validator_drain_unstaked_callback(
+        &mut self,
+        validator_id: AccountId,
+        amount: U128,
+    ) -> Option<bool>;
 
     fn validator_drain_withdraw_callback(&mut self, validator_id: AccountId, amount: U128);
 }
@@ -623,7 +627,7 @@ impl LiquidStakingContract {
     /// This method is designed to drain a validator.
     /// The weight of target validator should be set to 0 before calling this.
     /// And a following call to drain_withdraw MUST be made after 4 epoches.
-    pub fn drain_unstake(&mut self, validator_id: AccountId) -> Promise {
+    pub fn drain_unstake(&mut self, validator_id: AccountId) -> PromiseOrValue<Option<bool>> {
         self.assert_running();
         self.assert_manager();
 
@@ -685,6 +689,7 @@ impl LiquidStakingContract {
                     GAS_CB_VALIDATOR_UNSTAKED + GAS_SYNC_BALANCE + GAS_CB_VALIDATOR_SYNC_BALANCE,
                 ),
             )
+            .into()
     }
 
     /// Withdraw from a drained validator
@@ -745,7 +750,7 @@ impl LiquidStakingContract {
         &mut self,
         validator_id: AccountId,
         amount: U128,
-    ) -> PromiseOrValue<()> {
+    ) -> PromiseOrValue<Option<bool>> {
         let amount = amount.into();
         let mut validator = self
             .validator_pool
@@ -781,7 +786,7 @@ impl LiquidStakingContract {
             }
             .emit();
 
-            PromiseOrValue::Value(())
+            PromiseOrValue::Value(None)
         }
     }
 

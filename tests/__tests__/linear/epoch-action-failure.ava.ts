@@ -68,7 +68,7 @@ workspace.test('epoch stake failure: deposit_and_stake fails', async (test, { ro
 
   const ret = await epochStake(owner, contract);
 
-  test.is(ret, null);
+  test.is(ret, false);
 
   // nothing should be staked
   await assertValidator(v1, '0', '0');
@@ -111,7 +111,7 @@ workspace.test('epoch stake failure: get_account fails', async (test, { root, co
 
   const ret = await epochStake(owner, contract);
 
-  test.is(ret, null);
+  test.is(ret, true);
 
   // stake still succeeded
   await assertValidator(v1, '60', '0');
@@ -158,7 +158,7 @@ workspace.test('epoch stake failure: balance diff too large', async (test, { roo
 
   const ret = await epochStake(owner, contract);
 
-  test.is(ret, null);
+  test.is(ret, true);
 
   // stake still succeeded
   await assertValidator(v1, '60', '0');
@@ -212,7 +212,7 @@ workspace.test('epoch unstake failure: unstake fails', async (test, { root, cont
 
   const ret = await epochUnstake(owner, contract);
 
-  test.is(ret, null);
+  test.is(ret, false);
 
   // no unstake should actual happen
   await assertValidator(v1, '60', '0');
@@ -272,7 +272,7 @@ workspace.test('epoch unstake failure: get_account fails', async (test, { root, 
 
   const ret = await epochUnstake(owner, contract);
 
-  test.is(ret, null);
+  test.is(ret, true);
 
   // unstake still succeeded
   await assertValidator(v1, '50', '10');
@@ -336,7 +336,7 @@ workspace.test('epoch unstake failure: balance diff too large', async (test, { r
 
   const ret = await epochUnstake(owner, contract);
 
-  test.is(ret, null);
+  test.is(ret, true);
 
   // unstake still succeeded
   await assertValidator(v1, '50', '10');

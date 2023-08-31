@@ -341,7 +341,7 @@ export function epochStake(caller: NearAccount, contract: NearAccount): Promise<
     'epoch_stake',
     {},
     {
-      gas: Gas.parse('275 Tgas')
+      gas: Gas.parse('280 Tgas')
     }
   );
 }
@@ -352,7 +352,7 @@ export function epochUnstake(caller: NearAccount, contract: NearAccount): Promis
     'epoch_unstake',
     {},
     {
-      gas: Gas.parse('275 Tgas')
+      gas: Gas.parse('280 Tgas')
     }
   );
 }

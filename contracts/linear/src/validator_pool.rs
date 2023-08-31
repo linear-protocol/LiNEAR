@@ -1,3 +1,4 @@
+use crate::epoch_actions::ext_self_action_cb;
 use crate::errors::*;
 use crate::events::Event;
 use crate::legacy::ValidatorV1_0_0;
@@ -6,6 +7,7 @@ use crate::legacy::ValidatorV1_4_0;
 use crate::types::*;
 use crate::utils::*;
 use crate::*;
+use near_sdk::PromiseOrValue;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     collections::UnorderedMap,
@@ -664,7 +666,11 @@ impl LiquidStakingContract {
 
 #[ext_contract(ext_self_validator_drain_cb)]
 trait ValidatorDrainCallbacks {
-    fn validator_drain_unstaked_callback(&mut self, validator_id: AccountId, amount: U128);
+    fn validator_drain_unstaked_callback(
+        &mut self,
+        validator_id: AccountId,
+        amount: U128,
+    ) -> Option<bool>;
 
     fn validator_drain_withdraw_callback(&mut self, validator_id: AccountId, amount: U128);
 }
@@ -674,12 +680,16 @@ impl LiquidStakingContract {
     /// This method is designed to drain a validator.
     /// The weight of target validator should be set to 0 before calling this.
     /// And a following call to drain_withdraw MUST be made after 4 epoches.
-    pub fn drain_unstake(&mut self, validator_id: AccountId) {
+    pub fn drain_unstake(&mut self, validator_id: AccountId) -> PromiseOrValue<Option<bool>> {
         self.assert_running();
         self.assert_manager();
 
         // make sure enough gas was given
-        let min_gas = GAS_DRAIN_UNSTAKE + GAS_EXT_UNSTAKE + GAS_CB_VALIDATOR_UNSTAKED;
+        let min_gas = GAS_DRAIN_UNSTAKE
+            + GAS_EXT_UNSTAKE
+            + GAS_CB_VALIDATOR_UNSTAKED
+            + GAS_SYNC_BALANCE
+            + GAS_CB_VALIDATOR_SYNC_BALANCE;
         require!(
             env::prepaid_gas() >= min_gas,
             format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
@@ -729,9 +739,10 @@ impl LiquidStakingContract {
                     unstake_amount.into(),
                     env::current_account_id(),
                     NO_DEPOSIT,
-                    GAS_CB_VALIDATOR_UNSTAKED,
+                    GAS_CB_VALIDATOR_UNSTAKED + GAS_SYNC_BALANCE + GAS_CB_VALIDATOR_SYNC_BALANCE,
                 ),
-            );
+            )
+            .into()
     }
 
     /// Withdraw from a drained validator
@@ -788,7 +799,11 @@ impl LiquidStakingContract {
     }
 
     #[private]
-    pub fn validator_drain_unstaked_callback(&mut self, validator_id: AccountId, amount: U128) {
+    pub fn validator_drain_unstaked_callback(
+        &mut self,
+        validator_id: AccountId,
+        amount: U128,
+    ) -> PromiseOrValue<Option<bool>> {
         let amount = amount.into();
         let mut validator = self
             .validator_pool
@@ -804,6 +819,16 @@ impl LiquidStakingContract {
                 amount: &U128(amount),
             }
             .emit();
+
+            validator
+                .sync_account_balance()
+                .then(ext_self_action_cb::validator_get_account_callback(
+                    validator_id,
+                    env::current_account_id(),
+                    NO_DEPOSIT,
+                    GAS_CB_VALIDATOR_SYNC_BALANCE,
+                ))
+                .into()
         } else {
             // unstake failed, revert
             validator.on_unstake_failed(&mut self.validator_pool);
@@ -813,6 +838,8 @@ impl LiquidStakingContract {
                 amount: &U128(amount),
             }
             .emit();
+
+            PromiseOrValue::Value(None)
         }
     }
 
@@ -980,8 +1007,7 @@ impl Validator {
     }
 
     pub fn on_stake_success(&mut self, pool: &mut ValidatorPool, amount: Balance) {
-        self.post_execution(pool);
-
+        // Do not post execution here because we need to sync account balance later
         self.staked_amount += amount;
         pool.save_validator(self);
     }
@@ -1018,8 +1044,6 @@ impl Validator {
     }
 
     pub fn on_unstake_success(&mut self, pool: &mut ValidatorPool, amount: Balance) {
-        self.post_execution(pool);
-
         self.staked_amount -= amount;
         self.unstaked_amount += amount;
         pool.save_validator(self);
@@ -1053,8 +1077,12 @@ impl Validator {
         pool.save_validator(self);
     }
 
-    pub fn sync_account_balance(&mut self, pool: &mut ValidatorPool) -> Promise {
-        self.pre_execution(pool);
+    /// Due to shares calculation and rounding of staking pool contract,
+    /// the amount of staked and unstaked balance might be a little bit
+    /// different than we requested.
+    /// This method is to sync the actual numbers with the validator.
+    pub fn sync_account_balance(&mut self) -> Promise {
+        require!(self.executing, ERR_VALIDATOR_SYNC_WHEN_UNLOCKED);
 
         ext_staking_pool::get_account(
             env::current_account_id(),

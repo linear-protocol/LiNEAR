@@ -6,7 +6,9 @@ import {
   setManager,
   assertValidatorAmountHelper,
   updateBaseStakeAmounts,
-  getValidator
+  getValidator,
+  epochUnstake,
+  epochStake
 } from "./helper";
 
 const workspace = initWorkSpace();
@@ -14,14 +16,7 @@ const workspace = initWorkSpace();
 async function stakeAll (signer: NearAccount, contract: NearAccount) {
   let run = true;
   while (run) {
-    run = await signer.call(
-      contract,
-      'epoch_stake',
-      {},
-      {
-        gas: Gas.parse('200 Tgas')
-      }
-    );
+    run = await epochStake(signer, contract);
   }
 }
 
@@ -33,6 +28,9 @@ workspace.test('Non-manager call drain methods', async (test, {contract, alice})
             'drain_unstake',
             {
                 validator_id: 'foo'
+            },
+            {
+              gas: "275 Tgas"
             }
         ),
         'Only manager can perform this action'
@@ -80,14 +78,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
   );
 
   // run stake
-  await bob.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      gas: Gas.parse('200 Tgas')
-    }
-  );
+  await epochStake(bob, contract);
 
   // 1. cannot drain unstake when weight > 0
   await assertFailure(
@@ -99,7 +90,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
         validator_id: v1.accountId
       },
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     ),
     'Validator weight must be zero for drain operation'
@@ -125,7 +116,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
         validator_id: v1.accountId
       },
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     ),
     'Validator base stake amount must be zero for drain operation'
@@ -157,14 +148,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
     {}
   );
 
-  await bob.call(
-    contract,
-    'epoch_unstake',
-    {},
-    {
-      gas: Gas.parse('200 Tgas')
-    }
-  );
+  await epochUnstake(bob, contract);
 
   // validator now have unstaked balance > 0
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
@@ -180,7 +164,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
         validator_id: v1.accountId
       },
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     ),
     'Cannot unstake from a pending release validator'
@@ -203,7 +187,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
         validator_id: v1.accountId
       },
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     ),
     'Validator unstaked amount too large for drain unstake'
@@ -295,16 +279,18 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
     ]
   );
 
-  await manager.call(
+  const ret = await manager.call(
     contract,
     'drain_unstake',
     {
       validator_id: v1.accountId
     },
     {
-      gas: Gas.parse('200 Tgas')
+      gas: Gas.parse('275 Tgas')
     }
   );
+
+  test.is(ret, true);
 
   // make sure the validator is in draining mode
   test.assert((await getValidator(contract, v1.accountId)).draining);

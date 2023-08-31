@@ -1,4 +1,4 @@
-import { Workspace, NEAR, NearAccount, BN } from "near-workspaces-ava";
+import { Workspace, NEAR, NearAccount, BN, Gas } from "near-workspaces-ava";
 
 export const ONE_YOCTO = '1';
 export const NUM_EPOCHS_TO_UNLOCK = 4;
@@ -333,4 +333,26 @@ export function assertValidatorAmountHelper (
       );
     }
   }
+}
+
+export function epochStake(caller: NearAccount, contract: NearAccount): Promise<any> {
+  return caller.call(
+    contract,
+    'epoch_stake',
+    {},
+    {
+      gas: Gas.parse('275 Tgas')
+    }
+  );
+}
+
+export function epochUnstake(caller: NearAccount, contract: NearAccount): Promise<any> {
+  return caller.call(
+    contract,
+    'epoch_unstake',
+    {},
+    {
+      gas: Gas.parse('275 Tgas')
+    }
+  );
 }

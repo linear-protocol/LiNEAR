@@ -1,4 +1,6 @@
 use crate::*;
+#[cfg(feature = "test")]
+use near_sdk::Promise;
 use near_sdk::{is_promise_success, log, near_bindgen, Balance, PromiseError, PromiseOrValue};
 
 use crate::errors::*;

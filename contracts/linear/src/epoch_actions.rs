@@ -339,11 +339,9 @@ trait EpochActionCallbacks {
 
     fn validator_get_balance_callback(&mut self, validator_id: AccountId);
 
-    fn validator_get_account_callback(&mut self, validator_id: AccountId);
+    fn validator_get_account_callback(&mut self, validator_id: AccountId) -> bool;
 
     fn validator_withdraw_callback(&mut self, validator_id: AccountId, amount: U128);
-
-    fn validator_return_true_callback(&mut self) -> bool;
 }
 
 /// callbacks
@@ -378,11 +376,6 @@ impl LiquidStakingContract {
                     env::current_account_id(),
                     NO_DEPOSIT,
                     GAS_CB_VALIDATOR_SYNC_BALANCE,
-                ))
-                .then(ext_self_action_cb::validator_return_true_callback(
-                    env::current_account_id(),
-                    NO_DEPOSIT,
-                    GAS_CB_VALIDATOR_RETURN_TRUE,
                 ))
                 .into()
         } else {
@@ -429,11 +422,6 @@ impl LiquidStakingContract {
                     env::current_account_id(),
                     NO_DEPOSIT,
                     GAS_CB_VALIDATOR_SYNC_BALANCE,
-                ))
-                .then(ext_self_action_cb::validator_return_true_callback(
-                    env::current_account_id(),
-                    NO_DEPOSIT,
-                    GAS_CB_VALIDATOR_RETURN_TRUE,
                 ))
                 .into()
         } else {
@@ -490,7 +478,7 @@ impl LiquidStakingContract {
         &mut self,
         validator_id: AccountId,
         #[callback_result] result: Result<HumanReadableAccount, PromiseError>,
-    ) {
+    ) -> bool {
         let mut validator = self
             .validator_pool
             .get_validator(&validator_id)
@@ -552,7 +540,8 @@ impl LiquidStakingContract {
                 .emit();
                 validator.on_sync_account_balance_failed(&mut self.validator_pool);
             }
-        }
+        };
+        true
     }
 
     #[private]
@@ -581,10 +570,5 @@ impl LiquidStakingContract {
             }
             .emit();
         }
-    }
-
-    #[private]
-    pub fn validator_return_true_callback(&mut self) -> bool {
-        true
     }
 }

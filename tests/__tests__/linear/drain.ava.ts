@@ -279,7 +279,7 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
     ]
   );
 
-  const ret = await manager.call(
+  await manager.call(
     contract,
     'drain_unstake',
     {
@@ -339,4 +339,117 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
 
   await assertValidator(v1, '0', '0');
   await assertValidator(v2, '60', '0');
+});
+
+workspace.test('drain unstake: get_account fails', async (test, {contract, root, owner, alice, bob}) => {
+  const manager = alice;
+  await setManager(root, contract, owner, manager);
+
+  const v1 = await createStakingPool(root, 'v1');
+  const v2 = await createStakingPool(root, 'v2');
+
+  // add validator
+  await manager.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: v1.accountId,
+      weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+  await manager.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: v2.accountId,
+      weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+
+  // update base stake amount of v1 to 20 NEAR
+  await updateBaseStakeAmounts(
+    contract,
+    manager,
+    [
+      v1.accountId,
+    ],
+    [
+      NEAR.parse("20")
+    ]
+  );
+
+  // user stake
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    {
+      attachedDeposit: NEAR.parse('50')
+    }
+  );
+
+  // run stake
+  await stakeAll(bob, contract);
+
+  /**
+   * Steps to drain a validator
+   * 1. set weight to 0
+   * 2. set base stake amount to 0
+   * 3. call drain_unstake
+   * 4. call drain_withdraw
+   */
+
+  await manager.call(
+    contract,
+    'update_weight',
+    {
+      validator_id: v1.accountId,
+      weight: 0
+    }
+  );
+
+  // reset base stake amount to 0 NEAR
+  await updateBaseStakeAmounts(
+    contract,
+    manager,
+    [
+      v1.accountId,
+    ],
+    [
+      NEAR.parse("0")
+    ]
+  );
+
+  v1.call(
+    v1,
+    'set_get_account_fail',
+    {
+      value: true
+    }
+  );
+
+  const ret = await manager.call_raw(
+    contract,
+    'drain_unstake',
+    {
+      validator_id: v1.accountId
+    },
+    {
+      gas: Gas.parse('275 Tgas')
+    }
+  );
+
+  test.truthy(
+    ret.result.receipts_outcome.find(
+      (outcome: any) => outcome.outcome.logs.find(
+        (log: any) => log.includes('sync_validator_balance_failed_cant_get_account')
+      )
+    )
+  );
 });

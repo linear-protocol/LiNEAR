@@ -19,10 +19,14 @@ impl LiquidStakingContract {
     // of simulation tests
     #[payable]
     #[cfg(feature = "test")]
-    pub fn stake_to_validator(&mut self, validator_id: AccountId, amount: U128) {
+    pub fn stake_to_validator(&mut self, validator_id: AccountId, amount: U128) -> Promise {
         self.assert_running();
         // make sure enough gas was given
-        let min_gas = GAS_EPOCH_STAKE + GAS_EXT_DEPOSIT_AND_STAKE + GAS_CB_VALIDATOR_STAKED;
+        let min_gas = GAS_EPOCH_STAKE
+            + GAS_EXT_DEPOSIT_AND_STAKE
+            + GAS_CB_VALIDATOR_STAKED
+            + GAS_SYNC_BALANCE
+            + GAS_CB_VALIDATOR_SYNC_BALANCE;
 
         require!(
             env::prepaid_gas() >= min_gas,
@@ -50,15 +54,19 @@ impl LiquidStakingContract {
                 amount.into(),
                 env::current_account_id(),
                 NO_DEPOSIT,
-                GAS_CB_VALIDATOR_STAKED,
-            ));
+                GAS_CB_VALIDATOR_STAKED + GAS_SYNC_BALANCE + GAS_CB_VALIDATOR_SYNC_BALANCE,
+            ))
     }
 
     #[cfg(feature = "test")]
-    pub fn unstake_from_validator(&mut self, validator_id: AccountId, amount: U128) {
+    pub fn unstake_from_validator(&mut self, validator_id: AccountId, amount: U128) -> Promise {
         self.assert_running();
         // make sure enough gas was given
-        let min_gas = GAS_EPOCH_UNSTAKE + GAS_EXT_UNSTAKE + GAS_CB_VALIDATOR_UNSTAKED;
+        let min_gas = GAS_EPOCH_UNSTAKE
+            + GAS_EXT_UNSTAKE
+            + GAS_CB_VALIDATOR_UNSTAKED
+            + GAS_SYNC_BALANCE
+            + GAS_CB_VALIDATOR_SYNC_BALANCE;
         require!(
             env::prepaid_gas() >= min_gas,
             format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
@@ -85,8 +93,8 @@ impl LiquidStakingContract {
                 amount.into(),
                 env::current_account_id(),
                 NO_DEPOSIT,
-                GAS_CB_VALIDATOR_STAKED,
-            ));
+                GAS_CB_VALIDATOR_STAKED + GAS_SYNC_BALANCE + GAS_CB_VALIDATOR_SYNC_BALANCE,
+            ))
     }
 
     pub fn epoch_stake(&mut self) -> PromiseOrValue<bool /* can continue */> {

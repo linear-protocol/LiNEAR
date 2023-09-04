@@ -8,7 +8,8 @@ import {
   updateBaseStakeAmounts,
   getValidator,
   epochUnstake,
-  epochStake
+  epochStake,
+  assertHasLog
 } from "./helper";
 
 const workspace = initWorkSpace();
@@ -445,11 +446,5 @@ workspace.test('drain unstake: get_account fails', async (test, {contract, root,
     }
   );
 
-  test.truthy(
-    ret.result.receipts_outcome.find(
-      (outcome: any) => outcome.outcome.logs.find(
-        (log: any) => log.includes('sync_validator_balance_failed_cant_get_account')
-      )
-    )
-  );
+  assertHasLog(test, ret, 'sync_validator_balance_failed_cant_get_account');
 });

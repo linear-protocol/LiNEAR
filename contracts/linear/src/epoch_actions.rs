@@ -99,7 +99,18 @@ impl LiquidStakingContract {
             ))
     }
 
-    pub fn epoch_stake(&mut self) -> PromiseOrValue<bool /* can continue */> {
+    /// Stake $NEAR to one of the validators.
+    ///
+    /// Select a candidate validator and stake part of or all of the to-settle
+    /// stake amounts to this validator. This function is expected to be called
+    /// in each epoch.
+    ///
+    /// # Return
+    /// * `true` - a candidate validator is selected and successfully staked to.
+    ///            There might be more stake amounts to settle so this function
+    ///            should be called again.
+    /// * `false` - There is no need to call this function again in this epoch.
+    pub fn epoch_stake(&mut self) -> PromiseOrValue<bool> {
         self.assert_running();
         // make sure enough gas was given
         let min_gas = GAS_EPOCH_STAKE
@@ -164,7 +175,18 @@ impl LiquidStakingContract {
             .into()
     }
 
-    pub fn epoch_unstake(&mut self) -> PromiseOrValue<bool /* can continue */> {
+    /// Unstake $NEAR from one of the validators.
+    ///
+    /// Select a candidate validator and unstake part of or all of the to-settle
+    /// unstake amounts from this validator. This function is expected to be called
+    /// in each epoch.
+    ///
+    /// # Return
+    /// * `true` - a candidate validator is selected and successfully unstaked from.
+    ///            There might be more unstake amounts to settle so this function
+    ///            should be called again.
+    /// * `false` - There is no need to call this function again in this epoch.
+    pub fn epoch_unstake(&mut self) -> PromiseOrValue<bool> {
         self.assert_running();
         // make sure enough gas was given
         let min_gas = GAS_EPOCH_UNSTAKE
@@ -331,13 +353,13 @@ trait EpochActionCallbacks {
         &mut self,
         validator_id: AccountId,
         amount: U128,
-    ) -> PromiseOrValue<bool /* can continue */>;
+    ) -> PromiseOrValue<bool>;
 
     fn validator_unstaked_callback(
         &mut self,
         validator_id: AccountId,
         amount: U128,
-    ) -> PromiseOrValue<bool /* can continue */>;
+    ) -> PromiseOrValue<bool>;
 
     fn validator_get_balance_callback(&mut self, validator_id: AccountId);
 
@@ -350,12 +372,15 @@ trait EpochActionCallbacks {
 /// functions here SHOULD NOT PANIC!
 #[near_bindgen]
 impl LiquidStakingContract {
+    /// # Return
+    /// * `true` - Stake and sync balance succeed
+    /// * `false` - Stake fails
     #[private]
     pub fn validator_staked_callback(
         &mut self,
         validator_id: AccountId,
         amount: U128,
-    ) -> PromiseOrValue<bool /* can continue */> {
+    ) -> PromiseOrValue<bool> {
         let amount = amount.into();
         let mut validator = self
             .validator_pool
@@ -396,12 +421,15 @@ impl LiquidStakingContract {
         }
     }
 
+    /// # Return
+    /// * `true` - Unstake and sync balance succeed
+    /// * `false` - Unstake fails
     #[private]
     pub fn validator_unstaked_callback(
         &mut self,
         validator_id: AccountId,
         amount: U128,
-    ) -> PromiseOrValue<bool /* can continue */> {
+    ) -> PromiseOrValue<bool> {
         let amount = amount.into();
         let mut validator = self
             .validator_pool

@@ -1,5 +1,5 @@
 import { NearAccount, NEAR, Gas } from "near-workspaces-ava";
-import { initWorkSpace, createStakingPool, getValidator, epochStake, epochUnstake, epochUnstakeCallRaw, epochStakeCallRaw } from "./helper";
+import { initWorkSpace, createStakingPool, getValidator, epochStake, epochUnstake, epochUnstakeCallRaw, epochStakeCallRaw, assertHasLog } from "./helper";
 
 const workspace = initWorkSpace();
 
@@ -70,13 +70,7 @@ workspace.test('epoch stake failure: deposit_and_stake fails', async (test, { ro
 
   test.is(ret.parseResult(), false);
 
-  test.truthy(
-    ret.result.receipts_outcome.find(
-      (outcome: any) => outcome.outcome.logs.find(
-        (log: any) => log.includes('epoch_stake_failed')
-      )
-    )
-  );
+  assertHasLog(test, ret, 'epoch_stake_failed');
 
   // nothing should be staked
   await assertValidator(v1, '0', '0');
@@ -121,13 +115,7 @@ workspace.test('epoch stake failure: get_account fails', async (test, { root, co
 
   test.is(ret.parseResult(), true);
 
-  test.truthy(
-    ret.result.receipts_outcome.find(
-      (outcome: any) => outcome.outcome.logs.find(
-        (log: any) => log.includes('sync_validator_balance_failed_cant_get_account')
-      )
-    )
-  );
+  assertHasLog(test, ret, 'sync_validator_balance_failed_cant_get_account');
 
   // stake still succeeded
   await assertValidator(v1, '60', '0');
@@ -176,13 +164,7 @@ workspace.test('epoch stake failure: balance diff too large', async (test, { roo
 
   test.is(ret.parseResult(), true);
 
-  test.truthy(
-    ret.result.receipts_outcome.find(
-      (outcome: any) => outcome.outcome.logs.find(
-        (log: any) => log.includes('sync_validator_balance_failed_large_diff')
-      )
-    )
-  );
+  assertHasLog(test, ret, 'sync_validator_balance_failed_large_diff');
 
   // stake still succeeded
   await assertValidator(v1, '60', '0');
@@ -238,13 +220,7 @@ workspace.test('epoch unstake failure: unstake fails', async (test, { root, cont
 
   test.is(ret.parseResult(), false);
 
-  test.truthy(
-    ret.result.receipts_outcome.find(
-      (outcome: any) => outcome.outcome.logs.find(
-        (log: any) => log.includes('epoch_unstake_failed')
-      )
-    )
-  );
+  assertHasLog(test, ret, 'epoch_unstake_failed');
 
   // no unstake should actual happen
   await assertValidator(v1, '60', '0');
@@ -306,13 +282,7 @@ workspace.test('epoch unstake failure: get_account fails', async (test, { root, 
 
   test.is(ret.parseResult(), true);
 
-  test.truthy(
-    ret.result.receipts_outcome.find(
-      (outcome: any) => outcome.outcome.logs.find(
-        (log: any) => log.includes('sync_validator_balance_failed_cant_get_account')
-      )
-    )
-  );
+  assertHasLog(test, ret, 'sync_validator_balance_failed_cant_get_account');
 
   // unstake still succeeded
   await assertValidator(v1, '50', '10');
@@ -378,13 +348,7 @@ workspace.test('epoch unstake failure: balance diff too large', async (test, { r
 
   test.is(ret.parseResult(), true);
 
-  test.truthy(
-    ret.result.receipts_outcome.find(
-      (outcome: any) => outcome.outcome.logs.find(
-        (log: any) => log.includes('sync_validator_balance_failed_large_diff')
-      )
-    )
-  );
+  assertHasLog(test, ret, 'sync_validator_balance_failed_large_diff');
 
   // unstake still succeeded
   await assertValidator(v1, '50', '10');

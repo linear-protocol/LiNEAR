@@ -1,4 +1,4 @@
-import { Workspace, NEAR, NearAccount, BN, Gas } from "near-workspaces-ava";
+import { Workspace, NEAR, NearAccount, BN, Gas, TransactionResult } from "near-workspaces-ava";
 
 export const ONE_YOCTO = '1';
 export const NUM_EPOCHS_TO_UNLOCK = 4;
@@ -378,5 +378,19 @@ export function epochUnstakeCallRaw(caller: NearAccount, contract: NearAccount):
     {
       gas: EPOCH_STAKE_AND_UNSTAKE_GAS
     }
+  );
+}
+
+export function assertHasLog(
+  test: any,
+  txResult: TransactionResult,
+  expected: string,
+) {
+  test.truthy(
+    txResult.result.receipts_outcome.find(
+      (outcome: any) => outcome.outcome.logs.find(
+        (log: any) => log.includes(expected)
+      )
+    )
   );
 }

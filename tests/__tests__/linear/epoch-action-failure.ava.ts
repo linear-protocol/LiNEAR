@@ -1,5 +1,5 @@
-import { NearAccount, NEAR, Gas, TransactionResult } from "near-workspaces-ava";
-import { initWorkSpace, createStakingPool, getValidator, epochStake, epochUnstake, epochUnstakeCallRaw, epochStakeCallRaw } from "./helper";
+import { NearAccount, NEAR, Gas } from "near-workspaces-ava";
+import { initWorkSpace, createStakingPool, getValidator, epochStake, epochUnstake, epochUnstakeCallRaw, epochStakeCallRaw, assertHasLog } from "./helper";
 
 const workspace = initWorkSpace();
 
@@ -35,20 +35,6 @@ function assertValidatorHelper(
       NEAR.parse(unstakedAmount).toString()
     );
   }
-}
-
-function assertHasLog(
-  test: any,
-  txResult: TransactionResult,
-  expected: string,
-) {
-  test.truthy(
-    txResult.result.receipts_outcome.find(
-      (outcome: any) => outcome.outcome.logs.find(
-        (log: any) => log.includes(expected)
-      )
-    )
-  );
 }
 
 workspace.test('epoch stake failure: deposit_and_stake fails', async (test, { root, contract, owner, alice }) => {

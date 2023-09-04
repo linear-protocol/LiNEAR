@@ -953,7 +953,7 @@ impl Validator {
     }
 
     pub fn on_stake_success(&mut self, pool: &mut ValidatorPool, amount: Balance) {
-        // Do not post execution here because we need to sync account balance later
+        // Do not call post_execution() here because we need to sync account balance after stake
         self.staked_amount += amount;
         pool.save_validator(self);
     }
@@ -990,6 +990,7 @@ impl Validator {
     }
 
     pub fn on_unstake_success(&mut self, pool: &mut ValidatorPool, amount: Balance) {
+        // Do not call post_execution() here because we need to sync account balance after unstake
         self.staked_amount -= amount;
         self.unstaked_amount += amount;
         pool.save_validator(self);

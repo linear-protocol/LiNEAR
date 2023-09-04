@@ -1029,7 +1029,7 @@ impl Validator {
     /// different than we requested.
     /// This method is to sync the actual numbers with the validator.
     pub fn sync_account_balance(&mut self) -> Promise {
-        require!(self.executing, ERR_VALIDATOR_SYNC_WHEN_UNLOCKED);
+        require!(self.executing, ERR_VALIDATOR_SYNC_BALANCE_NOT_ALLOWED);
 
         ext_staking_pool::get_account(
             env::current_account_id(),

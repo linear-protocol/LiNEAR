@@ -16,7 +16,7 @@ const MAX_SYNC_BALANCE_DIFF: Balance = 100;
 impl LiquidStakingContract {
     /// Stake $NEAR to one of the validators.
     ///
-    /// Select a candidate validator and stake part of or all of the to-settled
+    /// Select a candidate validator and stake part of or all of the to-settle
     /// stake amounts to this validator. This function is expected to be called
     /// in each epoch.
     ///
@@ -92,7 +92,7 @@ impl LiquidStakingContract {
 
     /// Unstake $NEAR from one of the validators.
     ///
-    /// Select a candidate validator and unstake part of or all of the to-settled
+    /// Select a candidate validator and unstake part of or all of the to-settle
     /// unstake amounts from this validator. This function is expected to be called
     /// in each epoch.
     ///

@@ -80,6 +80,8 @@ pub const ERR_VALIDATOR_UNSTAKE_WHEN_LOCKED: &str =
 pub const ERR_VALIDATOR_WITHDRAW_WHEN_LOCKED: &str =
     "Cannot withdraw from a pending release validator";
 pub const ERR_VALIDATOR_ALREADY_EXECUTING_ACTION: &str = "Validator is already executing action";
+pub const ERR_VALIDATOR_SYNC_BALANCE_NOT_ALLOWED: &str =
+    "Validator sync balance can only be called after stake or unstake";
 
 // liquidity pool
 pub const ERR_NON_POSITIVE_MIN_FEE: &str = "The min fee basis points should be positive";

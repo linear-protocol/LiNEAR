@@ -1,5 +1,5 @@
 import { NearAccount, NEAR, Gas } from "near-workspaces-ava";
-import { assertFailure, initWorkSpace, createStakingPool, getValidator } from "./helper";
+import { initWorkSpace, createStakingPool, getValidator, epochStake, epochUnstake, epochUnstakeCallRaw, epochStakeCallRaw, assertHasLog } from "./helper";
 
 const workspace = initWorkSpace();
 
@@ -37,7 +37,7 @@ function assertValidatorHelper(
   }
 }
 
-workspace.test('epoch stake failure', async (test, { root, contract, owner, alice }) => {
+workspace.test('epoch stake failure: deposit_and_stake fails', async (test, { root, contract, owner, alice }) => {
   const assertValidator = assertValidatorHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -66,20 +66,17 @@ workspace.test('epoch stake failure', async (test, { root, contract, owner, alic
 
   await setPanic(v1);
 
-  await owner.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      gas: Gas.parse('200 Tgas')
-    }
-  );
+  const ret = await epochStakeCallRaw(owner, contract);
+
+  test.is(ret.parseResult(), false);
+
+  assertHasLog(test, ret, 'epoch_stake_failed');
 
   // nothing should be staked
   await assertValidator(v1, '0', '0');
 });
 
-workspace.test('unstake failure', async (test, { root, contract, owner, alice }) => {
+workspace.test('epoch stake failure: get_account fails', async (test, { root, contract, owner, alice }) => {
   const assertValidator = assertValidatorHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -106,16 +103,109 @@ workspace.test('unstake failure', async (test, { root, contract, owner, alice })
     }
   );
 
-  await owner.call(
-    contract,
-    'epoch_stake',
-    {},
+  v1.call(
+    v1,
+    'set_get_account_fail',
     {
-      gas: Gas.parse('200 Tgas')
+      value: true
     }
   );
 
+  const ret = await epochStakeCallRaw(owner, contract);
+
+  test.is(ret.parseResult(), true);
+
+  assertHasLog(test, ret, 'sync_validator_balance_failed_cant_get_account');
+
+  // stake still succeeded
   await assertValidator(v1, '60', '0');
+});
+
+workspace.test('epoch stake failure: balance diff too large', async (test, { root, contract, owner, alice }) => {
+  const assertValidator = assertValidatorHelper(test, contract, owner);
+
+  const v1 = await createStakingPool(root, 'v1');
+
+  await owner.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: v1.accountId,
+      weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+
+  // user stake
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    {
+      attachedDeposit: NEAR.parse('50')
+    }
+  );
+
+  const MAX_SYNC_BALANCE_DIFF = NEAR.from(100);
+  const diff = MAX_SYNC_BALANCE_DIFF.addn(1);
+
+  await owner.call(
+    v1,
+    'set_balance_delta',
+    {
+      staked_delta: diff.toString(10),
+      unstaked_delta: diff.toString(10),
+    },
+  );
+
+  const ret = await epochStakeCallRaw(owner, contract);
+
+  test.is(ret.parseResult(), true);
+
+  assertHasLog(test, ret, 'sync_validator_balance_failed_large_diff');
+
+  // stake still succeeded
+  await assertValidator(v1, '60', '0');
+});
+
+workspace.test('epoch unstake failure: unstake fails', async (test, { root, contract, owner, alice }) => {
+  const assertValidator = assertValidatorHelper(test, contract, owner);
+
+  const v1 = await createStakingPool(root, 'v1');
+
+  await owner.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: v1.accountId,
+      weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+
+  // user stake
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    {
+      attachedDeposit: NEAR.parse('50')
+    }
+  );
+
+  await epochStake(owner, contract);
+
+  await assertValidator(v1, '60', '0');
+
+  await owner.call(
+    contract,
+    'set_epoch_height',
+    { epoch: 11 }
+  );
 
   // user unstake
   await alice.call(
@@ -126,17 +216,142 @@ workspace.test('unstake failure', async (test, { root, contract, owner, alice })
 
   await setPanic(v1);
 
-  await owner.call(
-    contract,
-    'epoch_unstake',
-    {},
-    {
-      gas: Gas.parse('200 Tgas')
-    }
-  );
+  const ret = await epochUnstakeCallRaw(owner, contract);
+
+  test.is(ret.parseResult(), false);
+
+  assertHasLog(test, ret, 'epoch_unstake_failed');
 
   // no unstake should actual happen
   await assertValidator(v1, '60', '0');
+});
+
+workspace.test('epoch unstake failure: get_account fails', async (test, { root, contract, owner, alice }) => {
+  const assertValidator = assertValidatorHelper(test, contract, owner);
+
+  const v1 = await createStakingPool(root, 'v1');
+
+  await owner.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: v1.accountId,
+      weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+
+  // user stake
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    {
+      attachedDeposit: NEAR.parse('50')
+    }
+  );
+
+  await epochStake(owner, contract);
+
+  await assertValidator(v1, '60', '0');
+
+  await owner.call(
+    contract,
+    'set_epoch_height',
+    { epoch: 11 }
+  );
+
+  // user unstake
+  await alice.call(
+    contract,
+    'unstake',
+    { amount: NEAR.parse('10') }
+  );
+
+  v1.call(
+    v1,
+    'set_get_account_fail',
+    {
+      value: true
+    }
+  );
+
+  const ret = await epochUnstakeCallRaw(owner, contract);
+
+  test.is(ret.parseResult(), true);
+
+  assertHasLog(test, ret, 'sync_validator_balance_failed_cant_get_account');
+
+  // unstake still succeeded
+  await assertValidator(v1, '50', '10');
+});
+
+workspace.test('epoch unstake failure: balance diff too large', async (test, { root, contract, owner, alice }) => {
+  const assertValidator = assertValidatorHelper(test, contract, owner);
+
+  const v1 = await createStakingPool(root, 'v1');
+
+  await owner.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: v1.accountId,
+      weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+
+  // user stake
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    {
+      attachedDeposit: NEAR.parse('50')
+    }
+  );
+
+  await epochStake(owner, contract);
+
+  await assertValidator(v1, '60', '0');
+
+  await owner.call(
+    contract,
+    'set_epoch_height',
+    { epoch: 11 }
+  );
+
+  // user unstake
+  await alice.call(
+    contract,
+    'unstake',
+    { amount: NEAR.parse('10') }
+  );
+
+  const MAX_SYNC_BALANCE_DIFF = NEAR.from(100);
+  const diff = MAX_SYNC_BALANCE_DIFF.addn(1);
+
+  await owner.call(
+    v1,
+    'set_balance_delta',
+    {
+      staked_delta: diff.toString(10),
+      unstaked_delta: diff.toString(10),
+    },
+  );
+
+  const ret = await epochUnstakeCallRaw(owner, contract);
+
+  test.is(ret.parseResult(), true);
+
+  assertHasLog(test, ret, 'sync_validator_balance_failed_large_diff');
+
+  // unstake still succeeded
+  await assertValidator(v1, '50', '10');
 });
 
 workspace.test('withdraw failure', async (test, { root, contract, owner, alice }) => {
@@ -166,14 +381,7 @@ workspace.test('withdraw failure', async (test, { root, contract, owner, alice }
     }
   );
 
-  await owner.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      gas: Gas.parse('200 Tgas')
-    }
-  );
+  await epochStake(owner, contract);
 
   // fast-forward 4 epoch
   await owner.call(
@@ -191,14 +399,7 @@ workspace.test('withdraw failure', async (test, { root, contract, owner, alice }
     { amount: NEAR.parse('10') }
   );
 
-  await owner.call(
-    contract,
-    'epoch_unstake',
-    {},
-    {
-      gas: Gas.parse('200 Tgas')
-    }
-  );
+  await epochUnstake(owner, contract);
 
   await assertValidator(v1, '50', '10');
 
@@ -254,14 +455,7 @@ workspace.test('get balance failure', async (test, { root, contract, owner, alic
     }
   );
 
-  await owner.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      gas: Gas.parse('200 Tgas')
-    }
-  );
+  await epochStake(owner, contract);
 
   await assertValidator(v1, '60', '0');
 

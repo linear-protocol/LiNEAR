@@ -1,4 +1,4 @@
-import { Workspace, NEAR, NearAccount, BN } from "near-workspaces-ava";
+import { Workspace, NEAR, NearAccount, BN, Gas, TransactionResult } from "near-workspaces-ava";
 
 export const ONE_YOCTO = '1';
 export const NUM_EPOCHS_TO_UNLOCK = 4;
@@ -333,4 +333,64 @@ export function assertValidatorAmountHelper (
       );
     }
   }
+}
+
+const EPOCH_STAKE_AND_UNSTAKE_GAS = Gas.parse('280 Tgas');
+
+export function epochStake(caller: NearAccount, contract: NearAccount): Promise<any> {
+  return caller.call(
+    contract,
+    'epoch_stake',
+    {},
+    {
+      gas: EPOCH_STAKE_AND_UNSTAKE_GAS
+    }
+  );
+}
+
+export function epochStakeCallRaw(caller: NearAccount, contract: NearAccount): Promise<any> {
+  return caller.call_raw(
+    contract,
+    'epoch_stake',
+    {},
+    {
+      gas: EPOCH_STAKE_AND_UNSTAKE_GAS
+    }
+  );
+}
+
+export function epochUnstake(caller: NearAccount, contract: NearAccount): Promise<any> {
+  return caller.call(
+    contract,
+    'epoch_unstake',
+    {},
+    {
+      gas: EPOCH_STAKE_AND_UNSTAKE_GAS
+    }
+  );
+}
+
+export function epochUnstakeCallRaw(caller: NearAccount, contract: NearAccount): Promise<any> {
+  return caller.call_raw(
+    contract,
+    'epoch_unstake',
+    {},
+    {
+      gas: EPOCH_STAKE_AND_UNSTAKE_GAS
+    }
+  );
+}
+
+export function assertHasLog(
+  test: any,
+  txResult: TransactionResult,
+  expected: string,
+) {
+  test.truthy(
+    txResult.result.receipts_outcome.find(
+      (outcome: any) => outcome.outcome.logs.find(
+        (log: any) => log.includes(expected)
+      )
+    )
+  );
 }

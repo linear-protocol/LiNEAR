@@ -1,5 +1,5 @@
 import { NEAR, Gas } from 'near-workspaces-ava';
-import { initWorkSpace, assertFailure, epochHeightFastforward } from './helper';
+import { initWorkSpace, assertFailure, epochHeightFastforward, epochStake } from './helper';
 
 const ERR_UNSTAKED_BALANCE_NOT_AVAILABLE = 'The unstaked balance is not yet available due to unstaking delay';
 
@@ -268,14 +268,7 @@ workspace.test('late unstake and withdraw', async (test, { contract ,alice }) =>
   );
 
   // call epoch_stake, in order to trigger clean up
-  await alice.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      gas: Gas.parse('200 Tgas')
-    }
-  );
+  await epochStake(alice, contract);
 
   // unstake
   const unstakeAmount = NEAR.parse('5');

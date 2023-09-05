@@ -6,7 +6,10 @@ import {
   setManager,
   assertValidatorAmountHelper,
   updateBaseStakeAmounts,
-  getValidator
+  getValidator,
+  epochUnstake,
+  epochStake,
+  assertHasLog
 } from "./helper";
 
 const workspace = initWorkSpace();
@@ -14,14 +17,7 @@ const workspace = initWorkSpace();
 async function stakeAll (signer: NearAccount, contract: NearAccount) {
   let run = true;
   while (run) {
-    run = await signer.call(
-      contract,
-      'epoch_stake',
-      {},
-      {
-        gas: Gas.parse('200 Tgas')
-      }
-    );
+    run = await epochStake(signer, contract);
   }
 }
 
@@ -33,6 +29,9 @@ workspace.test('Non-manager call drain methods', async (test, {contract, alice})
             'drain_unstake',
             {
                 validator_id: 'foo'
+            },
+            {
+              gas: "275 Tgas"
             }
         ),
         'Only manager can perform this action'
@@ -80,14 +79,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
   );
 
   // run stake
-  await bob.call(
-    contract,
-    'epoch_stake',
-    {},
-    {
-      gas: Gas.parse('200 Tgas')
-    }
-  );
+  await epochStake(bob, contract);
 
   // 1. cannot drain unstake when weight > 0
   await assertFailure(
@@ -99,7 +91,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
         validator_id: v1.accountId
       },
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     ),
     'Validator weight must be zero for drain operation'
@@ -125,7 +117,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
         validator_id: v1.accountId
       },
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     ),
     'Validator base stake amount must be zero for drain operation'
@@ -157,14 +149,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
     {}
   );
 
-  await bob.call(
-    contract,
-    'epoch_unstake',
-    {},
-    {
-      gas: Gas.parse('200 Tgas')
-    }
-  );
+  await epochUnstake(bob, contract);
 
   // validator now have unstaked balance > 0
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
@@ -180,7 +165,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
         validator_id: v1.accountId
       },
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     ),
     'Cannot unstake from a pending release validator'
@@ -203,7 +188,7 @@ workspace.test('drain constraints', async (test, {contract, root, owner, alice, 
         validator_id: v1.accountId
       },
       {
-        gas: Gas.parse('200 Tgas')
+        gas: Gas.parse('275 Tgas')
       }
     ),
     'Validator unstaked amount too large for drain unstake'
@@ -302,7 +287,7 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
       validator_id: v1.accountId
     },
     {
-      gas: Gas.parse('200 Tgas')
+      gas: Gas.parse('275 Tgas')
     }
   );
 
@@ -355,4 +340,111 @@ workspace.test('drain unstake and withdraw', async (test, {contract, root, owner
 
   await assertValidator(v1, '0', '0');
   await assertValidator(v2, '60', '0');
+});
+
+workspace.test('drain unstake: get_account fails', async (test, {contract, root, owner, alice, bob}) => {
+  const manager = alice;
+  await setManager(root, contract, owner, manager);
+
+  const v1 = await createStakingPool(root, 'v1');
+  const v2 = await createStakingPool(root, 'v2');
+
+  // add validator
+  await manager.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: v1.accountId,
+      weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+  await manager.call(
+    contract,
+    'add_validator',
+    {
+      validator_id: v2.accountId,
+      weight: 10
+    },
+    {
+      gas: Gas.parse('100 Tgas')
+    }
+  );
+
+  // update base stake amount of v1 to 20 NEAR
+  await updateBaseStakeAmounts(
+    contract,
+    manager,
+    [
+      v1.accountId,
+    ],
+    [
+      NEAR.parse("20")
+    ]
+  );
+
+  // user stake
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    {
+      attachedDeposit: NEAR.parse('50')
+    }
+  );
+
+  // run stake
+  await stakeAll(bob, contract);
+
+  /**
+   * Steps to drain a validator
+   * 1. set weight to 0
+   * 2. set base stake amount to 0
+   * 3. call drain_unstake
+   * 4. call drain_withdraw
+   */
+
+  await manager.call(
+    contract,
+    'update_weight',
+    {
+      validator_id: v1.accountId,
+      weight: 0
+    }
+  );
+
+  // reset base stake amount to 0 NEAR
+  await updateBaseStakeAmounts(
+    contract,
+    manager,
+    [
+      v1.accountId,
+    ],
+    [
+      NEAR.parse("0")
+    ]
+  );
+
+  v1.call(
+    v1,
+    'set_get_account_fail',
+    {
+      value: true
+    }
+  );
+
+  const ret = await manager.call_raw(
+    contract,
+    'drain_unstake',
+    {
+      validator_id: v1.accountId
+    },
+    {
+      gas: Gas.parse('275 Tgas')
+    }
+  );
+
+  assertHasLog(test, ret, 'sync_validator_balance_failed_cant_get_account');
 });

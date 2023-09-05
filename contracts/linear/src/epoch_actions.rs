@@ -1,5 +1,5 @@
 use crate::*;
-use near_sdk::{is_promise_success, log, near_bindgen, Balance};
+use near_sdk::{is_promise_success, log, near_bindgen, Balance, PromiseError, PromiseOrValue};
 
 use crate::errors::*;
 use crate::events::Event;
@@ -14,10 +14,25 @@ const MAX_SYNC_BALANCE_DIFF: Balance = 100;
 /// during each epoch.
 #[near_bindgen]
 impl LiquidStakingContract {
-    pub fn epoch_stake(&mut self) -> bool {
+    /// Stake $NEAR to one of the validators.
+    ///
+    /// Select a candidate validator and stake part of or all of the to-settle
+    /// stake amounts to this validator. This function is expected to be called
+    /// in each epoch.
+    ///
+    /// # Return
+    /// * `true` - a candidate validator is selected and successfully staked to.
+    ///            There might be more stake amounts to settle so this function
+    ///            should be called again.
+    /// * `false` - There is no need to call this function again in this epoch.
+    pub fn epoch_stake(&mut self) -> PromiseOrValue<bool> {
         self.assert_running();
         // make sure enough gas was given
-        let min_gas = GAS_EPOCH_STAKE + GAS_EXT_DEPOSIT_AND_STAKE + GAS_CB_VALIDATOR_STAKED;
+        let min_gas = GAS_EPOCH_STAKE
+            + GAS_EXT_DEPOSIT_AND_STAKE
+            + GAS_CB_VALIDATOR_STAKED
+            + GAS_SYNC_BALANCE
+            + GAS_CB_VALIDATOR_SYNC_BALANCE;
         require!(
             env::prepaid_gas() >= min_gas,
             format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
@@ -27,7 +42,7 @@ impl LiquidStakingContract {
         // after cleanup, there might be no need to stake
         if self.stake_amount_to_settle == 0 {
             log!("no need to stake, amount to settle is zero");
-            return false;
+            return PromiseOrValue::Value(false);
         }
 
         let candidate = self
@@ -36,7 +51,7 @@ impl LiquidStakingContract {
 
         if candidate.is_none() {
             log!("no candidate found to stake");
-            return false;
+            return PromiseOrValue::Value(false);
         }
 
         let mut candidate = candidate.unwrap();
@@ -44,7 +59,7 @@ impl LiquidStakingContract {
 
         if amount_to_stake < MIN_AMOUNT_TO_PERFORM_STAKE {
             log!("stake amount too low: {}", amount_to_stake);
-            return false;
+            return PromiseOrValue::Value(false);
         }
 
         require!(
@@ -70,16 +85,30 @@ impl LiquidStakingContract {
                 amount_to_stake.into(),
                 env::current_account_id(),
                 NO_DEPOSIT,
-                GAS_CB_VALIDATOR_STAKED,
-            ));
-
-        true
+                GAS_CB_VALIDATOR_STAKED + GAS_SYNC_BALANCE + GAS_CB_VALIDATOR_SYNC_BALANCE,
+            ))
+            .into()
     }
 
-    pub fn epoch_unstake(&mut self) -> bool {
+    /// Unstake $NEAR from one of the validators.
+    ///
+    /// Select a candidate validator and unstake part of or all of the to-settle
+    /// unstake amounts from this validator. This function is expected to be called
+    /// in each epoch.
+    ///
+    /// # Return
+    /// * `true` - a candidate validator is selected and successfully unstaked from.
+    ///            There might be more unstake amounts to settle so this function
+    ///            should be called again.
+    /// * `false` - There is no need to call this function again in this epoch.
+    pub fn epoch_unstake(&mut self) -> PromiseOrValue<bool> {
         self.assert_running();
         // make sure enough gas was given
-        let min_gas = GAS_EPOCH_UNSTAKE + GAS_EXT_UNSTAKE + GAS_CB_VALIDATOR_UNSTAKED;
+        let min_gas = GAS_EPOCH_UNSTAKE
+            + GAS_EXT_UNSTAKE
+            + GAS_CB_VALIDATOR_UNSTAKED
+            + GAS_SYNC_BALANCE
+            + GAS_CB_VALIDATOR_SYNC_BALANCE;
         require!(
             env::prepaid_gas() >= min_gas,
             format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
@@ -89,7 +118,7 @@ impl LiquidStakingContract {
         // after cleanup, there might be no need to unstake
         if self.unstake_amount_to_settle == 0 {
             log!("no need to unstake, amount to settle is zero");
-            return false;
+            return PromiseOrValue::Value(false);
         }
 
         let candidate = self.validator_pool.get_candidate_to_unstake_v2(
@@ -98,14 +127,14 @@ impl LiquidStakingContract {
         );
         if candidate.is_none() {
             log!("no candidate found to unstake");
-            return false;
+            return PromiseOrValue::Value(false);
         }
         let mut candidate = candidate.unwrap();
         let amount_to_unstake = candidate.amount;
 
         if amount_to_unstake < MIN_AMOUNT_TO_PERFORM_UNSTAKE {
             log!("unstake amount too low: {}", amount_to_unstake);
-            return false;
+            return PromiseOrValue::Value(false);
         }
 
         // update internal state
@@ -126,10 +155,9 @@ impl LiquidStakingContract {
                 amount_to_unstake.into(),
                 env::current_account_id(),
                 NO_DEPOSIT,
-                GAS_CB_VALIDATOR_UNSTAKED,
-            ));
-
-        true
+                GAS_CB_VALIDATOR_UNSTAKED + GAS_SYNC_BALANCE + GAS_CB_VALIDATOR_SYNC_BALANCE,
+            ))
+            .into()
     }
 
     pub fn epoch_update_rewards(&mut self, validator_id: AccountId) {
@@ -224,47 +252,27 @@ impl LiquidStakingContract {
         }
         .emit();
     }
-
-    /// Due to shares calculation and rounding of staking pool contract,
-    /// the amount of staked and unstaked balance might be a little bit
-    /// different than we requested.
-    /// This method is to sync the actual numbers with the validator.
-    pub fn sync_balance_from_validator(&mut self, validator_id: AccountId) {
-        self.assert_running();
-
-        let min_gas = GAS_SYNC_BALANCE + GAS_EXT_GET_ACCOUNT + GAS_CB_VALIDATOR_SYNC_BALANCE;
-        require!(
-            env::prepaid_gas() >= min_gas,
-            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
-        );
-
-        let mut validator = self
-            .validator_pool
-            .get_validator(&validator_id)
-            .expect(ERR_VALIDATOR_NOT_EXIST);
-
-        validator
-            .sync_account_balance(&mut self.validator_pool)
-            .then(ext_self_action_cb::validator_get_account_callback(
-                validator.account_id,
-                env::current_account_id(),
-                NO_DEPOSIT,
-                GAS_CB_VALIDATOR_SYNC_BALANCE,
-            ));
-    }
 }
 
 /// -- callbacks
 
 #[ext_contract(ext_self_action_cb)]
 trait EpochActionCallbacks {
-    fn validator_staked_callback(&mut self, validator_id: AccountId, amount: U128);
+    fn validator_staked_callback(
+        &mut self,
+        validator_id: AccountId,
+        amount: U128,
+    ) -> PromiseOrValue<bool>;
 
-    fn validator_unstaked_callback(&mut self, validator_id: AccountId, amount: U128);
+    fn validator_unstaked_callback(
+        &mut self,
+        validator_id: AccountId,
+        amount: U128,
+    ) -> PromiseOrValue<bool>;
 
     fn validator_get_balance_callback(&mut self, validator_id: AccountId);
 
-    fn validator_get_account_callback(&mut self, validator_id: AccountId);
+    fn validator_get_account_callback(&mut self, validator_id: AccountId) -> bool;
 
     fn validator_withdraw_callback(&mut self, validator_id: AccountId, amount: U128);
 }
@@ -273,8 +281,15 @@ trait EpochActionCallbacks {
 /// functions here SHOULD NOT PANIC!
 #[near_bindgen]
 impl LiquidStakingContract {
+    /// # Return
+    /// * `true` - Stake and sync balance succeed
+    /// * `false` - Stake fails
     #[private]
-    pub fn validator_staked_callback(&mut self, validator_id: AccountId, amount: U128) {
+    pub fn validator_staked_callback(
+        &mut self,
+        validator_id: AccountId,
+        amount: U128,
+    ) -> PromiseOrValue<bool> {
         let amount = amount.into();
         let mut validator = self
             .validator_pool
@@ -289,6 +304,16 @@ impl LiquidStakingContract {
                 amount: &U128(amount),
             }
             .emit();
+
+            validator
+                .sync_account_balance()
+                .then(ext_self_action_cb::validator_get_account_callback(
+                    validator_id,
+                    env::current_account_id(),
+                    NO_DEPOSIT,
+                    GAS_CB_VALIDATOR_SYNC_BALANCE,
+                ))
+                .into()
         } else {
             validator.on_stake_failed(&mut self.validator_pool);
 
@@ -300,11 +325,20 @@ impl LiquidStakingContract {
                 amount: &U128(amount),
             }
             .emit();
+
+            PromiseOrValue::Value(false)
         }
     }
 
+    /// # Return
+    /// * `true` - Unstake and sync balance succeed
+    /// * `false` - Unstake fails
     #[private]
-    pub fn validator_unstaked_callback(&mut self, validator_id: AccountId, amount: U128) {
+    pub fn validator_unstaked_callback(
+        &mut self,
+        validator_id: AccountId,
+        amount: U128,
+    ) -> PromiseOrValue<bool> {
         let amount = amount.into();
         let mut validator = self
             .validator_pool
@@ -319,6 +353,16 @@ impl LiquidStakingContract {
                 amount: &U128(amount),
             }
             .emit();
+
+            validator
+                .sync_account_balance()
+                .then(ext_self_action_cb::validator_get_account_callback(
+                    validator_id,
+                    env::current_account_id(),
+                    NO_DEPOSIT,
+                    GAS_CB_VALIDATOR_SYNC_BALANCE,
+                ))
+                .into()
         } else {
             // unstake failed, revert
             // 1. revert contract states
@@ -332,6 +376,8 @@ impl LiquidStakingContract {
                 amount: &U128(amount),
             }
             .emit();
+
+            PromiseOrValue::Value(false)
         }
     }
 
@@ -370,56 +416,71 @@ impl LiquidStakingContract {
     pub fn validator_get_account_callback(
         &mut self,
         validator_id: AccountId,
-        #[callback] account: HumanReadableAccount,
-    ) {
+        #[callback_result] result: Result<HumanReadableAccount, PromiseError>,
+    ) -> bool {
         let mut validator = self
             .validator_pool
             .get_validator(&validator_id)
             .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
-        // allow at most MAX_SYNC_BALANCE_DIFF diff in total balance, staked balance and unstake balance
-        let new_total_balance = account.staked_balance.0 + account.unstaked_balance.0;
-        if abs_diff_eq(
-            new_total_balance,
-            validator.total_balance(),
-            MAX_SYNC_BALANCE_DIFF,
-        ) && abs_diff_eq(
-            account.staked_balance.0,
-            validator.staked_amount,
-            MAX_SYNC_BALANCE_DIFF,
-        ) && abs_diff_eq(
-            account.unstaked_balance.0,
-            validator.unstaked_amount,
-            MAX_SYNC_BALANCE_DIFF,
-        ) {
-            Event::SyncValidatorBalanceSuccess {
-                validator_id: &validator_id,
-                old_staked_balance: &validator.staked_amount.into(),
-                old_unstaked_balance: &validator.unstaked_amount.into(),
-                old_total_balance: &validator.total_balance().into(),
-                new_staked_balance: &account.staked_balance,
-                new_unstaked_balance: &account.unstaked_balance,
-                new_total_balance: &new_total_balance.into(),
+        match result {
+            Ok(account) => {
+                // allow at most MAX_SYNC_BALANCE_DIFF diff in total balance, staked balance and unstake balance
+                let new_total_balance = account.staked_balance.0 + account.unstaked_balance.0;
+                if abs_diff_eq(
+                    new_total_balance,
+                    validator.total_balance(),
+                    MAX_SYNC_BALANCE_DIFF,
+                ) && abs_diff_eq(
+                    account.staked_balance.0,
+                    validator.staked_amount,
+                    MAX_SYNC_BALANCE_DIFF,
+                ) && abs_diff_eq(
+                    account.unstaked_balance.0,
+                    validator.unstaked_amount,
+                    MAX_SYNC_BALANCE_DIFF,
+                ) {
+                    Event::SyncValidatorBalanceSuccess {
+                        validator_id: &validator_id,
+                        old_staked_balance: &validator.staked_amount.into(),
+                        old_unstaked_balance: &validator.unstaked_amount.into(),
+                        old_total_balance: &validator.total_balance().into(),
+                        new_staked_balance: &account.staked_balance,
+                        new_unstaked_balance: &account.unstaked_balance,
+                        new_total_balance: &new_total_balance.into(),
+                    }
+                    .emit();
+                    validator.on_sync_account_balance_success(
+                        &mut self.validator_pool,
+                        account.staked_balance.0,
+                        account.unstaked_balance.0,
+                    );
+                } else {
+                    Event::SyncValidatorBalanceFailedLargeDiff {
+                        validator_id: &validator_id,
+                        old_staked_balance: &validator.staked_amount.into(),
+                        old_unstaked_balance: &validator.unstaked_amount.into(),
+                        old_total_balance: &validator.total_balance().into(),
+                        new_staked_balance: &account.staked_balance,
+                        new_unstaked_balance: &account.unstaked_balance,
+                        new_total_balance: &new_total_balance.into(),
+                    }
+                    .emit();
+                    validator.on_sync_account_balance_failed(&mut self.validator_pool);
+                }
             }
-            .emit();
-            validator.on_sync_account_balance_success(
-                &mut self.validator_pool,
-                account.staked_balance.0,
-                account.unstaked_balance.0,
-            );
-        } else {
-            Event::SyncValidatorBalanceFailed {
-                validator_id: &validator_id,
-                old_staked_balance: &validator.staked_amount.into(),
-                old_unstaked_balance: &validator.unstaked_amount.into(),
-                old_total_balance: &validator.total_balance().into(),
-                new_staked_balance: &account.staked_balance,
-                new_unstaked_balance: &account.unstaked_balance,
-                new_total_balance: &new_total_balance.into(),
+            Err(_) => {
+                Event::SyncValidatorBalanceFailedCantGetAccount {
+                    validator_id: &validator_id,
+                    old_staked_balance: &validator.staked_amount.into(),
+                    old_unstaked_balance: &validator.unstaked_amount.into(),
+                    old_total_balance: &validator.total_balance().into(),
+                }
+                .emit();
+                validator.on_sync_account_balance_failed(&mut self.validator_pool);
             }
-            .emit();
-            validator.on_sync_account_balance_failed(&mut self.validator_pool);
-        }
+        };
+        true
     }
 
     #[private]

@@ -8,7 +8,8 @@ use crate::utils::*;
 
 const MIN_AMOUNT_TO_PERFORM_STAKE: Balance = ONE_NEAR;
 const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR;
-const MAX_SYNC_BALANCE_DIFF: Balance = 100;
+/// Temporarily allow 10,000 yocto NEAR difference when sync balance
+const MAX_SYNC_BALANCE_DIFF: Balance = 10000;
 
 /// Actions that should be called by off-chain actors
 /// during each epoch.

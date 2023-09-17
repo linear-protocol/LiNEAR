@@ -253,6 +253,32 @@ impl LiquidStakingContract {
         }
         .emit();
     }
+
+    /// Sync balance only allowed by manager
+    pub fn sync_balance_from_validator(&mut self, validator_id: AccountId) {
+        self.assert_running();
+        self.assert_manager();
+
+        let min_gas = GAS_SYNC_BALANCE + GAS_EXT_GET_ACCOUNT + GAS_CB_VALIDATOR_SYNC_BALANCE;
+        require!(
+            env::prepaid_gas() >= min_gas,
+            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+        );
+
+        let mut validator = self
+            .validator_pool
+            .get_validator(&validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        validator
+            .sync_account_balance()
+            .then(ext_self_action_cb::validator_get_account_callback(
+                validator.account_id,
+                env::current_account_id(),
+                NO_DEPOSIT,
+                GAS_CB_VALIDATOR_SYNC_BALANCE,
+            ));
+    }
 }
 
 /// -- callbacks
@@ -424,6 +450,12 @@ impl LiquidStakingContract {
             .get_validator(&validator_id)
             .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
+        let max_sync_balance_diff = if self.managers.contains(&env::signer_account_id()) {
+            ONE_NEAR / 1000
+        } else {
+            MAX_SYNC_BALANCE_DIFF
+        };
+
         match result {
             Ok(account) => {
                 // allow at most MAX_SYNC_BALANCE_DIFF diff in total balance, staked balance and unstake balance
@@ -431,15 +463,15 @@ impl LiquidStakingContract {
                 if abs_diff_eq(
                     new_total_balance,
                     validator.total_balance(),
-                    MAX_SYNC_BALANCE_DIFF,
+                    max_sync_balance_diff,
                 ) && abs_diff_eq(
                     account.staked_balance.0,
                     validator.staked_amount,
-                    MAX_SYNC_BALANCE_DIFF,
+                    max_sync_balance_diff,
                 ) && abs_diff_eq(
                     account.unstaked_balance.0,
                     validator.unstaked_amount,
-                    MAX_SYNC_BALANCE_DIFF,
+                    max_sync_balance_diff,
                 ) {
                     Event::SyncValidatorBalanceSuccess {
                         validator_id: &validator_id,

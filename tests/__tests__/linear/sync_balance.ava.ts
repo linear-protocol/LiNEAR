@@ -1,7 +1,5 @@
-import { assertFailure, createStakingPool, epochStake, epochUnstake, getValidator, initWorkSpace } from "./helper";
+import { MAX_SYNC_BALANCE_DIFF, assertFailure, createStakingPool, epochStake, epochUnstake, getValidator, initWorkSpace } from "./helper";
 import { Gas, NEAR, NearAccount, ONE_NEAR, stake, } from "near-workspaces-ava";
-
-const MAX_SYNC_BALANCE_DIFF = NEAR.from(100);
 
 const workspace = initWorkSpace();
 

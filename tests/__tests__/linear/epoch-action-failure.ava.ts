@@ -1,5 +1,5 @@
 import { NearAccount, NEAR, Gas } from "near-workspaces-ava";
-import { initWorkSpace, createStakingPool, getValidator, epochStake, epochUnstake, epochUnstakeCallRaw, epochStakeCallRaw, assertHasLog } from "./helper";
+import { initWorkSpace, createStakingPool, getValidator, epochStake, epochUnstake, epochUnstakeCallRaw, epochStakeCallRaw, assertHasLog, MAX_SYNC_BALANCE_DIFF } from "./helper";
 
 const workspace = initWorkSpace();
 
@@ -148,7 +148,6 @@ workspace.test('epoch stake failure: balance diff too large', async (test, { roo
     }
   );
 
-  const MAX_SYNC_BALANCE_DIFF = NEAR.from(100);
   const diff = MAX_SYNC_BALANCE_DIFF.addn(1);
 
   await owner.call(
@@ -332,7 +331,6 @@ workspace.test('epoch unstake failure: balance diff too large', async (test, { r
     { amount: NEAR.parse('10') }
   );
 
-  const MAX_SYNC_BALANCE_DIFF = NEAR.from(100);
   const diff = MAX_SYNC_BALANCE_DIFF.addn(1);
 
   await owner.call(

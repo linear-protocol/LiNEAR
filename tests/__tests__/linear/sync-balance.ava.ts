@@ -1,4 +1,4 @@
-import { MAX_SYNC_BALANCE_DIFF, assertFailure, createStakingPool, epochStake, epochUnstake, getValidator, initWorkSpace, skip } from "./helper";
+import { MANAGER_SYNC_BALANCE_DIFF_THRESHOLD, MAX_SYNC_BALANCE_DIFF, assertFailure, createStakingPool, epochStake, epochUnstake, getValidator, initWorkSpace, setManager, skip } from "./helper";
 import { Gas, NEAR, NearAccount, ONE_NEAR, stake, } from "near-workspaces-ava";
 
 const workspace = initWorkSpace();
@@ -97,7 +97,7 @@ workspace.test('sync balance failure after stake/unstake', async (test, { root, 
   );
 
   for (let i = 0; i < 2; i++) {
-    await epochUnstake(owner, contract);
+    await epochUnstake(alice, contract);
   }
 
   // v2 amount should not change
@@ -154,7 +154,7 @@ workspace.test('sync balance after stake/unstake', async (test, { root, contract
    );
 
   for (let i = 0; i < 2; i++) {
-    await epochStake(owner, contract);
+    await epochStake(alice, contract);
   }
 
   await assertValidator(v2, NEAR.parse("30").sub(diff).toString(10), '0');
@@ -187,7 +187,10 @@ workspace.test('sync balance after stake/unstake', async (test, { root, contract
   await assertValidator(v1, NEAR.parse("5").toString(10),  NEAR.parse("25").add(diff).toString(10));
 });
 
-skip('sync balance by manager failure', async (test, { root, contract, alice, owner }) => {
+workspace.test('sync balance by manager failure', async (test, { root, contract, alice, bob, owner }) => {
+  // set bob as manager
+  await setManager(root, contract, owner, bob);
+
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
   const v1 = await createStakingPool(root, 'v1');
   const v2 = await createStakingPool(root, 'v2');
@@ -223,28 +226,20 @@ skip('sync balance by manager failure', async (test, { root, contract, alice, ow
     }
   );
 
-  for (let i = 0; i < 2; i++) {
-    await owner.call(
-      contract,
-      'epoch_stake',
-      {},
-      {
-        gas: Gas.parse('200 Tgas')
-      }
-    );
-  }
-
-  // -- 1. total balance diff > MAX_SYNC_BALANCE_DIFF
-  const diff = MAX_SYNC_BALANCE_DIFF.addn(1);
+  // -- 1. total balance diff > MANAGER_SYNC_BALANCE_DIFF_THRESHOLD
+  const diff = MANAGER_SYNC_BALANCE_DIFF_THRESHOLD.addn(1);
   await owner.call(
     v1,
-    'adjust_balance',
+    'set_balance_delta',
     {
-      account_id: contract.accountId,
       staked_delta: "0",
       unstaked_delta: diff.toString(10)
     },
   );
+
+  for (let i = 0; i < 2; i++) {
+    await epochStake(owner, contract);
+  }
 
   await owner.call(
     contract,
@@ -260,16 +255,31 @@ skip('sync balance by manager failure', async (test, { root, contract, alice, ow
   // v1 amount should not change
   await assertValidator(v1, '30000000000000000000000000', '0');
 
-  // -- 2. amount balance diff > MAX_SYNC_BALANCE_DIFF
+  // -- 2. amount balance diff > MANAGER_SYNC_BALANCE_DIFF_THRESHOLD
   await owner.call(
     v2,
-    'adjust_balance',
+    'set_balance_delta',
     {
-      account_id: contract.accountId,
       staked_delta: diff.toString(10),
       unstaked_delta: diff.toString(10)
     },
   );
+
+  await owner.call(
+    contract,
+    'set_epoch_height',
+    { epoch: 11 }
+  );
+
+  await alice.call(
+    contract,
+    'unstake_all',
+    {},
+  );
+
+  for (let i = 0; i < 2; i++) {
+    await epochUnstake(alice, contract);
+  }
 
   await owner.call(
     contract,
@@ -283,10 +293,10 @@ skip('sync balance by manager failure', async (test, { root, contract, alice, ow
   );
 
   // v2 amount should not change
-  await assertValidator(v2, '30000000000000000000000000', '0');
+  await assertValidator(v2, NEAR.parse('5').toString(10), NEAR.parse('25').toString(10));
 });
 
-skip('sync balance by manager', async (test, { root, contract, alice, owner }) => {
+workspace.test('sync balance by manager', async (test, { root, contract, alice, owner }) => {
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
   const v1 = await createStakingPool(root, 'v1');
   const v2 = await createStakingPool(root, 'v2');
@@ -322,28 +332,58 @@ skip('sync balance by manager', async (test, { root, contract, alice, owner }) =
     }
   );
 
-  for (let i = 0; i < 2; i++) {
-    await owner.call(
-      contract,
-      'epoch_stake',
-      {},
-      {
-        gas: Gas.parse('200 Tgas')
-      }
-    );
-  }
-
-  // -- amount balance diff < MAX_SYNC_BALANCE_DIFF
-  const diff = MAX_SYNC_BALANCE_DIFF.subn(1);
+  // -- amount balance diff < MANAGER_SYNC_BALANCE_DIFF_THRESHOLD
+  const diff = MANAGER_SYNC_BALANCE_DIFF_THRESHOLD.subn(1);
   await owner.call(
-    v2,
-    'adjust_balance',
+    v1,
+    'set_balance_delta',
     {
-      account_id: contract.accountId,
       staked_delta: diff.toString(10),
       unstaked_delta: diff.toString(10),
     },
   );
+
+  for (let i = 0; i < 2; i++) {
+    await epochStake(alice, contract);
+  }
+
+  await owner.call(
+    contract,
+    'sync_balance_from_validator',
+    {
+      validator_id: v1.accountId
+    },
+    {
+      gas: Gas.parse('200 Tgas')
+    }
+  );
+
+  await assertValidator(v1, NEAR.parse("30").sub(diff).toString(10), diff.toString(10));
+
+  await owner.call(
+    v2,
+    'set_balance_delta',
+    {
+      staked_delta: diff.toString(10),
+      unstaked_delta: diff.toString(10)
+    },
+  );
+
+  await owner.call(
+    contract,
+    'set_epoch_height',
+    { epoch: 11 }
+  );
+
+  await alice.call(
+    contract,
+    'unstake_all',
+    {},
+  );
+
+  for (let i = 0; i < 2; i++) {
+    await epochUnstake(alice, contract);
+  }
 
   await owner.call(
     contract,
@@ -356,5 +396,6 @@ skip('sync balance by manager', async (test, { root, contract, alice, owner }) =
     }
   );
 
-  await assertValidator(v2, NEAR.parse("30").sub(diff).toString(10), diff.toString(10));
+  // v2 amount should not change
+  await assertValidator(v2, NEAR.parse('5').sub(diff).sub(diff).toString(10), NEAR.parse('25').add(diff).add(diff).toString(10));
 });

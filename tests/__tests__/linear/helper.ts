@@ -2,7 +2,8 @@ import { Workspace, NEAR, NearAccount, BN, Gas, TransactionResult } from "near-w
 
 export const ONE_YOCTO = '1';
 export const NUM_EPOCHS_TO_UNLOCK = 4;
-export const MAX_SYNC_BALANCE_DIFF = NEAR.from(100);;
+export const MAX_SYNC_BALANCE_DIFF = NEAR.from(100);
+export const MANAGER_SYNC_BALANCE_DIFF_THRESHOLD = NEAR.parse("0.001");
 
 interface RewardFee {
   numerator: number,

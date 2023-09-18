@@ -471,7 +471,7 @@ impl LiquidStakingContract {
 
         match result {
             Ok(account) => {
-                // allow at most MAX_SYNC_BALANCE_DIFF diff in total balance, staked balance and unstake balance
+                // allow at most max_sync_balance_diff diff in total balance, staked balance and unstake balance
                 let new_total_balance = account.staked_balance.0 + account.unstaked_balance.0;
                 if abs_diff_eq(
                     new_total_balance,
@@ -516,7 +516,7 @@ impl LiquidStakingContract {
                 }
             }
             Err(_) => {
-                Event::SyncValidatorBalanceFailedCantGetAccount {
+                Event::SyncValidatorBalanceFailedCannotGetAccount {
                     validator_id: &validator_id,
                     old_staked_balance: &validator.staked_amount.into(),
                     old_unstaked_balance: &validator.unstaked_amount.into(),

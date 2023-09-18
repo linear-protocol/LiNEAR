@@ -196,8 +196,9 @@ impl MockStakingPool {
         let unstaked_deposit = self.internal_get_unstaked_deposit(&account_id);
         assert!(unstaked_deposit >= amount);
 
-        let new_deposit = unstaked_deposit - amount;
-        let new_staked = self.internal_get_staked(&account_id) + amount - self.staked_delta;
+        let new_deposit = unstaked_deposit - amount + self.unstaked_delta;
+        let new_staked =
+            (self.internal_get_staked(&account_id) + amount).saturating_sub(self.staked_delta);
 
         self.deposits.insert(&account_id, &new_deposit);
         self.staked.insert(&account_id, &new_staked);
@@ -210,7 +211,7 @@ impl MockStakingPool {
 
         let unstaked_deposit = self.internal_get_unstaked_deposit(&account_id);
         let new_deposit = unstaked_deposit + amount + self.unstaked_delta;
-        let new_staked = staked - amount;
+        let new_staked = (staked - amount).saturating_sub(self.staked_delta);
 
         self.deposits.insert(&account_id, &new_deposit);
         self.staked.insert(&account_id, &new_staked);

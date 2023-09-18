@@ -115,7 +115,7 @@ workspace.test('epoch stake failure: get_account fails', async (test, { root, co
 
   test.is(ret.parseResult(), true);
 
-  assertHasLog(test, ret, 'sync_validator_balance_failed_cant_get_account');
+  assertHasLog(test, ret, 'sync_validator_balance_failed_cannot_get_account');
 
   // stake still succeeded
   await assertValidator(v1, '60', '0');
@@ -281,7 +281,7 @@ workspace.test('epoch unstake failure: get_account fails', async (test, { root, 
 
   test.is(ret.parseResult(), true);
 
-  assertHasLog(test, ret, 'sync_validator_balance_failed_cant_get_account');
+  assertHasLog(test, ret, 'sync_validator_balance_failed_cannot_get_account');
 
   // unstake still succeeded
   await assertValidator(v1, '50', '10');

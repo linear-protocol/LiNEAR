@@ -9,6 +9,7 @@ use crate::utils::*;
 const MIN_AMOUNT_TO_PERFORM_STAKE: Balance = ONE_NEAR;
 const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR;
 const MAX_SYNC_BALANCE_DIFF: Balance = 100;
+const MANAGER_SYNC_BALANCE_DIFF_THRESHOLD: Balance = ONE_NEAR / 1000;
 
 /// Actions that should be called by off-chain actors
 /// during each epoch.
@@ -270,9 +271,10 @@ impl LiquidStakingContract {
             .expect(ERR_VALIDATOR_NOT_EXIST);
 
         validator
-            .sync_account_balance()
+            .sync_account_balance(&mut self.validator_pool, false)
             .then(ext_self_action_cb::validator_get_account_callback(
                 validator.account_id,
+                false,
                 env::current_account_id(),
                 NO_DEPOSIT,
                 GAS_CB_VALIDATOR_SYNC_BALANCE,
@@ -298,7 +300,11 @@ trait EpochActionCallbacks {
 
     fn validator_get_balance_callback(&mut self, validator_id: AccountId);
 
-    fn validator_get_account_callback(&mut self, validator_id: AccountId) -> bool;
+    fn validator_get_account_callback(
+        &mut self,
+        validator_id: AccountId,
+        post_action: bool,
+    ) -> bool;
 
     fn validator_withdraw_callback(&mut self, validator_id: AccountId, amount: U128);
 }
@@ -332,9 +338,10 @@ impl LiquidStakingContract {
             .emit();
 
             validator
-                .sync_account_balance()
+                .sync_account_balance(&mut self.validator_pool, true)
                 .then(ext_self_action_cb::validator_get_account_callback(
                     validator_id,
+                    true,
                     env::current_account_id(),
                     NO_DEPOSIT,
                     GAS_CB_VALIDATOR_SYNC_BALANCE,
@@ -381,9 +388,10 @@ impl LiquidStakingContract {
             .emit();
 
             validator
-                .sync_account_balance()
+                .sync_account_balance(&mut self.validator_pool, true)
                 .then(ext_self_action_cb::validator_get_account_callback(
                     validator_id,
+                    true,
                     env::current_account_id(),
                     NO_DEPOSIT,
                     GAS_CB_VALIDATOR_SYNC_BALANCE,
@@ -438,10 +446,16 @@ impl LiquidStakingContract {
         self.internal_distribute_staking_rewards(rewards);
     }
 
+    /// Callback after get LiNEAR contract account balance from the validator
+    ///
+    /// Params:
+    /// - validator_id: the validator to sync balance
+    /// - post_action: sync balance is called after stake or unstake
     #[private]
     pub fn validator_get_account_callback(
         &mut self,
         validator_id: AccountId,
+        post_action: bool,
         #[callback_result] result: Result<HumanReadableAccount, PromiseError>,
     ) -> bool {
         let mut validator = self
@@ -449,8 +463,8 @@ impl LiquidStakingContract {
             .get_validator(&validator_id)
             .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
-        let max_sync_balance_diff = if self.managers.contains(&env::signer_account_id()) {
-            ONE_NEAR / 1000
+        let max_sync_balance_diff = if !post_action && self.signed_by_manager() {
+            MANAGER_SYNC_BALANCE_DIFF_THRESHOLD
         } else {
             MAX_SYNC_BALANCE_DIFF
         };

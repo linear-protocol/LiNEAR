@@ -157,7 +157,7 @@ workspace.test('sync balance after stake/unstake', async (test, { root, contract
     await epochStake(alice, contract);
   }
 
-  await assertValidator(v2, NEAR.parse("30").sub(diff).toString(10), '0');
+  await assertValidator(v2, NEAR.parse("30").sub(diff).toString(10), diff.toString(10));
 
   await owner.call(
     contract,
@@ -184,7 +184,7 @@ workspace.test('sync balance after stake/unstake', async (test, { root, contract
     await epochUnstake(owner, contract);
   }
 
-  await assertValidator(v1, NEAR.parse("5").toString(10),  NEAR.parse("25").add(diff).toString(10));
+  await assertValidator(v1, NEAR.parse("5").sub(diff).toString(10),  NEAR.parse("25").add(diff).toString(10));
 });
 
 workspace.test('sync balance by manager failure', async (test, { root, contract, alice, bob, owner }) => {
@@ -241,7 +241,23 @@ workspace.test('sync balance by manager failure', async (test, { root, contract,
     await epochStake(owner, contract);
   }
 
-  await owner.call(
+  // sync balance only allowed by manager
+  await assertFailure(
+    test,
+    alice.call(
+      contract,
+      'sync_balance_from_validator',
+      {
+        validator_id: v1.accountId
+      },
+      {
+        gas: Gas.parse('200 Tgas')
+      }
+    ),
+    "Only manager can perform this action"
+  );
+
+  await bob.call(
     contract,
     'sync_balance_from_validator',
     {
@@ -281,7 +297,7 @@ workspace.test('sync balance by manager failure', async (test, { root, contract,
     await epochUnstake(alice, contract);
   }
 
-  await owner.call(
+  await bob.call(
     contract,
     'sync_balance_from_validator',
     {
@@ -296,7 +312,10 @@ workspace.test('sync balance by manager failure', async (test, { root, contract,
   await assertValidator(v2, NEAR.parse('5').toString(10), NEAR.parse('25').toString(10));
 });
 
-workspace.test('sync balance by manager', async (test, { root, contract, alice, owner }) => {
+workspace.test('sync balance by manager', async (test, { root, contract, alice, bob, owner }) => {
+  // set bob as manager
+  await setManager(root, contract, owner, bob);
+
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
   const v1 = await createStakingPool(root, 'v1');
   const v2 = await createStakingPool(root, 'v2');
@@ -347,7 +366,7 @@ workspace.test('sync balance by manager', async (test, { root, contract, alice, 
     await epochStake(alice, contract);
   }
 
-  await owner.call(
+  await bob.call(
     contract,
     'sync_balance_from_validator',
     {
@@ -385,7 +404,7 @@ workspace.test('sync balance by manager', async (test, { root, contract, alice, 
     await epochUnstake(alice, contract);
   }
 
-  await owner.call(
+  await bob.call(
     contract,
     'sync_balance_from_validator',
     {
@@ -397,5 +416,5 @@ workspace.test('sync balance by manager', async (test, { root, contract, alice, 
   );
 
   // v2 amount should not change
-  await assertValidator(v2, NEAR.parse('5').sub(diff).sub(diff).toString(10), NEAR.parse('25').add(diff).add(diff).toString(10));
+  await assertValidator(v2, NEAR.parse('5').sub(diff).toString(10), NEAR.parse('25').add(diff).toString(10));
 });

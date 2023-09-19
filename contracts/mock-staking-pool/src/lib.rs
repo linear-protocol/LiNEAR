@@ -158,7 +158,9 @@ impl MockStakingPool {
 
     pub fn add_reward_for(&mut self, amount: U128, account_id: AccountId) {
         let staked_amount = self.internal_get_staked(&account_id);
-        assert!(staked_amount > 0);
+        // disable assert of `staked amount > 0` to test one special case that rewards are
+        // received when call `unstake()` on staking pool, which triggers `internal_ping()`
+        // assert!(staked_amount > 0);
 
         let new_amount = staked_amount + amount.0;
         self.staked.insert(&account_id, &new_amount);

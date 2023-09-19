@@ -337,6 +337,10 @@ export function assertValidatorAmountHelper (
   }
 }
 
+export function amountWithDiff(amount: string, diff: NEAR, numberOfDiff: number) {
+  return NEAR.parse(amount).add(diff.muln(numberOfDiff)).toHuman();
+}
+
 const EPOCH_STAKE_AND_UNSTAKE_GAS = Gas.parse('280 Tgas');
 
 export function epochStake(caller: NearAccount, contract: NearAccount): Promise<any> {

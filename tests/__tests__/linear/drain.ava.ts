@@ -446,5 +446,5 @@ workspace.test('drain unstake: get_account fails', async (test, {contract, root,
     }
   );
 
-  assertHasLog(test, ret, 'sync_validator_balance_failed_cant_get_account');
+  assertHasLog(test, ret, 'sync_validator_balance_failed_cannot_get_account');
 });

@@ -99,7 +99,7 @@ pub enum Event<'a> {
         new_unstaked_balance: &'a U128,
         new_total_balance: &'a U128,
     },
-    SyncValidatorBalanceFailedCantGetAccount {
+    SyncValidatorBalanceFailedCannotGetAccount {
         validator_id: &'a AccountId,
         old_staked_balance: &'a U128,
         old_unstaked_balance: &'a U128,

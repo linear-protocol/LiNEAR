@@ -1,5 +1,5 @@
 import { NearAccount, NEAR, Gas } from "near-workspaces-ava";
-import { initWorkSpace, createStakingPool, getValidator, epochStake, epochUnstake, epochUnstakeCallRaw, epochStakeCallRaw, assertHasLog } from "./helper";
+import { initWorkSpace, createStakingPool, getValidator, epochStake, epochUnstake, epochUnstakeCallRaw, epochStakeCallRaw, assertHasLog, MAX_SYNC_BALANCE_DIFF } from "./helper";
 
 const workspace = initWorkSpace();
 
@@ -115,7 +115,7 @@ workspace.test('epoch stake failure: get_account fails', async (test, { root, co
 
   test.is(ret.parseResult(), true);
 
-  assertHasLog(test, ret, 'sync_validator_balance_failed_cant_get_account');
+  assertHasLog(test, ret, 'sync_validator_balance_failed_cannot_get_account');
 
   // stake still succeeded
   await assertValidator(v1, '60', '0');
@@ -148,7 +148,6 @@ workspace.test('epoch stake failure: balance diff too large', async (test, { roo
     }
   );
 
-  const MAX_SYNC_BALANCE_DIFF = NEAR.from(100);
   const diff = MAX_SYNC_BALANCE_DIFF.addn(1);
 
   await owner.call(
@@ -282,7 +281,7 @@ workspace.test('epoch unstake failure: get_account fails', async (test, { root, 
 
   test.is(ret.parseResult(), true);
 
-  assertHasLog(test, ret, 'sync_validator_balance_failed_cant_get_account');
+  assertHasLog(test, ret, 'sync_validator_balance_failed_cannot_get_account');
 
   // unstake still succeeded
   await assertValidator(v1, '50', '10');
@@ -332,7 +331,6 @@ workspace.test('epoch unstake failure: balance diff too large', async (test, { r
     { amount: NEAR.parse('10') }
   );
 
-  const MAX_SYNC_BALANCE_DIFF = NEAR.from(100);
   const diff = MAX_SYNC_BALANCE_DIFF.addn(1);
 
   await owner.call(

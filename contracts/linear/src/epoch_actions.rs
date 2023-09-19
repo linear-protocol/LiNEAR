@@ -9,6 +9,7 @@ use crate::utils::*;
 const MIN_AMOUNT_TO_PERFORM_STAKE: Balance = ONE_NEAR;
 const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR;
 const MAX_SYNC_BALANCE_DIFF: Balance = 100;
+const MANAGER_SYNC_BALANCE_DIFF_THRESHOLD: Balance = 1_000_000;
 
 /// Actions that should be called by off-chain actors
 /// during each epoch.
@@ -272,7 +273,11 @@ trait EpochActionCallbacks {
 
     fn validator_get_balance_callback(&mut self, validator_id: AccountId);
 
-    fn validator_get_account_callback(&mut self, validator_id: AccountId) -> bool;
+    fn validator_get_account_callback(
+        &mut self,
+        validator_id: AccountId,
+        post_action: bool,
+    ) -> bool;
 
     fn validator_withdraw_callback(&mut self, validator_id: AccountId, amount: U128);
 }
@@ -306,9 +311,10 @@ impl LiquidStakingContract {
             .emit();
 
             validator
-                .sync_account_balance()
+                .sync_account_balance(&mut self.validator_pool, true)
                 .then(ext_self_action_cb::validator_get_account_callback(
                     validator_id,
+                    true,
                     env::current_account_id(),
                     NO_DEPOSIT,
                     GAS_CB_VALIDATOR_SYNC_BALANCE,
@@ -355,9 +361,10 @@ impl LiquidStakingContract {
             .emit();
 
             validator
-                .sync_account_balance()
+                .sync_account_balance(&mut self.validator_pool, true)
                 .then(ext_self_action_cb::validator_get_account_callback(
                     validator_id,
+                    true,
                     env::current_account_id(),
                     NO_DEPOSIT,
                     GAS_CB_VALIDATOR_SYNC_BALANCE,
@@ -412,10 +419,16 @@ impl LiquidStakingContract {
         self.internal_distribute_staking_rewards(rewards);
     }
 
+    /// Callback after get LiNEAR contract account balance from the validator
+    ///
+    /// Params:
+    /// - validator_id: the validator to sync balance
+    /// - post_action: sync balance is called after stake or unstake
     #[private]
     pub fn validator_get_account_callback(
         &mut self,
         validator_id: AccountId,
+        post_action: bool,
         #[callback_result] result: Result<HumanReadableAccount, PromiseError>,
     ) -> bool {
         let mut validator = self
@@ -423,22 +436,28 @@ impl LiquidStakingContract {
             .get_validator(&validator_id)
             .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
 
+        let max_sync_balance_diff = if !post_action && self.signed_by_manager() {
+            MANAGER_SYNC_BALANCE_DIFF_THRESHOLD
+        } else {
+            MAX_SYNC_BALANCE_DIFF
+        };
+
         match result {
             Ok(account) => {
-                // allow at most MAX_SYNC_BALANCE_DIFF diff in total balance, staked balance and unstake balance
+                // allow at most max_sync_balance_diff diff in total balance, staked balance and unstake balance
                 let new_total_balance = account.staked_balance.0 + account.unstaked_balance.0;
                 if abs_diff_eq(
                     new_total_balance,
                     validator.total_balance(),
-                    MAX_SYNC_BALANCE_DIFF,
+                    max_sync_balance_diff,
                 ) && abs_diff_eq(
                     account.staked_balance.0,
                     validator.staked_amount,
-                    MAX_SYNC_BALANCE_DIFF,
+                    max_sync_balance_diff,
                 ) && abs_diff_eq(
                     account.unstaked_balance.0,
                     validator.unstaked_amount,
-                    MAX_SYNC_BALANCE_DIFF,
+                    max_sync_balance_diff,
                 ) {
                     Event::SyncValidatorBalanceSuccess {
                         validator_id: &validator_id,
@@ -470,7 +489,7 @@ impl LiquidStakingContract {
                 }
             }
             Err(_) => {
-                Event::SyncValidatorBalanceFailedCantGetAccount {
+                Event::SyncValidatorBalanceFailedCannotGetAccount {
                     validator_id: &validator_id,
                     old_staked_balance: &validator.staked_amount.into(),
                     old_unstaked_balance: &validator.unstaked_amount.into(),

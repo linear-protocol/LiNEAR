@@ -586,6 +586,34 @@ impl LiquidStakingContract {
         }
     }
 
+    /// Sync contract staked and unstaked balance from validator
+    /// - Only allowed by manager
+    pub fn sync_balance_from_validator(&mut self, validator_id: AccountId) {
+        self.assert_running();
+        self.assert_manager();
+
+        let min_gas = GAS_SYNC_BALANCE + GAS_EXT_GET_ACCOUNT + GAS_CB_VALIDATOR_SYNC_BALANCE;
+        require!(
+            env::prepaid_gas() >= min_gas,
+            format!("{}. require at least {:?}", ERR_NO_ENOUGH_GAS, min_gas)
+        );
+
+        let mut validator = self
+            .validator_pool
+            .get_validator(&validator_id)
+            .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        validator
+            .sync_account_balance(&mut self.validator_pool, false)
+            .then(ext_self_action_cb::validator_get_account_callback(
+                validator.account_id,
+                false,
+                env::current_account_id(),
+                NO_DEPOSIT,
+                GAS_CB_VALIDATOR_SYNC_BALANCE,
+            ));
+    }
+
     // --- View Functions ---
 
     #[cfg(feature = "test")]
@@ -767,9 +795,10 @@ impl LiquidStakingContract {
             .emit();
 
             validator
-                .sync_account_balance()
+                .sync_account_balance(&mut self.validator_pool, true)
                 .then(ext_self_action_cb::validator_get_account_callback(
                     validator_id,
+                    true,
                     env::current_account_id(),
                     NO_DEPOSIT,
                     GAS_CB_VALIDATOR_SYNC_BALANCE,
@@ -1028,8 +1057,16 @@ impl Validator {
     /// the amount of staked and unstaked balance might be a little bit
     /// different than we requested.
     /// This method is to sync the actual numbers with the validator.
-    pub fn sync_account_balance(&mut self) -> Promise {
-        require!(self.executing, ERR_VALIDATOR_SYNC_BALANCE_NOT_ALLOWED);
+    ///
+    /// Params:
+    /// - pool: validator pool
+    /// - post_action: sync balance is called after stake or unstake
+    pub fn sync_account_balance(&mut self, pool: &mut ValidatorPool, post_action: bool) -> Promise {
+        if post_action {
+            require!(self.executing, ERR_VALIDATOR_SYNC_BALANCE_NOT_EXPECTED);
+        } else {
+            self.pre_execution(pool);
+        }
 
         ext_staking_pool::get_account(
             env::current_account_id(),

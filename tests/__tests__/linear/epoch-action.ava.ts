@@ -14,21 +14,21 @@ import {
 
 const workspace = initWorkSpace();
 
-async function stakeAll (owner: NearAccount, contract: NearAccount) {
+async function stakeAll(owner: NearAccount, contract: NearAccount) {
   let run = true;
   while (run) {
     run = await epochStake(owner, contract);
   }
 }
 
-async function unstakeAll (owner: NearAccount, contract: NearAccount) {
+async function unstakeAll(owner: NearAccount, contract: NearAccount) {
   let run = true;
   while (run) {
     run = await epochUnstake(owner, contract);
   }
 }
 
-workspace.test('epoch stake', async (test, {root, contract, alice, owner, bob}) => {
+workspace.test('epoch stake', async (test, { root, contract, alice, owner, bob }) => {
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -168,7 +168,7 @@ workspace.test('epoch stake', async (test, {root, contract, alice, owner, bob}) 
   await assertValidator(v3, `${30 + 45 + 15}`, '0', '0');
 });
 
-workspace.test('epoch stake, staking pool with 1yN rounding diff', async (test, {root, contract, alice, owner, bob}) => {
+workspace.test('epoch stake, staking pool with 1yN rounding diff', async (test, { root, contract, alice, owner, bob }) => {
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -322,7 +322,7 @@ workspace.test('epoch stake, staking pool with 1yN rounding diff', async (test, 
   await assertValidator(v3, `${30 + 45 + 15}`, '0', '0');
 });
 
-workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => {
+workspace.test('epoch unstake', async (test, { root, contract, alice, owner }) => {
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -475,7 +475,7 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
   await assertValidator(v2, '16', '24', '0', '12');  // target = 12 (weighted); delta (1st) = 22.5 - 12 = 10.5; delta (2nd) = 16 - 12 = 4; 
   await assertValidator(v3, '18', '42', '0', '18');   // target = 18 (weighted); delta (1st) = 37.5 - 18 = 19.5; delta (2nd) = 18 - 18 = 0;
 
- 
+
   // reset base stake amount of v1 to 0
   await updateBaseStakeAmounts(
     contract,
@@ -513,7 +513,7 @@ workspace.test('epoch unstake', async (test, {root, contract, alice, owner}) => 
   await assertValidator(v3, '18', '42', '0', '18');   // target = 18 (weighted); delta (1st) = 18 - 18 = 0; delta (2nd) = 18 - 18 = 0; 
 });
 
-workspace.test('epoch unstake, staking pool with 1yN rounding diff', async (test, {root, contract, alice, owner}) => {
+workspace.test('epoch unstake, staking pool with 1yN rounding diff', async (test, { root, contract, alice, owner }) => {
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -677,7 +677,7 @@ workspace.test('epoch unstake, staking pool with 1yN rounding diff', async (test
   await assertValidator(v2, amountWithDiff('16', diff, -1), amountWithDiff('24', diff, 1), '0', '12');  // target = 12 (weighted); delta (1st) = 22.5 - 12 = 10.5; delta (2nd) = 16 - 12 = 4; 
   await assertValidator(v3, '18', '42', '0', '18');   // target = 18 (weighted); delta (1st) = 37.5 - 18 = 19.5; delta (2nd) = 18 - 18 = 0;
 
- 
+
   // reset base stake amount of v1 to 0
   await updateBaseStakeAmounts(
     contract,
@@ -715,7 +715,7 @@ workspace.test('epoch unstake, staking pool with 1yN rounding diff', async (test
   await assertValidator(v3, '18', '42', '0', '18');   // target = 18 (weighted); delta (1st) = 18 - 18 = 0; delta (2nd) = 18 - 18 = 0; 
 });
 
-workspace.test('epoch collect rewards', async (test, {root, contract, alice, owner}) => {
+workspace.test('epoch collect rewards', async (test, { root, contract, alice, owner }) => {
   test.timeout(60 * 1000);
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
 
@@ -856,12 +856,12 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, own
 
   // set beneficiary
   await owner.call(
-      contract,
-      'set_beneficiary',
-      {
-          account_id: owner.accountId,
-          bps: 1000
-      }
+    contract,
+    'set_beneficiary',
+    {
+      account_id: owner.accountId,
+      bps: 1000
+    }
   );
 
   // generate more rewards
@@ -977,7 +977,7 @@ workspace.test('epoch collect rewards', async (test, {root, contract, alice, own
   await assertValidator(v3, "0", "33", "0");
 });
 
-workspace.test('epoch withdraw', async (test, {contract, alice, root, owner}) => {
+workspace.test('epoch withdraw', async (test, { contract, alice, root, owner }) => {
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -1126,7 +1126,7 @@ workspace.test('epoch withdraw', async (test, {contract, alice, root, owner}) =>
   await assertValidator(v3, '37.5', '0');
 });
 
-skip('estimate gas of epoch unstake', async (test, {contract, alice, root, owner}) => {
+skip('estimate gas of epoch unstake', async (test, { contract, alice, root, owner }) => {
   const validatorsNum = 255
 
   const names = Array.from({ length: validatorsNum }, (_, index) => `v${index + 1}`)
@@ -1148,7 +1148,7 @@ skip('estimate gas of epoch unstake', async (test, {contract, alice, root, owner
 
   let sliceIndex = 0
   const sliceSize = 6
-  while(sliceIndex < validators.length) {
+  while (sliceIndex < validators.length) {
     const validatorIdSlice = validators.slice(sliceIndex, sliceSize).map(v => v.accountId)
     const weightSlice = weights.slice(sliceIndex, sliceSize)
     await owner.call(

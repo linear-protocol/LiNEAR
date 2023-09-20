@@ -175,10 +175,6 @@ impl LiquidStakingContract {
             .get_validator(&validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST);
 
-        if validator.staked_amount == 0 && validator.unstaked_amount == 0 {
-            return;
-        }
-
         validator
             .refresh_total_balance(&mut self.validator_pool)
             .then(ext_self_action_cb::validator_get_balance_callback(

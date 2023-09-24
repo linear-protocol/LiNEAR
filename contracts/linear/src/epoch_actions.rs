@@ -7,7 +7,7 @@ use crate::types::*;
 use crate::utils::*;
 
 const MIN_AMOUNT_TO_PERFORM_STAKE: Balance = ONE_NEAR;
-const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR;
+const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR / 1000;
 const MAX_SYNC_BALANCE_DIFF: Balance = 100;
 const MANAGER_SYNC_BALANCE_DIFF_THRESHOLD: Balance = 1_000_000;
 

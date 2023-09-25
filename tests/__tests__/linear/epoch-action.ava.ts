@@ -743,7 +743,7 @@ workspace.test('epoch unstake, staking pool with 1yN rounding diff', async (test
 
   // validators should have target stake amount based on weights + base stake amounts
   // - 1st epoch_unstake() unstaked ~6 NEAR (amount = delta) from validator v1;
-  await assertValidator(v1, '1 yN', amountWithDiff('20', diff, -1), '0', '0');   // target = 6 (weighted);
+  await assertValidator(v1, '1 yN', amountWithDiff('20', diff, -1), '0', '0');   // target = 0 (weighted);
   await assertValidator(v2, amountWithDiff('12', diff, -2), amountWithDiff('28', diff, 2), '0', amountWithDiff('12', diff, 1));  // target = 12 (weighted);
   await assertValidator(v3, '18', '42', '0', amountWithDiff('18', diff, 1));   // target = 18 (weighted);
 
@@ -765,9 +765,9 @@ workspace.test('epoch unstake, staking pool with 1yN rounding diff', async (test
   await unstakeAll(owner, contract);
 
   // validators should have target stake amount based on weights + base stake amounts
-  // - 1st epoch_unstake() unstaked 1 yocto NEAR (amount = delta) from validator v1;
-  // - 2nd epoch_unstake() unstaked ~4 NEAR (amount = delta) from validator v2;
-  // - 3rd epoch_unstake() unstaked 6 NEAR (amount = delta) from validator v3;
+  // - 1st epoch_unstake() unstaked 1 yocto NEAR (amount = delta) from validator v1, because the target of v1 is 0;
+  // - 2nd epoch_unstake() unstaked 6 NEAR (amount = delta) from validator v3, because the delta / target ratio of v3 is higher than v2;
+  // - 3rd epoch_unstake() unstaked ~4 NEAR (amount = delta) from validator v2;
   await assertValidator(v1, '0', amountWithDiff('20', diff, 1), '0', '0');   // target = 0 (weighted);
   await assertValidator(v2, amountWithDiff('8', diff, -1), amountWithDiff('32', diff, 1), '0', amountWithDiff('8', diff, 1));  // target = 8 (weighted);
   await assertValidator(v3, '12', '48', '0', amountWithDiff('12', diff, 1));   // target = 12 (weighted);

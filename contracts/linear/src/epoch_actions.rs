@@ -7,7 +7,6 @@ use crate::types::*;
 use crate::utils::*;
 
 const MIN_AMOUNT_TO_PERFORM_STAKE: Balance = ONE_NEAR;
-const MIN_AMOUNT_TO_PERFORM_UNSTAKE: Balance = ONE_NEAR / 1000;
 const MAX_SYNC_BALANCE_DIFF: Balance = 100;
 const MANAGER_SYNC_BALANCE_DIFF_THRESHOLD: Balance = 1_000_000;
 
@@ -133,10 +132,8 @@ impl LiquidStakingContract {
         let mut candidate = candidate.unwrap();
         let amount_to_unstake = candidate.amount;
 
-        if amount_to_unstake < MIN_AMOUNT_TO_PERFORM_UNSTAKE {
-            log!("unstake amount too low: {}", amount_to_unstake);
-            return PromiseOrValue::Value(false);
-        }
+        // Since it's reasonable to unstake any amount of NEAR from a validator, as low as 1 yocto NEAR,
+        // when its target stake amount is 0, here we don't enforce the minimun unstake amount requirement.
 
         // update internal state
         self.unstake_amount_to_settle -= amount_to_unstake;

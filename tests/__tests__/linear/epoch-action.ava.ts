@@ -766,7 +766,7 @@ workspace.test('epoch unstake, staking pool with 1yN rounding diff', async (test
 
   // validators should have target stake amount based on weights + base stake amounts
   // - 1st epoch_unstake() unstaked 1 yocto NEAR (amount = delta) from validator v1;
-  // - 2nd epoch_unstake() unstaked 4 NEAR (amount = delta) from validator v2;
+  // - 2nd epoch_unstake() unstaked ~4 NEAR (amount = delta) from validator v2;
   // - 3rd epoch_unstake() unstaked 6 NEAR (amount = delta) from validator v3;
   await assertValidator(v1, '0', amountWithDiff('20', diff, 1), '0', '0');   // target = 0 (weighted);
   await assertValidator(v2, amountWithDiff('8', diff, -1), amountWithDiff('32', diff, 1), '0', amountWithDiff('8', diff, 1));  // target = 8 (weighted);

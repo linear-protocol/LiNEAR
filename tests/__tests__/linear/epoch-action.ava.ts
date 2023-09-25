@@ -28,7 +28,7 @@ async function unstakeAll(owner: NearAccount, contract: NearAccount) {
   }
 }
 
-skip('epoch stake', async (test, { root, contract, alice, owner, bob }) => {
+workspace.test('epoch stake', async (test, { root, contract, alice, owner, bob }) => {
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -168,7 +168,7 @@ skip('epoch stake', async (test, { root, contract, alice, owner, bob }) => {
   await assertValidator(v3, `${30 + 45 + 15}`, '0', '0');
 });
 
-skip('epoch stake, staking pool with 1yN rounding diff', async (test, { root, contract, alice, owner, bob }) => {
+workspace.test('epoch stake, staking pool with 1yN rounding diff', async (test, { root, contract, alice, owner, bob }) => {
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -322,7 +322,7 @@ skip('epoch stake, staking pool with 1yN rounding diff', async (test, { root, co
   await assertValidator(v3, `${30 + 45 + 15}`, '0', '0');
 });
 
-skip('epoch unstake', async (test, { root, contract, alice, owner }) => {
+workspace.test('epoch unstake', async (test, { root, contract, alice, owner }) => {
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');
@@ -773,7 +773,7 @@ workspace.test('epoch unstake, staking pool with 1yN rounding diff', async (test
   await assertValidator(v3, '12', '48', '0', amountWithDiff('12', diff, 1));   // target = 12 (weighted);
 });
 
-skip('epoch collect rewards', async (test, { root, contract, alice, owner }) => {
+workspace.test('epoch collect rewards', async (test, { root, contract, alice, owner }) => {
   test.timeout(60 * 1000);
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
 
@@ -1035,7 +1035,7 @@ skip('epoch collect rewards', async (test, { root, contract, alice, owner }) => 
   await assertValidator(v3, "0", "33", "0");
 });
 
-skip('epoch withdraw', async (test, { contract, alice, root, owner }) => {
+workspace.test('epoch withdraw', async (test, { contract, alice, root, owner }) => {
   const assertValidator = assertValidatorAmountHelper(test, contract, owner);
 
   const v1 = await createStakingPool(root, 'v1');

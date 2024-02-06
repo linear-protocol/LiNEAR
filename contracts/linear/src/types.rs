@@ -16,8 +16,6 @@ use uint::construct_uint;
 pub const NO_DEPOSIT: Balance = 0;
 /// one NEAR
 pub const ONE_NEAR: Balance = 1_000_000_000_000_000_000_000_000;
-/// one micro NEAR (10^-6)
-pub const ONE_MICRO_NEAR: Balance = 1_000_000_000_000_000_000;
 /// The number of epochs required for the locked balance to become unlocked.
 /// NOTE: The actual number of epochs when the funds are unlocked is 3. But there is a corner case
 /// when the unstaking promise can arrive at the next epoch, while the inner state is already

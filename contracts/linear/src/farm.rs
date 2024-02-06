@@ -1,3 +1,6 @@
+//! The staking farm feature has been deprecated.
+//! Keep the legacy structs for tracking contract states.
+
 use near_sdk::{
     borsh::{BorshDeserialize, BorshSerialize},
     AccountId, Balance, Timestamp,
@@ -5,8 +8,6 @@ use near_sdk::{
 
 use crate::*;
 
-/// The staking farm feature has been deprecated.
-/// Keep the legacy structs for tracking contract states.
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug)]
 pub struct RewardDistribution {
     pub undistributed: Balance,

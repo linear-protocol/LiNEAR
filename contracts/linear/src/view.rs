@@ -14,18 +14,6 @@ pub struct Summary {
     /// LiNEAR price
     pub ft_price: U128,
 
-    /// Target NEAR amount in Liquidity Pool
-    pub lp_target_amount: U128,
-    /// Current NEAR amount in Liquidity Pool
-    pub lp_near_amount: U128,
-    /// Current LiNEAR amount in Liquidity Pool
-    pub lp_staked_share: U128,
-    /// Current instant unstake fee in Liquidity Pool.
-    /// For example, fee basis points is `30`, which means `0.3%` in percentage
-    pub lp_swap_fee_basis_points: u32,
-    /// Total received unstake fee as LiNEAR in Liquidity Pool
-    pub lp_total_fee_shares: U128,
-
     /// Number of nodes in validator pool
     pub validators_num: u64,
 
@@ -61,13 +49,6 @@ impl LiquidStakingContract {
             total_share_amount: self.total_share_amount.into(),
             total_staked_near_amount: self.total_staked_near_amount.into(),
             ft_price: self.ft_price(),
-            lp_target_amount: self.liquidity_pool.config.expected_near_amount,
-            lp_near_amount: self.liquidity_pool.amounts[0].into(),
-            lp_staked_share: self.liquidity_pool.amounts[1].into(),
-            lp_swap_fee_basis_points: self
-                .liquidity_pool
-                .get_current_swap_fee_basis_points(10 * ONE_NEAR),
-            lp_total_fee_shares: self.liquidity_pool.total_fee_shares.into(),
             validators_num: self.validator_pool.count(),
             stake_amount_to_settle: self.stake_amount_to_settle.into(),
             unstake_amount_to_settle: self.unstake_amount_to_settle.into(),
@@ -81,21 +62,13 @@ impl LiquidStakingContract {
     pub fn get_account_details(&self, account_id: AccountId) -> AccountDetailsView {
         let account = self.internal_get_account(&account_id);
         AccountDetailsView {
-            account_id: account_id.clone(),
+            account_id,
             unstaked_balance: account.unstaked.into(),
             staked_balance: self
                 .staked_amount_from_num_shares_rounded_down(account.stake_shares)
                 .into(),
             unstaked_available_epoch_height: account.unstaked_available_epoch_height,
             can_withdraw: account.unstaked_available_epoch_height <= get_epoch_height(),
-            liquidity_pool_share: self.liquidity_pool.get_account_shares(&account_id).into(),
-            liquidity_pool_share_value: self
-                .liquidity_pool
-                .get_account_value(&account_id, &self.internal_get_context())
-                .into(),
-            liquidity_pool_share_ratio_in_basis_points: self
-                .liquidity_pool
-                .get_account_shares_ratio_in_basis_points(&account_id),
         }
     }
 
@@ -186,12 +159,5 @@ impl LiquidStakingContract {
     /// confirm if the user can perform withdraw now
     pub fn can_account_withdraw(&self, account_id: AccountId, amount: U128) {
         self.assert_can_withdraw(&account_id, amount.0);
-    }
-
-    // --- Liquidity Pool view methods ---
-
-    /// Return liquidity pool configuration
-    pub fn get_liquidity_pool_config(&self) -> LiquidityPoolConfig {
-        self.liquidity_pool.config.clone()
     }
 }

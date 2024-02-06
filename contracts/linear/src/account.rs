@@ -58,10 +58,4 @@ pub struct AccountDetailsView {
     pub unstaked_available_epoch_height: EpochHeight,
     /// Whether the unstaked balance is available for withdrawal now.
     pub can_withdraw: bool,
-    /// The liquidity pool share of the account
-    pub liquidity_pool_share: U128,
-    /// The value of the liquidity pool share in $NEAR
-    pub liquidity_pool_share_value: U128,
-    /// The liquidity pool share ratio of the total supply in basis points
-    pub liquidity_pool_share_ratio_in_basis_points: u32,
 }

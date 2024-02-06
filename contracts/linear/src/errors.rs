@@ -15,7 +15,6 @@ pub const ERR_NOT_PAUSED: &str = "The contract is not paused yet";
 pub const ERR_NOT_MANAGER: &str = "Only manager can perform this action";
 
 // account
-pub const ERR_NO_ACCOUNT: &str = "Account not found";
 #[allow(dead_code)]
 pub const ERR_UNREGISTER_POSITIVE_UNSTAKED: &str = "Cannot delete the account because the unstaked amount is not empty. Withdraw your balance first.";
 
@@ -104,20 +103,3 @@ pub const ERR_NO_ENOUGH_LIQUIDITY_SHARES_TO_REMOVE: &str =
     "Not enough liquidity shares to remove from the pool";
 pub const ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT: &str =
     "The amount of value to be removed from liquidity pool should be positive";
-
-// staking farm
-pub const ERR_FARM_START_TOO_EARLY: &str =
-    "Farm start date should not be earlier than the current time";
-pub const ERR_FARM_END_TOO_EARLY: &str = "Farm end date is too close to start date";
-pub const ERR_NON_POSITIVE_FARM_AMOUNT: &str = "Farm amount should be positive";
-pub const ERR_FARM_AMOUNT_TOO_SMALL: &str = "Farm amount is too small";
-pub const ERR_NO_FARM: &str = "Farm not found";
-pub const ERR_NO_FARM_REWARDS: &str = "No rewards to claim";
-pub const ERR_FARM_MSG_WRONG_FORMAT: &str = "Farm message format is wrong";
-pub const ERR_NOT_AUTHORIZED_TOKEN: &str = "Token has not been authorized";
-pub const ERR_NOT_AUTHORIZED_USER: &str = "The sender has not been authorized";
-pub const ERR_TOO_MANY_ACTIVE_FARMS: &str = "Too many active farms";
-
-pub const ERR_GET_OWNER_NO_RESULT: &str = "get_owner must have result";
-pub const ERR_PARSE_OWNER_ID: &str = "Failed to parse owner ID";
-pub const ERR_CALLER_NOT_OWNER: &str = "Caller is not an owner";

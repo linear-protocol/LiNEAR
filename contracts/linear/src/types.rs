@@ -30,9 +30,6 @@ pub const FULL_BASIS_POINTS: u32 = 10_000;
 /// storage and contract call fees.
 pub const CONTRACT_MIN_RESERVE_BALANCE: Balance = ONE_NEAR;
 
-/// Maximum number of active farms at one time.
-pub const MAX_NUM_ACTIVE_FARMS: usize = 10;
-
 /// Zero address is implicit address that doesn't have a key for it.
 /// Used for burning tokens.
 // pub const ZERO_ADDRESS: &str = "0000000000000000000000000000000000000000000000000000000000000000";

@@ -82,9 +82,6 @@ impl LiquidStakingContract {
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);
 
-        // Distribute rewards from all the farms for the given user.
-        self.internal_distribute_all_farm_rewards(&mut account);
-
         // Calculate the number of "stake" shares that the account will receive for staking the
         // given amount.
         let num_shares = self.num_shares_from_staked_amount_rounded_down(amount);
@@ -144,9 +141,6 @@ impl LiquidStakingContract {
 
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);
-
-        // Distribute rewards from all the farms for the given user.
-        self.internal_distribute_all_farm_rewards(&mut account);
 
         require!(
             self.total_staked_near_amount > 0,

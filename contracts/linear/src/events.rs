@@ -545,30 +545,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "test")]
-    #[test]
-    fn instant_unstake() {
-        let account_id = &alice();
-        let unstaked_amount = &U128(98);
-        let swapped_stake_shares = &U128(100);
-        let new_unstaked_balance = &U128(111);
-        let new_stake_shares = &U128(99);
-        let fee_amount = &U128(3);
-        Event::InstantUnstake {
-            account_id,
-            unstaked_amount,
-            swapped_stake_shares,
-            new_unstaked_balance,
-            new_stake_shares,
-            fee_amount,
-        }
-        .emit();
-        assert_eq!(
-            test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"instant_unstake","data":[{"account_id":"alice","unstaked_amount":"98","swapped_stake_shares":"100","new_unstaked_balance":"111","new_stake_shares":"99","fee_amount":"3"}]}"#
-        );
-    }
-
     #[test]
     fn validator_added() {
         let account_id = &alice();

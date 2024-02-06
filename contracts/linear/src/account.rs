@@ -22,9 +22,9 @@ pub struct Account {
     /// The minimum epoch height when the withdrawn is allowed.
     /// This changes after unstaking action, because the amount is still locked for 3 epochs.
     pub unstaked_available_epoch_height: EpochHeight,
-    /// Farmed tokens withdrawn from the farm but not from the contract.
+    /// [DEPRECATED] Farmed tokens that can be withdrawn from the farm.
     pub amounts: HashMap<AccountId, Balance>,
-    /// Last claimed reward for each active farm.
+    /// [DEPRECATED] Last claimed reward for each active farm.
     pub last_farm_reward_per_share: HashMap<u64, U256>,
 }
 
@@ -44,7 +44,6 @@ pub struct HumanReadableAccount {
 
 /// AccountDetailsView contains all fields from HumanReadableAccount plus:
 /// - `unstaked_available_epoch_height` for calculating account unstake waiting time
-/// - liquidity pool account data
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct AccountDetailsView {

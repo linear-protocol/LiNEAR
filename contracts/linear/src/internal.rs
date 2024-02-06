@@ -42,12 +42,8 @@ impl LiquidStakingContract {
             ERR_UNSTAKED_BALANCE_NOT_AVAILABLE
         );
         // Make sure the contract has enough NEAR for user to withdraw,
-        // the balance of liquidity pool should be excluded.
         // Note that account locked balance should not be included.
-        let available_balance = env::account_balance()
-            .checked_sub(self.liquidity_pool.amounts[0])
-            .expect(ERR_INCONSISTANT_BALANCE);
-
+        let available_balance = env::account_balance();
         // at least 1 NEAR should be left to cover storage/gas.
         require!(
             available_balance.saturating_sub(CONTRACT_MIN_RESERVE_BALANCE) >= amount,

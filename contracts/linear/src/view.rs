@@ -58,7 +58,7 @@ impl LiquidStakingContract {
         }
     }
 
-    // Return account details including staking pool and liquidity pool
+    /// Return account details for staking
     pub fn get_account_details(&self, account_id: AccountId) -> AccountDetailsView {
         let account = self.internal_get_account(&account_id);
         AccountDetailsView {

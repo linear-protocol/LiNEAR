@@ -42,10 +42,9 @@ pub(crate) enum StorageKey {
     Accounts,
     Shares,
     Beneficiaries,
-    Validators, // V0 (Don't comment this)
-    Farms,
-    // AuthorizedUsers,
-    AuthorizedFarmTokens,
+    Validators,           // V0 (Don't comment out this)
+    Farms,                // [DEPRECATED]
+    AuthorizedFarmTokens, // [DEPRECATED]
     Managers,
     ValidatorsV1, // Used in v1.3.0 upgrade
 }
@@ -80,7 +79,7 @@ pub struct LiquidStakingContract {
     /// Beneficiaries for staking rewards.
     beneficiaries: UnorderedMap<AccountId, u32>,
 
-    /// The single-direction liquidity pool that enables instant unstake
+    /// [DEPRECATED] The single-direction liquidity pool that enables instant unstake
     liquidity_pool: LiquidityPool,
 
     // --- Validator Pool ---
@@ -100,16 +99,12 @@ pub struct LiquidStakingContract {
     /// Last epoch height stake/unstake settlements were calculated
     last_settlement_epoch: EpochHeight,
 
-    // --- Staking Farm ---
-    /// Farm tokens.
+    // --- [DEPRECATED] Staking Farm ---
+    /// [DEPRECATED] Farm tokens.
     farms: Vector<Farm>,
-    /// Active farms: indicies into `farms`.
+    /// [DEPRECATED] Active farms: indicies into `farms`.
     active_farms: Vec<u64>,
-    /// Authorized users, allowed to add farms.
-    /// This is done to prevent farm spam with random tokens.
-    /// Should not be a large number.
-    // authorized_users: UnorderedSet<AccountId>,
-    /// Authorized tokens for farms.
+    /// [DEPRECATED] Authorized tokens for farms.
     /// Required because any contract can call method with ft_transfer_call, so must verify that contract will accept it.
     authorized_farm_tokens: UnorderedSet<AccountId>,
 }
@@ -159,10 +154,9 @@ impl LiquidStakingContract {
             stake_amount_to_settle: 0,
             unstake_amount_to_settle: 0,
             last_settlement_epoch: 0,
-            // Staking Farm
+            // [DEPRECATED] Staking Farm
             farms: Vector::new(StorageKey::Farms),
             active_farms: Vec::new(),
-            // authorized_users: UnorderedSet::new(StorageKey::AuthorizedUsers),
             authorized_farm_tokens: UnorderedSet::new(StorageKey::AuthorizedFarmTokens),
         };
         this.internal_add_manager(&owner_id);

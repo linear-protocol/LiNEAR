@@ -631,7 +631,7 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
     amount: NEAR.parse('10')
   });
 
-  // Alice removes all liquidity
+  // Removes all liquidity of Alice
   await removeAllLiquidity(test, {
     contract,
     operator: alice,
@@ -639,7 +639,7 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
     loss: '3' // yoctoN
   });
 
-  // Bob removes all liquidity
+  // Removes all liquidity of Bob
   await removeAllLiquidity(test, {
     contract,
     operator: alice,
@@ -647,7 +647,7 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
     loss: '500' // yoctoN
   });
 
-  // Carol removes all liquidity
+  // Removes all liquidity of Carol
   await removeAllLiquidity(test, {
     contract,
     operator: alice,
@@ -655,7 +655,7 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
     loss: '3' // yoctoN
   });
 
-  // Alice cannot remove more liquidity
+  // Cannot remove more liquidity of Bob
   await assertFailure(
     test,
     removeAllLiquidity(test, {

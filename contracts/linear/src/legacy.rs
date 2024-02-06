@@ -1,17 +1,17 @@
 //! This module contains all contract state versions, which are needed
 //! when upgrading contract.
 use crate::account::Account;
-use crate::types::*;
 use crate::validator_pool::{Validator, VersionedValidator};
-use crate::Farm;
-use crate::Fraction;
-use crate::LiquidityPool;
+use crate::{types::*, Fraction};
 // use crate::StorageKey;
 use crate::ValidatorPool;
+use near_sdk::json_types::U128;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
-    collections::{UnorderedMap, UnorderedSet, Vector},
-    near_bindgen, AccountId, Balance, EpochHeight, StorageUsage,
+    collections::{LookupMap, UnorderedMap, UnorderedSet, Vector},
+    near_bindgen,
+    serde::{Deserialize, Serialize},
+    AccountId, Balance, EpochHeight, StorageUsage, Timestamp,
 };
 
 /// The ValidatorPool struct has no change in v1.4.0 since v1.3.0
@@ -361,3 +361,58 @@ pub struct ValidatorPoolV1_0_0 {
 //         }
 //     }
 // }
+
+// Liquidity Pool legacy structs, removed since v1.6.0
+
+#[derive(BorshSerialize, BorshDeserialize)]
+pub struct LiquidityPool {
+    /// List of tokens in the pool
+    pub token_account_ids: Vec<AccountId>,
+    /// How much token in the pool
+    pub amounts: Vec<Balance>,
+    /// Shares of the pool by liquidity providers.
+    pub shares: LookupMap<AccountId, Balance>,
+    /// Total number of shares
+    pub shares_total_supply: Balance,
+
+    /// Configuration of the pool
+    pub config: LiquidityPoolConfig,
+
+    /// Total swap fee in LiNEAR received by the pool
+    pub total_fee_shares: ShareBalance,
+}
+
+#[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
+pub struct LiquidityPoolConfig {
+    /// The expected near amount used in the fee calculation formula.
+    /// If the NEAR amount in the liquidity pool exceeds the expectation, the
+    /// swap fee will be the `min_fee_bps`
+    pub expected_near_amount: U128,
+    /// Max fee in basis points
+    pub max_fee_bps: u32,
+    /// Min fee in basis points
+    pub min_fee_bps: u32,
+    /// Fee allocated to treasury in basis points
+    pub treasury_fee_bps: u32,
+}
+
+// Staking Farm legacy structs, removed since v1.6.0
+
+#[derive(BorshSerialize, BorshDeserialize, Clone, Debug)]
+pub struct RewardDistribution {
+    pub undistributed: Balance,
+    pub unclaimed: Balance,
+    pub reward_per_share: U256,
+    pub reward_round: u64,
+}
+
+#[derive(BorshSerialize, BorshDeserialize)]
+pub struct Farm {
+    pub name: String,
+    pub token_id: AccountId,
+    pub amount: Balance,
+    pub start_date: Timestamp,
+    pub end_date: Timestamp,
+    pub last_distribution: RewardDistribution,
+}

@@ -182,6 +182,12 @@ pub enum Event<'a> {
         received_near: &'a U128,
         received_linear: &'a U128,
     },
+    RemoveAllLiquidity {
+        account_id: &'a AccountId,
+        burnt_shares: &'a U128,
+        received_near: &'a U128,
+        received_linear: &'a U128,
+    },
     LiquidityPoolSwapFee {
         account_id: &'a AccountId,
         stake_shares_in: &'a U128,

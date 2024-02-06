@@ -443,6 +443,44 @@ impl LiquidStakingContract {
         results.iter().map(|amount| (*amount).into()).collect()
     }
 
+    /// As we're going to completely deprecate liquidity pool, this function allows
+    /// removing all liquidity from users and return NEAR and LiNEAR back to users
+    pub fn remove_all_liquidity(&mut self, account_id: AccountId) -> Vec<U128> {
+        self.assert_running();
+
+        // Remove all shares of account from liquidity pool
+        let account_lp_shares = self.liquidity_pool.get_account_shares(&account_id);
+        require!(account_lp_shares > 0, ERR_ACCOUNT_NO_SHARE);
+        let results = self
+            .liquidity_pool
+            .remove_liquidity(&account_id, account_lp_shares);
+
+        // Receive NEAR and LiNEAR
+        let mut account = self.internal_get_account(&account_id);
+        account.stake_shares += results[1];
+        self.internal_save_account(&account_id, &account);
+        Promise::new(account_id.clone()).transfer(results[0]);
+
+        Event::RemoveAllLiquidity {
+            account_id: &account_id,
+            burnt_shares: &U128(account_lp_shares),
+            received_near: &U128(results[0]),
+            received_linear: &U128(results[1]),
+        }
+        .emit();
+        if results[1] > 0 {
+            FtTransfer {
+                old_owner_id: &env::current_account_id(),
+                new_owner_id: &account_id,
+                amount: &U128(results[1]),
+                memo: Some("remove all liquidity"),
+            }
+            .emit()
+        }
+
+        results.iter().map(|amount| (*amount).into()).collect()
+    }
+
     /// Instant Unstake: swap LiNEAR to NEAR via the Liquidity Pool
     /// Notice that total staked NEAR amount and total stake shares won't change here
     #[deprecated(

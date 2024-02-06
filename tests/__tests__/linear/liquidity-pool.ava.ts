@@ -640,7 +640,7 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
   await removeAllLiquidity(test, {
     contract,
     user: bob,
-    loss: '3' // yoctoN
+    loss: '500' // yoctoN
   });
 
   // Carol removes all liquidity
@@ -649,4 +649,10 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
     user: carol,
     loss: '3' // yoctoN
   });
+
+  // All NEAR and LiNEAR left in the liquidity pool
+  test.is(
+    (await getPoolValue(contract)).toString(),
+    "0"
+  );
 });

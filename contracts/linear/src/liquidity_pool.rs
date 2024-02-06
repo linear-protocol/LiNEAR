@@ -448,10 +448,9 @@ impl LiquidStakingContract {
     pub fn remove_all_liquidity(&mut self, account_id: AccountId) -> Vec<U128> {
         self.assert_running();
 
-        // remove all account shares in liquidity pool
+        // Remove all shares of account from liquidity pool
         let account_lp_shares = self.liquidity_pool.get_account_shares(&account_id);
         require!(account_lp_shares > 0, ERR_ACCOUNT_NO_SHARE);
-        // Remove shares from liquidity pool
         let results = self
             .liquidity_pool
             .remove_liquidity(&account_id, account_lp_shares);

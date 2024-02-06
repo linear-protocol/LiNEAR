@@ -8,6 +8,7 @@ import {
   ONE_YOCTO,
   getSummary
 } from './helper';
+import { ExecutionContext } from 'ava';
 
 // Errors
 const ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT = "The amount of value to be removed from liquidity pool should be positive";
@@ -143,6 +144,46 @@ const removeLiquidity = async (test, {contract, user, amount, loss = "1"}) => {
   );
 }
 
+const removeAllLiquidity = async (test: ExecutionContext<unknown>, {contract, user, loss = "1"}) => {
+  const previousPoolValue = await getPoolValue(contract);
+  const balance = await getBalance(user);
+  const result = await callWithMetrics(
+    user,
+    contract,
+    'remove_all_liquidity',
+    {},
+    { attachedDeposit: ONE_YOCTO }
+  );
+  const updatedPoolValue = await getPoolValue(contract);
+
+  const receivedAmount = NEAR.from(result.successValue[0]);
+  const receivedStakedShare = NEAR.from(result.successValue[1]);
+  const receivedStakedShareValue = await stakeSharesValues(contract, receivedStakedShare);
+  noMoreThanOneYoctoDiff(
+    test,
+    receivedAmount.add(receivedStakedShareValue),
+    previousPoolValue,
+    loss
+  );
+  test.is(
+    updatedPoolValue,
+    NEAR.from("0")
+  );
+  // noMoreThanOneYoctoDiff(
+  //   test,
+  //   updatedPoolValue,
+  //   NEAR.from("0"),
+  //   loss
+  // );
+  // Fuzzy match due to balance accuracy issue
+  numbersEqual(
+    test,
+    balance.add(receivedAmount).sub(result.metrics.tokensBurnt),
+    await getBalance(user),
+    0.025
+  );
+}
+
 const instantUnstake = async (test, {contract, user, amount}) => {
   const summary = await getSummary(contract);
   const nearAmount = await stakeSharesValues(contract, amount);
@@ -192,6 +233,12 @@ workspace.test('add initial liquidity', async (test, { contract, alice, bob }) =
     user: alice,
     amount: NEAR.parse('20')
   });
+
+  // Remove all liquidity
+  await removeAllLiquidity(test, {
+    contract,
+    user: alice
+  });
 });
 
 workspace.test('instant unstake', async (test, { contract, alice, bob }) => {
@@ -221,6 +268,12 @@ workspace.test('instant unstake', async (test, { contract, alice, bob }) => {
     contract,
     user: alice,
     amount: NEAR.parse('3')
+  });
+
+  // Remove all liquidity
+  await removeAllLiquidity(test, {
+    contract,
+    user: alice
   });
 });
 
@@ -274,6 +327,12 @@ workspace.test('remove liquidity', async (test, { contract, alice, bob }) => {
     }),
     ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT
   );
+
+  // Remove all liquidity
+  await removeAllLiquidity(test, {
+    contract,
+    user: alice
+  });
 });
 
 workspace.test('issue: add liquidity precision loss', async (test, { contract, alice, bob }) => {
@@ -303,6 +362,12 @@ workspace.test('issue: add liquidity precision loss', async (test, { contract, a
     contract,
     user: alice,
     amount: NEAR.parse('20')
+  });
+
+  // Remove all liquidity
+  await removeAllLiquidity(test, {
+    contract,
+    user: alice
   });
 });
 
@@ -347,6 +412,12 @@ workspace.test('issue: remove liquidity precision loss', async (test, { contract
     contract,
     user: bob,
     amount: NEAR.parse('15')
+  });
+
+  // Remove all liquidity
+  await removeAllLiquidity(test, {
+    contract,
+    user: alice
   });
 });
 
@@ -407,6 +478,12 @@ workspace.test('configure liquidity pool', async (test, { contract, owner, alice
     (await getTotalStakedNEAR(contract)).toString(),
     NEAR.parse("27").toString()
   );
+
+  // Remove all liquidity
+  await removeAllLiquidity(test, {
+    contract,
+    user: alice
+  });
 });
 
 workspace.test('liquidity pool misconfiguration', async (test, { contract, owner }) => {
@@ -570,5 +647,11 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
     // The loss is higher since rounded up is not possible which will exceeds the
     // account's total shares
     loss: '3' // yoctoN
+  });
+
+  // Remove all liquidity
+  await removeAllLiquidity(test, {
+    contract,
+    user: alice
   });
 });

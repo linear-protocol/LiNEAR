@@ -443,6 +443,61 @@ impl LiquidStakingContract {
         results.iter().map(|amount| (*amount).into()).collect()
     }
 
+    /// As we're going to completely deprecate liquidity pool, remove all shares from
+    /// the liquidity pool and return NEAR and LiNEAR to contract owner
+    #[payable]
+    pub fn remove_all_liquidity(&mut self) -> Vec<U128> {
+        self.assert_running();
+        assert_one_yocto();
+
+        let account_id = self.owner_id.clone();
+        let amount: Balance = self
+            .liquidity_pool
+            .get_pool_value(&self.internal_get_context());
+        require!(amount > 0, ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT);
+
+        // Calculate liquidity pool shares from NEAR amount
+        let mut removed_shares = self
+            .liquidity_pool
+            .get_shares_from_value_rounded_up(amount, &self.internal_get_context());
+        // In case the removed shares are approximately equal to account's shares,
+        // remove all the shares. This will avoid shares overflow and `dust` in the account
+        // when user removes liquidity with `amount` close to the account's total value
+        let account_lp_shares = self.liquidity_pool.get_account_shares(&account_id);
+        if abs_diff_eq(removed_shares, account_lp_shares, ONE_MICRO_NEAR) {
+            removed_shares = account_lp_shares;
+        }
+        // Remove shares from liquidity pool
+        let results = self
+            .liquidity_pool
+            .remove_liquidity(&account_id, removed_shares);
+
+        // Receive NEAR and LiNEAR
+        let mut account = self.internal_get_account(&account_id);
+        account.stake_shares += results[1];
+        self.internal_save_account(&account_id, &account);
+        Promise::new(env::predecessor_account_id()).transfer(results[0]);
+
+        Event::RemoveAllLiquidity {
+            account_id: &account_id,
+            burnt_shares: &U128(removed_shares),
+            received_near: &U128(results[0]),
+            received_linear: &U128(results[1]),
+        }
+        .emit();
+        if results[1] > 0 {
+            FtTransfer {
+                old_owner_id: &env::current_account_id(),
+                new_owner_id: &account_id,
+                amount: &U128(results[1]),
+                memo: Some("remove all liquidity"),
+            }
+            .emit()
+        }
+
+        results.iter().map(|amount| (*amount).into()).collect()
+    }
+
     /// Instant Unstake: swap LiNEAR to NEAR via the Liquidity Pool
     /// Notice that total staked NEAR amount and total stake shares won't change here
     #[deprecated(

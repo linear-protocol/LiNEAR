@@ -650,7 +650,7 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
     loss: '3' // yoctoN
   });
 
-  // All NEAR and LiNEAR left in the liquidity pool
+  // No NEAR and LiNEAR left in the liquidity pool
   test.is(
     (await getPoolValue(contract)).toString(),
     "0"

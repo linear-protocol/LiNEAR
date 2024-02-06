@@ -459,7 +459,7 @@ impl LiquidStakingContract {
         let mut account = self.internal_get_account(&account_id);
         account.stake_shares += results[1];
         self.internal_save_account(&account_id, &account);
-        Promise::new(env::predecessor_account_id()).transfer(results[0]);
+        Promise::new(account_id.clone()).transfer(results[0]);
 
         Event::RemoveAllLiquidity {
             account_id: &account_id,

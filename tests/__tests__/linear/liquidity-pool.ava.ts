@@ -1,4 +1,4 @@
-import { NEAR, BN, Gas } from 'near-workspaces-ava';
+import { NEAR, BN, Gas, NearAccount } from 'near-workspaces-ava';
 import {
   initWorkSpace,
   callWithMetrics,
@@ -12,6 +12,7 @@ import { ExecutionContext } from 'ava';
 
 // Errors
 const ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT = "The amount of value to be removed from liquidity pool should be positive";
+const ERR_ACCOUNT_NO_SHARE = "Account has no shares in liquidity pool";
 
 // helper functions
 
@@ -64,6 +65,10 @@ const getPoolValue = async (contract) => {
 
 const getPoolAccountValue = async (contract, account) => {
   return NEAR.from((await contract.view('get_account_details', { account_id: account }) as any).liquidity_pool_share_value);
+}
+
+const getPoolAccountShares = async (contract, account) => {
+  return (await contract.view('get_account_details', { account_id: account }) as any).liquidity_pool_share;
 }
 
 const stakeSharesValues = async (contract, stake_shares: NEAR) => {
@@ -144,15 +149,20 @@ const removeLiquidity = async (test, {contract, user, amount, loss = "1"}) => {
   );
 }
 
-const removeAllLiquidity = async (test: ExecutionContext<unknown>, {contract, user, loss = "1"}) => {
+const removeAllLiquidity = async (
+  test: ExecutionContext<unknown>, 
+  { contract, user, loss = "1" }: { contract: NearAccount, user: NearAccount, loss?: string }
+) => {
   const previousPoolValue = await getPoolValue(contract);
+  const amount = await getPoolAccountValue(contract, user);
   const balance = await getBalance(user);
   const result = await callWithMetrics(
     user,
     contract,
     'remove_all_liquidity',
-    {},
-    { attachedDeposit: ONE_YOCTO }
+    {
+      account_id: user
+    }
   );
   const updatedPoolValue = await getPoolValue(contract);
 
@@ -162,25 +172,25 @@ const removeAllLiquidity = async (test: ExecutionContext<unknown>, {contract, us
   noMoreThanOneYoctoDiff(
     test,
     receivedAmount.add(receivedStakedShareValue),
-    previousPoolValue,
+    amount,
     loss
   );
-  test.is(
+  noMoreThanOneYoctoDiff(
+    test,
     updatedPoolValue,
-    NEAR.from("0")
+    previousPoolValue.sub(amount),
+    loss
   );
-  // noMoreThanOneYoctoDiff(
-  //   test,
-  //   updatedPoolValue,
-  //   NEAR.from("0"),
-  //   loss
-  // );
   // Fuzzy match due to balance accuracy issue
   numbersEqual(
     test,
     balance.add(receivedAmount).sub(result.metrics.tokensBurnt),
     await getBalance(user),
     0.025
+  );
+  test.is(
+    await getPoolAccountShares(contract, user),
+    "0"
   );
 }
 
@@ -233,12 +243,6 @@ workspace.test('add initial liquidity', async (test, { contract, alice, bob }) =
     user: alice,
     amount: NEAR.parse('20')
   });
-
-  // Remove all liquidity
-  await removeAllLiquidity(test, {
-    contract,
-    user: alice
-  });
 });
 
 workspace.test('instant unstake', async (test, { contract, alice, bob }) => {
@@ -268,12 +272,6 @@ workspace.test('instant unstake', async (test, { contract, alice, bob }) => {
     contract,
     user: alice,
     amount: NEAR.parse('3')
-  });
-
-  // Remove all liquidity
-  await removeAllLiquidity(test, {
-    contract,
-    user: alice
   });
 });
 
@@ -328,11 +326,21 @@ workspace.test('remove liquidity', async (test, { contract, alice, bob }) => {
     ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT
   );
 
-  // Remove all liquidity
+  // Bob removes all liquidity
   await removeAllLiquidity(test, {
     contract,
-    user: alice
+    user: bob
   });
+
+  // Bob cannot remove more liquidity
+  await assertFailure(
+    test,
+    removeAllLiquidity(test, {
+      contract,
+      user: bob
+    }),
+    ERR_ACCOUNT_NO_SHARE
+  );
 });
 
 workspace.test('issue: add liquidity precision loss', async (test, { contract, alice, bob }) => {
@@ -362,12 +370,6 @@ workspace.test('issue: add liquidity precision loss', async (test, { contract, a
     contract,
     user: alice,
     amount: NEAR.parse('20')
-  });
-
-  // Remove all liquidity
-  await removeAllLiquidity(test, {
-    contract,
-    user: alice
   });
 });
 
@@ -412,12 +414,6 @@ workspace.test('issue: remove liquidity precision loss', async (test, { contract
     contract,
     user: bob,
     amount: NEAR.parse('15')
-  });
-
-  // Remove all liquidity
-  await removeAllLiquidity(test, {
-    contract,
-    user: alice
   });
 });
 
@@ -478,12 +474,6 @@ workspace.test('configure liquidity pool', async (test, { contract, owner, alice
     (await getTotalStakedNEAR(contract)).toString(),
     NEAR.parse("27").toString()
   );
-
-  // Remove all liquidity
-  await removeAllLiquidity(test, {
-    contract,
-    user: alice
-  });
 });
 
 workspace.test('liquidity pool misconfiguration', async (test, { contract, owner }) => {
@@ -639,19 +629,24 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
     amount: NEAR.parse('10')
   });
 
-  // Carol removes liquidity
-  await removeLiquidity(test, {
+  // Alice removes all liquidity
+  await removeAllLiquidity(test, {
     contract,
-    user: carol,
-    amount: NEAR.parse('10'),
-    // The loss is higher since rounded up is not possible which will exceeds the
-    // account's total shares
+    user: alice,
     loss: '3' // yoctoN
   });
 
-  // Remove all liquidity
+  // Bob removes all liquidity
   await removeAllLiquidity(test, {
     contract,
-    user: alice
+    user: bob,
+    loss: '3' // yoctoN
+  });
+
+  // Carol removes all liquidity
+  await removeAllLiquidity(test, {
+    contract,
+    user: carol,
+    loss: '3' // yoctoN
   });
 });

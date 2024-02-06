@@ -443,34 +443,18 @@ impl LiquidStakingContract {
         results.iter().map(|amount| (*amount).into()).collect()
     }
 
-    /// As we're going to completely deprecate liquidity pool, remove all shares from
-    /// the liquidity pool and return NEAR and LiNEAR to contract owner
-    #[payable]
-    pub fn remove_all_liquidity(&mut self) -> Vec<U128> {
+    /// As we're going to completely deprecate liquidity pool, this function allows
+    /// removing all liquidity from users and return NEAR and LiNEAR back to users
+    pub fn remove_all_liquidity(&mut self, account_id: AccountId) -> Vec<U128> {
         self.assert_running();
-        assert_one_yocto();
 
-        let account_id = self.owner_id.clone();
-        let amount: Balance = self
-            .liquidity_pool
-            .get_pool_value(&self.internal_get_context());
-        require!(amount > 0, ERR_NON_POSITIVE_REMOVE_LIQUIDITY_AMOUNT);
-
-        // Calculate liquidity pool shares from NEAR amount
-        let mut removed_shares = self
-            .liquidity_pool
-            .get_shares_from_value_rounded_up(amount, &self.internal_get_context());
-        // In case the removed shares are approximately equal to account's shares,
-        // remove all the shares. This will avoid shares overflow and `dust` in the account
-        // when user removes liquidity with `amount` close to the account's total value
+        // remove all account shares in liquidity pool
         let account_lp_shares = self.liquidity_pool.get_account_shares(&account_id);
-        if abs_diff_eq(removed_shares, account_lp_shares, ONE_MICRO_NEAR) {
-            removed_shares = account_lp_shares;
-        }
+        require!(account_lp_shares > 0, ERR_ACCOUNT_NO_SHARE);
         // Remove shares from liquidity pool
         let results = self
             .liquidity_pool
-            .remove_liquidity(&account_id, removed_shares);
+            .remove_liquidity(&account_id, account_lp_shares);
 
         // Receive NEAR and LiNEAR
         let mut account = self.internal_get_account(&account_id);
@@ -480,7 +464,7 @@ impl LiquidStakingContract {
 
         Event::RemoveAllLiquidity {
             account_id: &account_id,
-            burnt_shares: &U128(removed_shares),
+            burnt_shares: &U128(account_lp_shares),
             received_near: &U128(results[0]),
             received_linear: &U128(results[1]),
         }

@@ -151,13 +151,13 @@ const removeLiquidity = async (test, {contract, user, amount, loss = "1"}) => {
 
 const removeAllLiquidity = async (
   test: ExecutionContext<unknown>, 
-  { contract, user, loss = "1" }: { contract: NearAccount, user: NearAccount, loss?: string }
+  { contract, operator, user, loss = "1" }: { contract: NearAccount, operator: NearAccount, user: NearAccount, loss?: string }
 ) => {
   const previousPoolValue = await getPoolValue(contract);
   const amount = await getPoolAccountValue(contract, user);
   const balance = await getBalance(user);
   const result = await callWithMetrics(
-    user,
+    operator,
     contract,
     'remove_all_liquidity',
     {
@@ -329,6 +329,7 @@ workspace.test('remove liquidity', async (test, { contract, alice, bob }) => {
   // Bob removes all liquidity
   await removeAllLiquidity(test, {
     contract,
+    operator: bob,
     user: bob
   });
 
@@ -337,6 +338,7 @@ workspace.test('remove liquidity', async (test, { contract, alice, bob }) => {
     test,
     removeAllLiquidity(test, {
       contract,
+      operator: bob,
       user: bob
     }),
     ERR_ACCOUNT_NO_SHARE
@@ -632,6 +634,7 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
   // Alice removes all liquidity
   await removeAllLiquidity(test, {
     contract,
+    operator: alice,
     user: alice,
     loss: '3' // yoctoN
   });
@@ -639,6 +642,7 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
   // Bob removes all liquidity
   await removeAllLiquidity(test, {
     contract,
+    operator: alice,
     user: bob,
     loss: '500' // yoctoN
   });
@@ -646,9 +650,21 @@ workspace.test('issue: panick if remove account total liquidity (LiNEAR price > 
   // Carol removes all liquidity
   await removeAllLiquidity(test, {
     contract,
+    operator: alice,
     user: carol,
     loss: '3' // yoctoN
   });
+
+  // Alice cannot remove more liquidity
+  await assertFailure(
+    test,
+    removeAllLiquidity(test, {
+      contract,
+      operator: alice,
+      user: bob
+    }),
+    ERR_ACCOUNT_NO_SHARE
+  );
 
   // No NEAR and LiNEAR left in the liquidity pool
   test.is(

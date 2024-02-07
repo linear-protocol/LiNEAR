@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { Gas, NEAR } from "near-units";
 import { NearAccount, Workspace } from "near-workspaces-ava";
-import { createStakingPool, epochStake, getValidator, initAndSetWhitelist, skip, updateBaseStakeAmounts, } from "./helper";
+import { createStakingPool, epochHeightFastforward, epochStake, epochUnstake, epochWithdraw, getValidator, initAndSetWhitelist, skip, updateBaseStakeAmounts, } from "./helper";
 
 async function deployLinearAtVersion(
   root: NearAccount,
@@ -38,6 +38,26 @@ async function stakeAll (signer: NearAccount, contract: NearAccount) {
   }
 }
 
+async function unstakeAll (signer: NearAccount, contract: NearAccount) {
+  let run = true;
+  while (run) {
+    run = await epochUnstake(signer, contract);
+  }
+}
+
+async function withdrawAll (signer: NearAccount, contract: NearAccount) {
+  const validators: any[] = await contract.view(
+    'get_validators',
+    {
+      offset: 0,
+      limit: 100
+    }
+  );
+  for (const validator of validators) {
+    await epochWithdraw(contract, signer, validator.account_id);
+  }
+}
+
 async function setManager(root: NearAccount, contract: NearAccount, owner: NearAccount) {
   const manager = await root.createAccount('linear_manager', { initialBalance: NEAR.parse("1000000").toString() });
 
@@ -70,7 +90,7 @@ function initWorkSpace(version: string) {
   });
 }
 
-const baseVersion = 'v1_4_4';  // change this to the version that you want to upgrade from
+const baseVersion = 'v1_5_1';  // change this to the version that you want to upgrade from
 const workspace = initWorkSpace(baseVersion);
 
 // The upgrade() test has run successfully in sandbox by migrating the states of 50 validators.
@@ -230,6 +250,7 @@ skip('upgrade contract from v1.2.0 to v1.3.0 on testnet', async (test, context) 
   );
 });
 
+// test drain unstake and withdraw
 skip('upgrade from v1.3.3 to v1.4.0', async (test, context) => {
   const { root, contract, owner, manager, alice } = context;
 
@@ -320,6 +341,7 @@ skip('upgrade from v1.3.3 to v1.4.0', async (test, context) => {
   test.assert(!(await getValidator(contract, targetValidator.accountId)).draining);
 });
 
+// test validator execution status
 skip('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
   const { root, contract, owner, manager, alice } = context;
 
@@ -407,4 +429,108 @@ skip('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
 
   // once be executing
   test.true(executed);
+});
+
+// regression test after upgrade
+skip('upgrade from v1.5.1 to v1.6.0', async (test, context) => {
+  const { root, contract, owner, manager, alice } = context;
+
+  // add some validators
+  const names = Array.from({ length: 5 }, (_, i) => `validator-${i}`);
+  const weights = names.map(_ => 1);
+  const validators = await Promise.all(names.map(name => createStakingPool(root, name)));
+
+  await manager.call(
+    contract,
+    'add_validators',
+    {
+      validator_ids: validators.map(v => v.accountId),
+      weights
+    },
+    {
+      gas: Gas.parse('300 Tgas')
+    }
+  );
+
+  // user stakes
+  const stakeAmount = NEAR.parse('4900');
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    {
+      attachedDeposit: stakeAmount
+    }
+  );
+
+  // run epoch stake
+  await stakeAll(manager, contract);
+
+  // wait 1 epoch
+  await epochHeightFastforward(contract, alice, 1);
+
+  // upgrade linear contract to the latest
+  await upgrade(contract, owner);
+
+  // unstake
+  const unstakeAmount = NEAR.parse('500');
+  await alice.call(
+    contract,
+    'unstake',
+    { amount: unstakeAmount.toString() }
+  );
+
+  // run epoch unstake
+  await unstakeAll(manager, contract);
+
+  // wait 4 epoches
+  await epochHeightFastforward(contract, alice);
+  await withdrawAll(manager, contract);
+
+  // withdraw all after 4 epoches
+  await alice.call(
+    contract,
+    'withdraw_all',
+    {}
+  );
+
+  test.is(
+    await contract.view('get_account_staked_balance', { account_id: alice }),
+    stakeAmount.sub(unstakeAmount).toString()
+  );
+  test.is(
+    await contract.view('get_account_unstaked_balance', { account_id: alice }),
+    '0'
+  );
+
+  // unstake all
+  await alice.call(
+    contract,
+    'unstake_all',
+    {}
+  );
+
+  // run epoch unstake
+  await unstakeAll(manager, contract);
+
+  // wait 4 epoches
+  await epochHeightFastforward(contract, alice);
+  await withdrawAll(manager, contract);
+
+  // withdraw all after 4 epoches
+  const withdrawAmount = NEAR.parse('1');
+  await alice.call(
+    contract,
+    'withdraw',
+    { amount: withdrawAmount.toString() }
+  );
+
+  test.is(
+    await contract.view('get_account_staked_balance', { account_id: alice }),
+    '0'
+  );
+  test.is(
+    await contract.view('get_account_unstaked_balance', { account_id: alice }),
+    stakeAmount.sub(unstakeAmount).sub(withdrawAmount).toString()
+  );
 });

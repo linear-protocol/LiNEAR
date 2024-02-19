@@ -68,7 +68,7 @@ test-contracts: linear_test mock-staking-pool mock-fungible-token mock-dex mock-
 	@cp ./res/mock_whitelist.wasm ./tests/compiled-contracts/mock_whitelist.wasm
 
 test-linear: test-contracts
-	cd tests && NEAR_PRINT_LOGS=$(LOGS) npx near-workspaces-ava --timeout=2m __tests__/linear/$(TEST_FILE).ava.ts --verbose
+	cd tests && NEAR_PRINT_LOGS=$(LOGS) npx near-workspaces-ava --timeout=10m __tests__/linear/$(TEST_FILE).ava.ts --verbose
 
 test-mock-staking-pool: mock-staking-pool
 	@mkdir -p ./tests/compiled-contracts/

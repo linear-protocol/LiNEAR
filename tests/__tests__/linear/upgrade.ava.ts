@@ -20,11 +20,12 @@ async function deployLinearAtVersion(
   )
 }
 
-async function upgrade(contract: NearAccount, owner: NearAccount) {
+async function upgrade(contract: NearAccount, owner: NearAccount, version?: string) {
+  const filename = version ? `linear_${version}.wasm` : "linear.wasm"
   await owner.call(
     contract,
     "upgrade",
-    readFileSync("compiled-contracts/linear.wasm"),
+    readFileSync(`compiled-contracts/${filename}`),
     {
       gas: Gas.parse("300 Tgas"),
     }
@@ -432,7 +433,7 @@ skip('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
 });
 
 // regression test after upgrade
-skip('upgrade from v1.5.1 to v1.6.0', async (test, context) => {
+workspace.test('upgrade from v1.5.1 to v1.6.0', async (test, context) => {
   const { root, contract, owner, manager, alice } = context;
 
   // add some validators
@@ -469,8 +470,13 @@ skip('upgrade from v1.5.1 to v1.6.0', async (test, context) => {
   // wait 1 epoch
   await epochHeightFastforward(contract, alice, 1);
 
-  // upgrade linear contract to the latest
-  await upgrade(contract, owner);
+  test.is(
+    await contract.view("get_number_of_accounts"),
+    1
+  );
+
+  // upgrade linear contract to the v1_6_0
+  await upgrade(contract, owner, "v1_6_0");
 
   // unstake
   const unstakeAmount = NEAR.parse('500');
@@ -532,5 +538,57 @@ skip('upgrade from v1.5.1 to v1.6.0', async (test, context) => {
   test.is(
     await contract.view('get_account_unstaked_balance', { account_id: alice }),
     stakeAmount.sub(unstakeAmount).sub(withdrawAmount).toString()
+  );
+
+  test.is(
+    await contract.view("get_number_of_accounts"),
+    1
+  );
+
+  // upgrade linear contract to the latest
+  await upgrade(contract, owner);
+
+  test.is(
+    await contract.view("get_number_of_accounts"),
+    0
+  );
+
+  // wait 1 epoch
+  await epochHeightFastforward(contract, alice, 1);
+
+  // user stakes
+  const stakeAmount2 = NEAR.parse('500');
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    {
+      attachedDeposit: stakeAmount2
+    }
+  );
+
+  test.is(
+    await contract.view("get_number_of_accounts"),
+    1
+  );
+
+  // run epoch stake
+  await stakeAll(manager, contract);
+
+  // wait 1 epoch
+  await epochHeightFastforward(contract, alice, 1);
+
+  test.is(
+    await contract.view('get_account_staked_balance', { account_id: alice }),
+    stakeAmount2.toString()
+  );
+  test.is(
+    await contract.view('get_account_unstaked_balance', { account_id: alice }),
+    stakeAmount.sub(unstakeAmount).sub(withdrawAmount).toString()
+  );
+
+  test.is(
+    await contract.view("get_number_of_accounts"),
+    1
   );
 });

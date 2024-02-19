@@ -127,6 +127,9 @@ impl LiquidStakingContract {
             self.total_share_amount
         );
 
+        // add account ID
+        self.internal_add_account(&account_id);
+
         num_shares
     }
 
@@ -203,6 +206,9 @@ impl LiquidStakingContract {
             self.total_staked_near_amount,
             self.total_share_amount
         );
+
+        // add account ID
+        self.internal_add_account(&account_id);
     }
 
     /// Asserts that the method was called by the owner.
@@ -338,6 +344,14 @@ impl LiquidStakingContract {
 
 // -- manager related methods
 impl LiquidStakingContract {
+    pub(crate) fn internal_add_account(&mut self, account_id: &AccountId) {
+        self.assert_running();
+        if !self.account_ids.contains(account_id) {
+            self.account_ids.insert(account_id);
+            self.total_account_num += 1;
+        }
+    }
+
     pub(crate) fn internal_add_manager(&mut self, manager_id: &AccountId) {
         self.assert_running();
         self.managers.insert(manager_id);

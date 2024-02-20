@@ -434,7 +434,7 @@ skip('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
 
 // regression test after upgrade
 workspace.test('upgrade from v1.5.1 to v1.6.0', async (test, context) => {
-  const { root, contract, owner, manager, alice } = context;
+  const { root, contract, owner, manager, alice, bob } = context;
 
   // add some validators
   const names = Array.from({ length: 5 }, (_, i) => `validator-${i}`);
@@ -451,6 +451,11 @@ workspace.test('upgrade from v1.5.1 to v1.6.0', async (test, context) => {
     {
       gas: Gas.parse('300 Tgas')
     }
+  );
+
+  test.is(
+    await contract.view('get_total_weight'),
+    5
   );
 
   // user stakes
@@ -555,6 +560,44 @@ workspace.test('upgrade from v1.5.1 to v1.6.0', async (test, context) => {
 
   // wait 1 epoch
   await epochHeightFastforward(contract, alice, 1);
+
+  // add bob as manager
+  await owner.call(
+    contract,
+    'add_manager',
+    {
+      new_manager_id: bob.accountId
+    }
+  );
+  test.deepEqual(
+    await contract.view('get_managers'),
+    [
+      manager.accountId,
+      bob.accountId
+    ]
+  );
+
+  // add new validators
+  const names2 = Array.from({ length: 5 }, (_, i) => `validator-${i+5}`);
+  const weights2 = names.map(_ => 2);
+  const validators2 = await Promise.all(names2.map(name => createStakingPool(root, name)));
+
+  await bob.call(
+    contract,
+    'add_validators',
+    {
+      validator_ids: validators2.map(v => v.accountId),
+      weights: weights2
+    },
+    {
+      gas: Gas.parse('300 Tgas')
+    }
+  );
+
+  test.is(
+    await contract.view('get_total_weight'),
+    15
+  );
 
   // user stakes
   const stakeAmount2 = NEAR.parse('500');

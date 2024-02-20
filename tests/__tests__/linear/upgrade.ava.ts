@@ -611,6 +611,15 @@ workspace.test('upgrade from v1.5.1 to v1.6.0', async (test, context) => {
     }
   );
 
+  test.deepEqual(
+    await contract.view('get_managers'),
+    [
+      owner.accountId,
+      manager.accountId,
+      bob.accountId
+    ]
+  );
+
   test.is(
     await contract.view("get_number_of_accounts"),
     1

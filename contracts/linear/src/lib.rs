@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     collections::{UnorderedMap, UnorderedSet},
@@ -36,9 +38,15 @@ use crate::validator_pool::*;
 #[derive(BorshStorageKey, BorshSerialize)]
 pub(crate) enum StorageKey {
     Accounts,
+    #[deprecated(since = "1.6.0", note = "removed built-in liquidity pool")]
     Shares,
     Beneficiaries,
-    Validators, // V0 (Don't comment out this)
+    #[deprecated(since = "1.3.0", note = "replaced by ValidatorsV1")]
+    Validators, // ValidatorsV0 (Don't comment out this)
+    #[deprecated(since = "1.6.0", note = "removed staking farm")]
+    Farms,
+    #[deprecated(since = "1.6.0", note = "removed staking farm")]
+    AuthorizedFarmTokens,
     Managers,
     ValidatorsV1, // Used in v1.3.0 upgrade
     AccountIds,   // Test adding new storage key

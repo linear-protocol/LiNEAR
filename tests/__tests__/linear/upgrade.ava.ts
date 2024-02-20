@@ -611,6 +611,9 @@ workspace.test('upgrade from v1.5.1 to v1.6.0', async (test, context) => {
     }
   );
 
+  // contract key collision: StorageKey::Managers v.s. StorageKey::AccountIds.
+  // accountIds instead of managers will be returned when calling `get_managers`,
+  // which leads to test failure
   test.deepEqual(
     await contract.view('get_managers'),
     [

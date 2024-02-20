@@ -23,8 +23,10 @@ pub struct Account {
     /// This changes after unstaking action, because the amount is still locked for 3 epochs.
     pub unstaked_available_epoch_height: EpochHeight,
     /// [DEPRECATED] Farmed tokens that can be withdrawn from the farm.
+    #[deprecated(since = "1.6.0", note = "removed staking farm")]
     pub amounts: HashMap<AccountId, Balance>,
     /// [DEPRECATED] Last claimed reward for each active farm.
+    #[deprecated(since = "1.6.0", note = "removed staking farm")]
     pub last_farm_reward_per_share: HashMap<u64, U256>,
 }
 

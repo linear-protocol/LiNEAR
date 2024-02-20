@@ -142,7 +142,7 @@ impl LiquidStakingContract {
 
     /// Returns the number of accounts that have positive balance on this staking pool.
     pub fn get_number_of_accounts(&self) -> u64 {
-        self.accounts.len()
+        self.account_ids.len()
     }
 
     /// Returns the list of accounts

@@ -49,6 +49,7 @@ pub(crate) enum StorageKey {
     AuthorizedFarmTokens,
     Managers,
     ValidatorsV1, // Used in v1.3.0 upgrade
+    AccountIds,   // Test adding new storage key
 }
 
 #[near_bindgen]
@@ -97,6 +98,10 @@ pub struct LiquidStakingContract {
     unstake_amount_to_settle: Balance,
     /// Last epoch height stake/unstake settlements were calculated
     last_settlement_epoch: EpochHeight,
+    /// account IDs
+    account_ids: UnorderedSet<AccountId>,
+    /// total account num
+    total_account_num: u64,
 }
 
 #[near_bindgen]
@@ -143,6 +148,8 @@ impl LiquidStakingContract {
             stake_amount_to_settle: 0,
             unstake_amount_to_settle: 0,
             last_settlement_epoch: 0,
+            account_ids: UnorderedSet::new(StorageKey::AccountIds),
+            total_account_num: 0,
         };
         this.internal_add_manager(&owner_id);
         this.measure_account_storage_usage();

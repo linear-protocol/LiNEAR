@@ -967,7 +967,6 @@ workspace.test('epoch collect rewards', async (test, { root, contract, alice, ow
     "get_account_total_balance",
     { account_id: alice }
   );
-  console.log("alice balance", aliceBalance);
 
   // unstake 69 NEAR; remaining total staked: 79 - 67.5 = 11.5
   await alice.call(

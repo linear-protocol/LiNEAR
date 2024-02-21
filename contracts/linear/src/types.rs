@@ -16,8 +16,6 @@ use uint::construct_uint;
 pub const NO_DEPOSIT: Balance = 0;
 /// one NEAR
 pub const ONE_NEAR: Balance = 1_000_000_000_000_000_000_000_000;
-/// one micro NEAR (10^-6)
-pub const ONE_MICRO_NEAR: Balance = 1_000_000_000_000_000_000;
 /// The number of epochs required for the locked balance to become unlocked.
 /// NOTE: The actual number of epochs when the funds are unlocked is 3. But there is a corner case
 /// when the unstaking promise can arrive at the next epoch, while the inner state is already
@@ -29,9 +27,6 @@ pub const FULL_BASIS_POINTS: u32 = 10_000;
 /// min NEAR balance this contract should hold in order to cover
 /// storage and contract call fees.
 pub const CONTRACT_MIN_RESERVE_BALANCE: Balance = ONE_NEAR;
-
-/// Maximum number of active farms at one time.
-pub const MAX_NUM_ACTIVE_FARMS: usize = 10;
 
 /// Zero address is implicit address that doesn't have a key for it.
 /// Used for burning tokens.

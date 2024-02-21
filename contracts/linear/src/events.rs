@@ -149,56 +149,6 @@ pub enum Event<'a> {
     ValidatorRemoved {
         account_id: &'a AccountId,
     },
-    // Liquidity Pool
-    #[deprecated(
-        since = "1.2.0",
-        note = "Kept for test only because we're retiring the liquidity pool"
-    )]
-    #[cfg(feature = "test")]
-    InstantUnstake {
-        account_id: &'a AccountId,
-        /// The actually received NEAR excluding fees
-        unstaked_amount: &'a U128,
-        /// The swapped-in stake shares
-        swapped_stake_shares: &'a U128,
-        new_unstaked_balance: &'a U128,
-        new_stake_shares: &'a U128,
-        /// The fee of instant unstake in NEAR
-        fee_amount: &'a U128,
-    },
-    #[deprecated(
-        since = "1.2.0",
-        note = "Kept for test only because we're retiring the liquidity pool"
-    )]
-    #[cfg(feature = "test")]
-    AddLiquidity {
-        account_id: &'a AccountId,
-        amount: &'a U128,
-        minted_shares: &'a U128,
-    },
-    RemoveLiquidity {
-        account_id: &'a AccountId,
-        burnt_shares: &'a U128,
-        received_near: &'a U128,
-        received_linear: &'a U128,
-    },
-    RemoveAllLiquidity {
-        account_id: &'a AccountId,
-        burnt_shares: &'a U128,
-        received_near: &'a U128,
-        received_linear: &'a U128,
-    },
-    LiquidityPoolSwapFee {
-        account_id: &'a AccountId,
-        stake_shares_in: &'a U128,
-        requested_amount: &'a U128,
-        received_amount: &'a U128,
-        fee_amount: &'a U128,
-        fee_stake_shares: &'a U128,
-        treasury_fee_stake_shares: &'a U128,
-        pool_fee_stake_shares: &'a U128,
-        total_fee_shares: &'a U128,
-    },
 }
 
 impl Event<'_> {
@@ -595,30 +545,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "test")]
-    #[test]
-    fn instant_unstake() {
-        let account_id = &alice();
-        let unstaked_amount = &U128(98);
-        let swapped_stake_shares = &U128(100);
-        let new_unstaked_balance = &U128(111);
-        let new_stake_shares = &U128(99);
-        let fee_amount = &U128(3);
-        Event::InstantUnstake {
-            account_id,
-            unstaked_amount,
-            swapped_stake_shares,
-            new_unstaked_balance,
-            new_stake_shares,
-            fee_amount,
-        }
-        .emit();
-        assert_eq!(
-            test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"instant_unstake","data":[{"account_id":"alice","unstaked_amount":"98","swapped_stake_shares":"100","new_unstaked_balance":"111","new_stake_shares":"99","fee_amount":"3"}]}"#
-        );
-    }
-
     #[test]
     fn validator_added() {
         let account_id = &alice();
@@ -671,72 +597,6 @@ mod tests {
         assert_eq!(
             test_utils::get_logs()[0],
             r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"validator_removed","data":[{"account_id":"alice"}]}"#
-        );
-    }
-
-    #[cfg(feature = "test")]
-    #[test]
-    fn add_liquidity() {
-        let account_id = &alice();
-        let amount = &U128(100);
-        let minted_shares = &U128(98);
-        Event::AddLiquidity {
-            account_id,
-            amount,
-            minted_shares,
-        }
-        .emit();
-        assert_eq!(
-            test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"add_liquidity","data":[{"account_id":"alice","amount":"100","minted_shares":"98"}]}"#
-        );
-    }
-
-    #[test]
-    fn remove_liquidity() {
-        let account_id = &alice();
-        let burnt_shares = &U128(98);
-        let received_near = &U128(90);
-        let received_linear = &U128(9);
-        Event::RemoveLiquidity {
-            account_id,
-            burnt_shares,
-            received_near,
-            received_linear,
-        }
-        .emit();
-        assert_eq!(
-            test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"remove_liquidity","data":[{"account_id":"alice","burnt_shares":"98","received_near":"90","received_linear":"9"}]}"#
-        );
-    }
-
-    #[test]
-    fn liquidity_pool_swap_fee() {
-        let account_id = &alice();
-        let stake_shares_in = &U128(100);
-        let requested_amount = &U128(100);
-        let received_amount = &U128(97);
-        let fee_amount = &U128(3);
-        let fee_stake_shares = &U128(3);
-        let treasury_fee_stake_shares = &U128(1);
-        let pool_fee_stake_shares = &U128(2);
-        let total_fee_shares = &U128(1022);
-        Event::LiquidityPoolSwapFee {
-            account_id,
-            stake_shares_in,
-            requested_amount,
-            received_amount,
-            fee_amount,
-            fee_stake_shares,
-            treasury_fee_stake_shares,
-            pool_fee_stake_shares,
-            total_fee_shares,
-        }
-        .emit();
-        assert_eq!(
-            test_utils::get_logs()[0],
-            r#"EVENT_JSON:{"standard":"linear","version":"1.0.1","event":"liquidity_pool_swap_fee","data":[{"account_id":"alice","stake_shares_in":"100","requested_amount":"100","received_amount":"97","fee_amount":"3","fee_stake_shares":"3","treasury_fee_stake_shares":"1","pool_fee_stake_shares":"2","total_fee_shares":"1022"}]}"#
         );
     }
 }

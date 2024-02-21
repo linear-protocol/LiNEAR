@@ -342,6 +342,7 @@ export function amountWithDiff(amount: string, diff: NEAR, numberOfDiff: number)
 }
 
 const EPOCH_STAKE_AND_UNSTAKE_GAS = Gas.parse('280 Tgas');
+const EPOCH_WITHDRAW_GAS = Gas.parse('200 Tgas');
 
 export function epochStake(caller: NearAccount, contract: NearAccount): Promise<any> {
   return caller.call(
@@ -383,6 +384,19 @@ export function epochUnstakeCallRaw(caller: NearAccount, contract: NearAccount):
     {},
     {
       gas: EPOCH_STAKE_AND_UNSTAKE_GAS
+    }
+  );
+}
+
+export function epochWithdraw(contract: NearAccount, caller: NearAccount, validator: NearAccount | string): Promise<any> {
+  return caller.call(
+    contract,
+    'epoch_withdraw',
+    {
+      validator_id: validator
+    },
+    {
+      gas: EPOCH_WITHDRAW_GAS
     }
   );
 }

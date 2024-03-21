@@ -1,141 +1,103 @@
-import { assertFailure, initWorkSpace } from "./helper";
+import { assertFailure, initWorkSpace, WorkSpace } from './helper';
+import { ExecutionContext } from 'ava';
+import { test } from './helper';
 
-const workspace = initWorkSpace();
+test.before(async (t) => {
+  t.context = await initWorkSpace();
+});
 
-workspace.test('non-owner call beneficiaries', async (test, { contract, alice }) => {
+test.after(async (t) => {
+  await t.context.worker.tearDown();
+});
+
+test('non-owner call beneficiaries', async (t: ExecutionContext<WorkSpace>) => {
+  const { alice, contract } = t.context;
   await assertFailure(
-    test,
-    alice.call(
-      contract,
-      'set_beneficiary',
-      {
-        account_id: alice.accountId,
-        bps: 1000
-      }
-    ),
-    'Only owner can perform this action'
+    t,
+    alice.call(contract, 'set_beneficiary', {
+      account_id: alice.accountId,
+      bps: 1000,
+    }),
+    'Only owner can perform this action',
   );
 
   await assertFailure(
-    test,
-    alice.call(
-      contract,
-      'remove_beneficiary',
-      {
-        account_id: alice.accountId
-      }
-    ),
-    'Only owner can perform this action'
+    t,
+    alice.call(contract, 'remove_beneficiary', {
+      account_id: alice.accountId,
+    }),
+    'Only owner can perform this action',
   );
 });
 
-workspace.test('beneficiaries sum > 1', async (test, { contract, owner }) => {
-  await owner.call(
-    contract,
-    'set_beneficiary',
-    {
-      account_id: 'foo',
-      bps: 5000
-    }
-  );
+test('beneficiaries sum > 1', async (t: ExecutionContext<WorkSpace>) => {
+  const { contract, owner } = t.context;
+  await owner.call(contract, 'set_beneficiary', {
+    account_id: 'foo',
+    bps: 5000,
+  });
 
   await assertFailure(
-    test,
-    owner.call(
-      contract,
-      'set_beneficiary',
-      {
-        account_id: 'bar',
-        bps: 6000
-      }
-    ),
-    'bps sum should be less than 1'
+    t,
+    owner.call(contract, 'set_beneficiary', {
+      account_id: 'bar',
+      bps: 6000,
+    }),
+    'bps sum should be less than 1',
   );
 });
 
-workspace.test('too many beneficiaries', async (test, { contract, owner }) => {
+test('too many beneficiaries', async (t: ExecutionContext<WorkSpace>) => {
+  const { contract, owner } = t.context;
   for (let i = 0; i < 10; i++) {
-    await owner.call(
-      contract,
-      'set_beneficiary',
-      {
-        account_id: `b${i}`,
-        bps: 100
-      }
-    );
+    await owner.call(contract, 'set_beneficiary', {
+      account_id: `b${i}`,
+      bps: 100,
+    });
   }
 
   await assertFailure(
-    test,
-    owner.call(
-      contract,
-      'set_beneficiary',
-      {
-        account_id: 'bar',
-        bps: 100
-      }
-    ),
-    'Too many beneficiaries'
+    t,
+    owner.call(contract, 'set_beneficiary', {
+      account_id: 'bar',
+      bps: 100,
+    }),
+    'Too many beneficiaries',
   );
 });
 
-workspace.test('set beneficiaries', async (test, { contract, owner }) => {
+test('set beneficiaries', async (t: ExecutionContext<WorkSpace>) => {
+  const { contract, owner } = t.context;
   const initValues: object = await owner.call(
     contract,
     'get_beneficiaries',
-    {}
+    {},
   );
-  test.deepEqual(initValues, {});
+  t.deepEqual(initValues, {});
 
-  await owner.call(
-    contract,
-    'set_beneficiary',
-    {
-      account_id: 'foo',
-      bps: 1000
-    }
-  );
-  await owner.call(
-    contract,
-    'set_beneficiary',
-    {
-      account_id: 'bar',
-      bps: 5000
-    }
-  );
+  await owner.call(contract, 'set_beneficiary', {
+    account_id: 'foo',
+    bps: 1000,
+  });
+  await owner.call(contract, 'set_beneficiary', {
+    account_id: 'bar',
+    bps: 5000,
+  });
 
-  const twoValues = await owner.call(
-    contract,
-    'get_beneficiaries',
-    {}
-  );
+  const twoValues = await owner.call(contract, 'get_beneficiaries', {});
 
-  test.deepEqual(
-    twoValues,
-    {
-      foo: 1000,
-      bar: 5000
-    }
-  );
+  t.deepEqual(twoValues, {
+    foo: 1000,
+    bar: 5000,
+  });
 
-  await owner.call(
-    contract,
-    'remove_beneficiary',
-    {
-      account_id: 'foo'
-    }
-  );
+  await owner.call(contract, 'remove_beneficiary', {
+    account_id: 'foo',
+  });
 
-  const oneValue = await owner.call(
-    contract,
-    'get_beneficiaries',
-    {}
-  );
+  const oneValue = await owner.call(contract, 'get_beneficiaries', {});
 
-  test.deepEqual(
-    oneValue,
-    {
-      bar: 5000
-    }
-  );
+  t.deepEqual(oneValue, {
+    bar: 5000,
+  });
 });

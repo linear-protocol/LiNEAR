@@ -1,10 +1,20 @@
 {
   "private": true,
   "scripts": {
-    "test": "near-workspaces-ava --timeout=2m",
-    "test:testnet": "near-workspaces-ava --config ./ava.testnet.config.cjs"
+    "test": "ava --timeout=2m",
+    "test:testnet": "ava --config ./ava.testnet.config.cjs",
+    "prettier": "prettier __tests__/**/*.ts --write"
   },
   "devDependencies": {
-    "near-workspaces-ava": "1.1.0"
+    "@types/bn.js": "^5.1.5",
+    "ava": "^6.1.2",
+    "near-workspaces": "^3.5.0",
+    "typescript": "^4.5.5",
+    "prettier": "^3.0.1"
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "printWidth": 80
   }
 }

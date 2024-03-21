@@ -2,7 +2,7 @@ import { Workspace, NEAR, NearAccount } from 'near-workspaces-ava';
 
 const ONE_YOCTO_NEAR = '1';
 
-const workspace = Workspace.init(async ({root}) => {
+const workspace = Workspace.init(async ({ root }) => {
   const alice = await root.createAccount('alice');
   const bob = await root.createAccount('bob');
 
@@ -15,14 +15,11 @@ const workspace = Workspace.init(async ({root}) => {
     },
   );
 
-  return {contract, alice, bob};
+  return { contract, alice, bob };
 });
 
 async function registerUser(ft: NearAccount, user: NearAccount) {
-  const storage_balance = await ft.view(
-    'storage_balance_bounds',
-    {}
-  ) as any;
+  const storage_balance = (await ft.view('storage_balance_bounds', {})) as any;
 
   await user.call(
     ft,
@@ -33,55 +30,47 @@ async function registerUser(ft: NearAccount, user: NearAccount) {
   );
 }
 
-async function mint(
-  contract: NearAccount,
-  account: NearAccount,
-  amount: NEAR
-) {
-  await account.call(
-    contract,
-    'mint',
-    {
-      account_id: account,
-      amount: amount.toString()
-    }
-  );
+async function mint(contract: NearAccount, account: NearAccount, amount: NEAR) {
+  await account.call(contract, 'mint', {
+    account_id: account,
+    amount: amount.toString(),
+  });
 }
 
 async function transfer(
   contract: NearAccount,
   sender: NearAccount,
   receiver: NearAccount,
-  amount: NEAR
+  amount: NEAR,
 ) {
   await sender.call(
     contract,
     'ft_transfer',
     {
       receiver_id: receiver,
-      amount: amount.toString()
+      amount: amount.toString(),
     },
     {
-      attachedDeposit: ONE_YOCTO_NEAR
-    }
+      attachedDeposit: ONE_YOCTO_NEAR,
+    },
   );
 }
 
-workspace.test('mint token', async (test, {contract, alice, bob}) => {
+workspace.test('mint token', async (test, { contract, alice, bob }) => {
   const mintedAmount = NEAR.parse('100');
   await mint(contract, alice, mintedAmount);
   test.is(
     await contract.view('ft_balance_of', { account_id: alice }),
-    mintedAmount.toString()
+    mintedAmount.toString(),
   );
 });
 
-workspace.test('transfer token', async (test, {contract, alice, bob}) => {
+workspace.test('transfer token', async (test, { contract, alice, bob }) => {
   const mintedAmount = NEAR.parse('100');
   await mint(contract, alice, mintedAmount);
   test.is(
     await contract.view('ft_balance_of', { account_id: alice }),
-    mintedAmount.toString()
+    mintedAmount.toString(),
   );
 
   await registerUser(contract, bob);
@@ -91,11 +80,11 @@ workspace.test('transfer token', async (test, {contract, alice, bob}) => {
   await transfer(contract, alice, bob, transferAmount1);
   test.is(
     await contract.view('ft_balance_of', { account_id: alice }),
-    mintedAmount.sub(transferAmount1).toString()
+    mintedAmount.sub(transferAmount1).toString(),
   );
   test.is(
     await contract.view('ft_balance_of', { account_id: bob }),
-    transferAmount1.toString()
+    transferAmount1.toString(),
   );
 
   // transfer 5 token from bob to alice
@@ -103,10 +92,10 @@ workspace.test('transfer token', async (test, {contract, alice, bob}) => {
   await transfer(contract, bob, alice, transferAmount2);
   test.is(
     await contract.view('ft_balance_of', { account_id: alice }),
-    mintedAmount.sub(transferAmount1).add(transferAmount2).toString()
+    mintedAmount.sub(transferAmount1).add(transferAmount2).toString(),
   );
   test.is(
     await contract.view('ft_balance_of', { account_id: bob }),
-    transferAmount1.sub(transferAmount2).toString()
+    transferAmount1.sub(transferAmount2).toString(),
   );
 });

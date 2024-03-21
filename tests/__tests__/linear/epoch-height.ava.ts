@@ -1,25 +1,31 @@
-import { initWorkSpace } from "./helper";
+import {initWorkSpace, test} from './helper';
 
-const workspace = initWorkSpace();
-
-workspace.test('read/write test epoch height', async (test, {contract, alice}) => {
-  test.is(
-    await contract.view('read_epoch_height'),
-    10,
-    'init epoch height should be 10'
-  );
-
-  await alice.call(
-    contract,
-    'set_epoch_height',
-    {
-      epoch: 14
-    }
-  );
-
-  test.is(
-    await contract.view('read_epoch_height'),
-    14,
-    'epoch should be set'
-  );
+test.before(async (t) => {
+  t.context = await initWorkSpace();
 });
+
+test.after(async (t) => {
+  await t.context.worker.tearDown();
+});
+
+test(
+  'read/write test epoch height',
+  async (t) => {
+    const  { contract, alice } = t.context;
+    t.is(
+      await contract.view('read_epoch_height'),
+      10,
+      'init epoch height should be 10',
+    );
+
+    await alice.call(contract, 'set_epoch_height', {
+      epoch: 14,
+    });
+
+    t.is(
+      await contract.view('read_epoch_height'),
+      14,
+      'epoch should be set',
+    );
+  },
+);

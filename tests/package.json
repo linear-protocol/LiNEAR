@@ -2,7 +2,6 @@
   "private": true,
   "scripts": {
     "test": "ava --timeout=2m",
-    "test:testnet": "ava --config ./ava.testnet.config.cjs",
     "prettier": "prettier __tests__/**/*.ts --write"
   },
   "devDependencies": {

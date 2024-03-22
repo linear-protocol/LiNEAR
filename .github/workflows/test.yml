@@ -31,10 +31,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3.1.1
         with:
-          node-version: 16.13
+          node-version: 18.18.2
           cache: npm
       - name: Install Dependencies
-        run: cd tests && npm install
+        run: cd tests && yarn
       # Run tests
       - name: Run tests
         run: make test

@@ -21,6 +21,7 @@
     "near-api-js": "^0.44.2",
     "near-units": "^0.1.9",
     "prompts": "^2.4.2",
+    "ts-node": "^10.9.2",
     "yargs": "^17.3.1"
   },
   "devDependencies": {

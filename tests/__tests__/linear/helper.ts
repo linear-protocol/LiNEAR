@@ -31,14 +31,10 @@ export interface WorkSpace {
 }
 
 export async function initWorkSpace(): Promise<WorkSpace> {
-  console.log("init workspace 1");
-
   const worker = await Worker.init({
     network: 'sandbox',
     rm: true,
   });
-
-  console.log("init workspace 2");
 
   const root = worker.rootAccount;
   // deposit 1M $NEAR for each account
@@ -54,8 +50,6 @@ export async function initWorkSpace(): Promise<WorkSpace> {
   const carol = await root.createSubAccount('carol', {
     initialBalance: NEAR.parse('1000000').toString(),
   });
-
-  console.log("init workspace 3");
 
   const contract = await deployLinear(root, owner.accountId);
 

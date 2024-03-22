@@ -40,11 +40,11 @@ async function createLockupAccount(root: NearAccount, owner: NearAccount) {
   return lockupAccount;
 }
 
-test.before(async (t) => {
+test.beforeEach(async (t) => {
   t.context = await initWorkSpace();
 });
 
-test.after(async (t) => {
+test.afterEach(async (t) => {
   await t.context.worker.tearDown();
 });
 

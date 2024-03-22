@@ -2,11 +2,11 @@ import { assertFailure, initWorkSpace, WorkSpace } from './helper';
 import { ExecutionContext } from 'ava';
 import { test } from './helper';
 
-test.before(async (t) => {
+test.beforeEach(async (t) => {
   t.context = await initWorkSpace();
 });
 
-test.after(async (t) => {
+test.afterEach(async (t) => {
   await t.context.worker.tearDown();
 });
 

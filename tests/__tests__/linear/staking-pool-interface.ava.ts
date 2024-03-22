@@ -10,11 +10,11 @@ import {
 const ERR_UNSTAKED_BALANCE_NOT_AVAILABLE =
   'The unstaked balance is not yet available due to unstaking delay';
 
-test.before(async (t) => {
+test.beforeEach(async (t) => {
   t.context = await initWorkSpace();
 });
 
-test.after(async (t) => {
+test.afterEach(async (t) => {
   await t.context.worker.tearDown();
 });
 

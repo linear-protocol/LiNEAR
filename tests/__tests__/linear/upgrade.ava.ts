@@ -133,11 +133,11 @@ async function initWorkSpace(version: string): Promise<WorkSpace> {
 
 const BASE_VERSION = 'v1_5_1'; // change this to the version that you want to upgrade from
 
-test.before(async (t) => {
+test.beforeEach(async (t) => {
   t.context = await initWorkSpace(BASE_VERSION);
 });
 
-test.after(async (t) => {
+test.afterEach(async (t) => {
   await t.context.worker.tearDown();
 });
 

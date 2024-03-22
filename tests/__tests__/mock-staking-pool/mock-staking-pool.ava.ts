@@ -1,48 +1,68 @@
-import { Workspace, NEAR } from 'near-workspaces-ava';
-import { assertFailure } from '../linear/helper';
+import {NEAR, NearAccount, Worker} from 'near-workspaces';
+import {assertFailure, createAndDeploy} from '../linear/helper';
 
-const workspace = Workspace.init(async ({ root }) => {
+import anyTest, { TestFn } from "ava";
+
+const test = anyTest as TestFn<WorkSpace>;
+
+interface WorkSpace {
+  worker: Worker,
+  contract: NearAccount,
+  alice: NearAccount,
+}
+
+async function initWorkSpace(): Promise<WorkSpace> {
+  const worker = await Worker.init({
+    network: 'sandbox',
+    rm: true,
+  });
+
+  const root = worker.rootAccount;
+
   const alice = await root.createSubAccount('alice');
 
-  const contract = await root.createAndDeploy(
+  const contract = await createAndDeploy(
+    root,
     'staking-pool',
     'compiled-contracts/mock_staking_pool.wasm',
     {
-      method: 'new',
+      methodName: 'new',
       args: {},
     },
-  );
+  )
 
-  return { contract, alice };
-});
+  return { worker, contract, alice };
+}
 
-workspace.test(
+test(
   'check balance after initlization',
-  async (test, { contract, alice }) => {
+  async (t) => {
+    const { contract, alice } = t.context;
     // await root.call(contract, 'set_status', {message: 'lol'});
-    test.is(
+    t.is(
       await contract.view('get_account_staked_balance', { account_id: alice }),
       '0',
     );
-    test.is(
+    t.is(
       await contract.view('get_account_unstaked_balance', {
         account_id: alice,
       }),
       '0',
     );
-    test.is(
+    t.is(
       await contract.view('get_account_total_balance', { account_id: alice }),
       '0',
     );
   },
 );
 
-workspace.test('deposit and stake', async (test, { contract, alice }) => {
+test('deposit and stake', async (t) => {
+  const { contract, alice } = t.context;
   const deposit = NEAR.parse('10');
 
   await alice.call(contract, 'deposit', {}, { attachedDeposit: deposit });
 
-  test.is(
+  t.is(
     await contract.view('get_account_unstaked_balance', { account_id: alice }),
     deposit.toString(),
   );
@@ -51,17 +71,18 @@ workspace.test('deposit and stake', async (test, { contract, alice }) => {
   const stakeAmount = NEAR.parse('9');
   await alice.call(contract, 'stake', { amount: stakeAmount.toString() });
 
-  test.is(
+  t.is(
     await contract.view('get_account_staked_balance', { account_id: alice }),
     stakeAmount.toString(),
   );
-  test.is(
+  t.is(
     await contract.view('get_account_unstaked_balance', { account_id: alice }),
     deposit.sub(stakeAmount).toString(),
   );
 });
 
-workspace.test('add reward', async (test, { contract, alice }) => {
+test('add reward', async (t) => {
+  const { contract, alice } = t.context;
   // deposit
   const deposit = NEAR.parse('10');
 
@@ -75,17 +96,18 @@ workspace.test('add reward', async (test, { contract, alice }) => {
   const reward = NEAR.parse('1');
   await alice.call(contract, 'add_reward', { amount: reward.toString() });
 
-  test.is(
+  t.is(
     await contract.view('get_account_staked_balance', { account_id: alice }),
     stakeAmount.add(reward).toString(),
   );
-  test.is(
+  t.is(
     await contract.view('get_account_unstaked_balance', { account_id: alice }),
     deposit.sub(stakeAmount).toString(),
   );
 });
 
-workspace.test('unstake', async (test, { contract, alice }) => {
+test('unstake', async (t) => {
+  const { contract, alice } = t.context;
   // deposit
   const deposit = NEAR.parse('10');
 
@@ -103,17 +125,18 @@ workspace.test('unstake', async (test, { contract, alice }) => {
   const unstakeAmount = NEAR.parse('5');
   await alice.call(contract, 'unstake', { amount: unstakeAmount.toString() });
 
-  test.is(
+  t.is(
     await contract.view('get_account_staked_balance', { account_id: alice }),
     stakeAmount.add(reward).sub(unstakeAmount).toString(),
   );
-  test.is(
+  t.is(
     await contract.view('get_account_unstaked_balance', { account_id: alice }),
     deposit.sub(stakeAmount).add(unstakeAmount).toString(),
   );
 });
 
-workspace.test('withdraw', async (test, { contract, alice }) => {
+test('withdraw', async (t) => {
+  const { contract, alice } = t.context;
   // deposit
   const deposit = NEAR.parse('10');
 
@@ -133,11 +156,11 @@ workspace.test('withdraw', async (test, { contract, alice }) => {
     amount: firstWithdrawAmount.toString(),
   });
 
-  test.is(
+  t.is(
     await contract.view('get_account_staked_balance', { account_id: alice }),
     stakeAmount.add(reward).toString(),
   );
-  test.is(
+  t.is(
     await contract.view('get_account_unstaked_balance', { account_id: alice }),
     deposit.sub(stakeAmount).sub(firstWithdrawAmount).toString(),
   );
@@ -149,11 +172,11 @@ workspace.test('withdraw', async (test, { contract, alice }) => {
   // withdraw all
   await alice.call(contract, 'withdraw_all', {});
 
-  test.is(
+  t.is(
     await contract.view('get_account_staked_balance', { account_id: alice }),
     stakeAmount.add(reward).sub(unstakeAmount).toString(),
   );
-  test.is(
+  t.is(
     await contract.view('get_account_unstaked_balance', { account_id: alice }),
     '0',
   );
@@ -161,11 +184,11 @@ workspace.test('withdraw', async (test, { contract, alice }) => {
   // unstake all
   await alice.call(contract, 'unstake_all', {});
 
-  test.is(
+  t.is(
     await contract.view('get_account_staked_balance', { account_id: alice }),
     '0',
   );
-  test.is(
+  t.is(
     await contract.view('get_account_unstaked_balance', { account_id: alice }),
     stakeAmount.add(reward).sub(unstakeAmount).toString(),
   );
@@ -174,39 +197,40 @@ workspace.test('withdraw', async (test, { contract, alice }) => {
   const withdrawAmount = NEAR.parse('1');
   await alice.call(contract, 'withdraw', { amount: withdrawAmount.toString() });
 
-  test.is(
+  t.is(
     await contract.view('get_account_staked_balance', { account_id: alice }),
     '0',
   );
-  test.is(
+  t.is(
     await contract.view('get_account_unstaked_balance', { account_id: alice }),
     stakeAmount.add(reward).sub(unstakeAmount).sub(withdrawAmount).toString(),
   );
 });
 
-workspace.test('panic', async (test, { contract, alice }) => {
+test('panic', async (t) => {
+  const { contract, alice } = t.context;
   await alice.call(contract, 'set_panic', { panic: true });
 
   await assertFailure(
-    test,
+    t,
     alice.call(contract, 'deposit', {}, { attachedDeposit: NEAR.parse('10') }),
     'Test Panic!',
   );
 
   await assertFailure(
-    test,
+    t,
     alice.call(contract, 'stake', { amount: NEAR.parse('4') }),
     'Test Panic!',
   );
 
   await assertFailure(
-    test,
+    t,
     alice.call(contract, 'withdraw', { amount: NEAR.parse('1') }),
     'Test Panic!',
   );
 
   await assertFailure(
-    test,
+    t,
     alice.call(contract, 'unstake', { amount: NEAR.parse('1') }),
     'Test Panic!',
   );

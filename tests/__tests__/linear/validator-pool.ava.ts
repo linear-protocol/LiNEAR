@@ -13,7 +13,7 @@ async function setManager(
   contract: NearAccount,
   owner: NearAccount,
 ) {
-  const manager = await root.createAccount('linear_manager', {
+  const manager = await root.createSubAccount('linear_manager', {
     initialBalance: NEAR.parse('1000000').toString(),
   });
 

@@ -2,7 +2,7 @@ import { Workspace, NEAR } from 'near-workspaces-ava';
 import { assertFailure } from '../linear/helper';
 
 const workspace = Workspace.init(async ({ root }) => {
-  const alice = await root.createAccount('alice');
+  const alice = await root.createSubAccount('alice');
 
   const contract = await root.createAndDeploy(
     'staking-pool',

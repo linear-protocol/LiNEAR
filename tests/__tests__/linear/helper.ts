@@ -31,25 +31,31 @@ export interface WorkSpace {
 }
 
 export async function initWorkSpace(): Promise<WorkSpace> {
+  console.log("init workspace 1");
+
   const worker = await Worker.init({
     network: 'sandbox',
     rm: true,
   });
 
+  console.log("init workspace 2");
+
   const root = worker.rootAccount;
   // deposit 1M $NEAR for each account
-  const owner = await root.createAccount('linear_owner', {
+  const owner = await root.createSubAccount('linear_owner', {
     initialBalance: NEAR.parse('1000000').toString(),
   });
-  const alice = await root.createAccount('alice', {
+  const alice = await root.createSubAccount('alice', {
     initialBalance: NEAR.parse('1000000').toString(),
   });
-  const bob = await root.createAccount('bob', {
+  const bob = await root.createSubAccount('bob', {
     initialBalance: NEAR.parse('1000000').toString(),
   });
-  const carol = await root.createAccount('carol', {
+  const carol = await root.createSubAccount('carol', {
     initialBalance: NEAR.parse('1000000').toString(),
   });
+
+  console.log("init workspace 3");
 
   const contract = await deployLinear(root, owner.accountId);
 
@@ -281,7 +287,7 @@ export async function setManager(
   manager?: NearAccount,
 ) {
   if (!manager) {
-    manager = await root.createAccount('linear_manager', {
+    manager = await root.createSubAccount('linear_manager', {
       initialBalance: NEAR.parse('1000000').toString(),
     });
   }

@@ -3,8 +3,8 @@ import { Workspace, NEAR, NearAccount } from 'near-workspaces-ava';
 const ONE_YOCTO_NEAR = '1';
 
 const workspace = Workspace.init(async ({ root }) => {
-  const alice = await root.createAccount('alice');
-  const bob = await root.createAccount('bob');
+  const alice = await root.createSubAccount('alice');
+  const bob = await root.createSubAccount('bob');
 
   const contract = await root.createAndDeploy(
     'mock-fungible-token',

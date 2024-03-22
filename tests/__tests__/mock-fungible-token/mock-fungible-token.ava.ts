@@ -37,11 +37,11 @@ async function initWorkSpace(): Promise<WorkSpace> {
   return { worker, contract, alice, bob };
 }
 
-test.before(async (t) => {
+test.beforeEach(async (t) => {
   t.context = await initWorkSpace();
 });
 
-test.after(async (t) => {
+test.afterEach(async (t) => {
   await t.context.worker.tearDown();
 });
 

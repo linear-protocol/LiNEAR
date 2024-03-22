@@ -26,6 +26,16 @@
   },
   "devDependencies": {
     "husky": "^8.0.2",
-    "lint-staged": "^13.0.3"
+    "lint-staged": "^13.0.3",
+    "@types/bn.js": "^5.1.5",
+    "ava": "^6.1.2",
+    "near-workspaces": "^3.5.0",
+    "typescript": "^4.5.5",
+    "prettier": "^3.0.1"
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "printWidth": 80
   }
 }

@@ -34,7 +34,7 @@ jobs:
           node-version: 18.18.2
           cache: npm
       - name: Install Dependencies
-        run: cd tests && yarn
+        run: npm install
       # Run tests
       - name: Run tests
         run: make test

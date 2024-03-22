@@ -1,4 +1,4 @@
-These tests use [near-workspaces](https://github.com/near/workspaces-js) and (ava)[https://github.com/avajs/ava]
+These tests use [near-workspaces](https://github.com/near/workspaces-js) and [ava](https://github.com/avajs/ava)
 
 You will need to install [NodeJS](https://nodejs.dev/). Then you can use the `scripts` defined in [package.json](./package.json):
 

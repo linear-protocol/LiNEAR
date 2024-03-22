@@ -56,6 +56,9 @@ test: test-unit test-linear test-mock-staking-pool test-mock-fungible-token
 test-unit:
 	cargo test --features "test"
 
+monkey-patch:
+	cp ./tests/web.js node_modules/near-workspaces/node_modules/near-api-js/lib/utils/
+
 TEST_FILE ?= **
 LOGS ?=
 test-contracts: linear_test mock-staking-pool mock-fungible-token mock-dex mock-lockup mock-whitelist
@@ -67,15 +70,15 @@ test-contracts: linear_test mock-staking-pool mock-fungible-token mock-dex mock-
 	@cp ./res/mock_lockup.wasm ./tests/compiled-contracts/mock_lockup.wasm
 	@cp ./res/mock_whitelist.wasm ./tests/compiled-contracts/mock_whitelist.wasm
 
-test-linear: test-contracts
+test-linear: monkey-patch test-contracts
 	cd tests && NEAR_PRINT_LOGS=$(LOGS) npx ava --timeout=2m __tests__/linear/$(TEST_FILE).ava.ts --verbose
 
-test-mock-staking-pool: mock-staking-pool
+test-mock-staking-pool: monkey-patch mock-staking-pool
 	@mkdir -p ./tests/compiled-contracts/
 	cp ./res/mock_staking_pool.wasm ./tests/compiled-contracts/mock_staking_pool.wasm
 	cd tests && npx ava __tests__/mock-staking-pool/**.ts --verbose
 
-test-mock-fungible-token: mock-fungible-token
+test-mock-fungible-token: monkey-patch mock-fungible-token
 	@mkdir -p ./tests/compiled-contracts/
 	cp ./res/mock_fungible_token.wasm ./tests/compiled-contracts/mock_fungible_token.wasm
 	cd tests && npx ava __tests__/mock-fungible-token/**.ts --verbose

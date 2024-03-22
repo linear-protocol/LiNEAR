@@ -1,12 +1,19 @@
-import { assertFailure, initWorkSpace } from './helper';
+import { assertFailure, initWorkSpace, test } from './helper';
 
-const workspace = initWorkSpace();
+test.before(async (t) => {
+  t.context = await initWorkSpace();
+});
 
-workspace.test(
+test.after(async (t) => {
+  await t.context.worker.tearDown();
+});
+
+test(
   'non-owner call manager methods',
-  async (test, { contract, alice }) => {
+  async (t) => {
+    const { contract, alice } = t.context;
     await assertFailure(
-      test,
+      t,
       alice.call(contract, 'add_manager', {
         new_manager_id: alice.accountId,
       }),
@@ -14,7 +21,7 @@ workspace.test(
     );
 
     await assertFailure(
-      test,
+      t,
       alice.call(contract, 'remove_manager', {
         manager_id: alice.accountId,
       }),
@@ -23,16 +30,18 @@ workspace.test(
   },
 );
 
-workspace.test('set manager', async (test, { contract, owner, alice }) => {
+test('set manager', async (t) => {
+  const { contract, owner, alice } = t.context;
   await owner.call(contract, 'add_manager', {
     new_manager_id: alice.accountId,
   });
 
   const managers: string[] = await contract.view('get_managers');
-  test.assert(managers.includes(alice.accountId));
+  t.assert(managers.includes(alice.accountId));
 });
 
-workspace.test('remove manager', async (test, { contract, owner, alice }) => {
+test('remove manager', async (t) => {
+  const { contract, owner, alice } = t.context;
   await owner.call(contract, 'add_manager', {
     new_manager_id: alice.accountId,
   });
@@ -42,5 +51,5 @@ workspace.test('remove manager', async (test, { contract, owner, alice }) => {
   });
 
   const managers: string[] = await contract.view('get_managers');
-  test.assert(!managers.includes(alice.accountId));
+  t.assert(!managers.includes(alice.accountId));
 });

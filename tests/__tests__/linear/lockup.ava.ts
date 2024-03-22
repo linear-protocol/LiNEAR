@@ -1,16 +1,17 @@
-import { NearAccount, NEAR, Gas } from 'near-workspaces-ava';
-import { initWorkSpace } from './helper';
+import { NearAccount, NEAR, Gas } from 'near-workspaces';
+import {createAndDeploy, initWorkSpace, test} from './helper';
 
 const workspace = initWorkSpace();
 
 async function createLockupAccount(root: NearAccount, owner: NearAccount) {
-  const lockupAccount = await root.createAndDeploy(
+  const lockupAccount = await createAndDeploy(
+    root,
     'lockup',
     'compiled-contracts/mock_lockup.wasm',
     {
-      initialBalance: '10000 N',
-    },
-  );
+      balance: '10000 N'
+    }
+  )
 
   const startTs = Date.now() + 360000; // starts some time in the future
   const cliffTs = startTs + 360000;
@@ -39,14 +40,23 @@ async function createLockupAccount(root: NearAccount, owner: NearAccount) {
   return lockupAccount;
 }
 
-workspace.test(
+test.before(async (t) => {
+  t.context = await initWorkSpace();
+});
+
+test.after(async (t) => {
+  await t.context.worker.tearDown();
+});
+
+test(
   'Lockup account stake',
-  async (test, { root, contract, alice, owner }) => {
+  async (t) => {
+    const { root, contract, alice, owner } = t.context;
     const lockupAccount = await createLockupAccount(root, alice);
     const lockedAmount: string = await lockupAccount.view('get_locked_amount');
 
     // the owner balance should be very small now
-    test.true(
+    t.true(
       NEAR.from(await lockupAccount.view('get_owners_balance'))
         .sub(NEAR.parse('0.01'))
         .toBigInt() < 0,
@@ -58,7 +68,7 @@ workspace.test(
     });
 
     const poolId = await lockupAccount.view('get_staking_pool_account_id');
-    test.is(
+    t.is(
       poolId,
       contract.accountId,
       'staking pool id should be contract id',
@@ -81,14 +91,14 @@ workspace.test(
     );
 
     // check staked NEAR amount
-    test.is(
+    t.is(
       await contract.view('get_account_staked_balance', {
         account_id: lockupAccount.accountId,
       }),
       amountToStake,
     );
     // check minted LiNEAR amount
-    test.is(
+    t.is(
       await contract.view('ft_balance_of', {
         account_id: lockupAccount.accountId,
       }),
@@ -119,7 +129,7 @@ workspace.test(
         account_id: lockupAccount.accountId,
       },
     );
-    test.is(
+    t.is(
       lockAccountNewBalance,
       newStakedBalance,
       'Lockup account should refresh balance from staking pool',
@@ -139,7 +149,7 @@ workspace.test(
     );
 
     // almost all rewards should be the owner's available balance now
-    test.true(
+    t.true(
       NEAR.from(await lockupAccount.view('get_owners_balance'))
         .sub(NEAR.parse('99'))
         .toBigInt() > 0,

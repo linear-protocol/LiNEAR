@@ -1,13 +1,12 @@
 import { Gas, NEAR } from 'near-units';
-import { NearAccount } from 'near-workspaces-ava';
+import { NearAccount } from 'near-workspaces';
 import {
   assertFailure,
   initWorkSpace,
   ONE_YOCTO,
   registerFungibleTokenUser,
+  test,
 } from './helper';
-
-const workspace = initWorkSpace();
 
 async function transfer(
   contract: NearAccount,
@@ -52,26 +51,36 @@ async function transferCall(
   );
 }
 
-workspace.test(
+test.before(async (t) => {
+  t.context = await initWorkSpace();
+});
+
+test.after(async (t) => {
+  await t.context.worker.tearDown();
+});
+
+test(
   'pause/resume could not be called by non-owner',
-  async (test, { contract, alice }) => {
+  async (t) => {
+    const { contract, alice } = t.context;
     await assertFailure(
-      test,
+      t,
       alice.call(contract, 'pause', {}),
       'Only owner can perform this action',
     );
 
     await assertFailure(
-      test,
+      t,
       alice.call(contract, 'resume', {}),
       'Only owner can perform this action',
     );
   },
 );
 
-workspace.test(
+test(
   'could not perform any actions when paused',
-  async (test, { contract, owner, alice }) => {
+  async (t) => {
+    const { contract, owner, alice } = t.context;
     // deposit and stake 10 NEAR
     const stakeAmount = NEAR.parse('10');
     await alice.call(
@@ -87,13 +96,13 @@ workspace.test(
 
     const amount = NEAR.parse('2');
     await assertFailure(
-      test,
+      t,
       transfer(contract, alice, owner, amount),
       'The contract is paused now. Please try later',
     );
 
     await assertFailure(
-      test,
+      t,
       transferCall(contract, alice, owner, amount, ''),
       'The contract is paused now. Please try later',
     );
@@ -101,7 +110,7 @@ workspace.test(
     // cannot stake/unstake
 
     await assertFailure(
-      test,
+      t,
       alice.call(
         contract,
         'deposit_and_stake',
@@ -112,16 +121,17 @@ workspace.test(
     );
 
     await assertFailure(
-      test,
+      t,
       alice.call(contract, 'unstake_all', {}),
       'The contract is paused now. Please try later',
     );
   },
 );
 
-workspace.test(
+test(
   'resume contract after pause',
-  async (test, { contract, owner, alice, bob }) => {
+  async (t) => {
+    const { contract, owner, alice, bob } = t.context;
     // deposit and stake 10 NEAR
     const stakeAmount = NEAR.parse('10');
     await alice.call(
@@ -135,7 +145,7 @@ workspace.test(
 
     const transferAmount = NEAR.parse('2');
     await assertFailure(
-      test,
+      t,
       transfer(contract, alice, owner, transferAmount),
       'The contract is paused now. Please try later',
     );

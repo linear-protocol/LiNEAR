@@ -1,14 +1,12 @@
 import { Gas, NEAR } from 'near-units';
-import { NearAccount } from 'near-workspaces-ava';
+import { NearAccount } from 'near-workspaces';
 import {
   assertFailure,
   getValidator,
   initAndSetWhitelist,
-  initWorkSpace,
+  initWorkSpace, test,
   updateBaseStakeAmounts,
 } from './helper';
-
-const workspace = initWorkSpace();
 
 async function setManager(
   root: NearAccount,
@@ -27,14 +25,23 @@ async function setManager(
   return manager;
 }
 
-workspace.test(
+test.before(async (t) => {
+  t.context = await initWorkSpace();
+});
+
+test.after(async (t) => {
+  await t.context.worker.tearDown();
+});
+
+test(
   'not manager',
-  async (test, { contract, alice, root, owner }) => {
+  async (t) => {
+    const { contract, alice, root, owner } = t.context;
     await setManager(root, contract, owner);
 
     let errMsg = 'Only manager can perform this action';
     await assertFailure(
-      test,
+      t,
       alice.call(
         contract,
         'add_validator',
@@ -50,7 +57,7 @@ workspace.test(
     );
 
     await assertFailure(
-      test,
+      t,
       alice.call(contract, 'add_validators', {
         validator_ids: ['foo'],
         weights: [10],
@@ -59,7 +66,7 @@ workspace.test(
     );
 
     await assertFailure(
-      test,
+      t,
       alice.call(contract, 'remove_validator', {
         validator_id: 'foo',
       }),
@@ -67,7 +74,7 @@ workspace.test(
     );
 
     await assertFailure(
-      test,
+      t,
       alice.call(contract, 'update_weight', {
         validator_id: 'foo',
         weight: 10,
@@ -76,15 +83,15 @@ workspace.test(
     );
 
     await assertFailure(
-      test,
+      t,
       updateBaseStakeAmounts(contract, alice, ['foo'], [NEAR.parse('25,000')]),
       errMsg,
     );
   },
 );
 
-workspace.test('add validator', async (test, context) => {
-  const { root, owner, contract } = context;
+test('add validator', async (t) => {
+  const { root, owner, contract } = t.context;
   const manager = await setManager(root, contract, owner);
 
   await manager.call(
@@ -98,7 +105,7 @@ workspace.test('add validator', async (test, context) => {
       gas: Gas.parse('100 Tgas'),
     },
   );
-  test.is(await contract.view('get_total_weight'), 10);
+  t.is(await contract.view('get_total_weight'), 10);
 
   await manager.call(
     contract,
@@ -111,19 +118,19 @@ workspace.test('add validator', async (test, context) => {
       gas: Gas.parse('100 Tgas'),
     },
   );
-  test.is(await contract.view('get_total_weight'), 30);
+  t.is(await contract.view('get_total_weight'), 30);
 
   const validators: [any] = await contract.view('get_validators', {
     offset: 0,
     limit: 10,
   });
 
-  test.is(validators.filter((v) => v.account_id === 'foo')[0].weight, 10);
-  test.is(validators.filter((v) => v.account_id === 'bar')[0].weight, 20);
+  t.is(validators.filter((v) => v.account_id === 'foo')[0].weight, 10);
+  t.is(validators.filter((v) => v.account_id === 'bar')[0].weight, 20);
 });
 
-workspace.test('bulk add a few validators', async (test, context) => {
-  const { root, owner, contract } = context;
+test('bulk add a few validators', async (t) => {
+  const { root, owner, contract } = t.context;
   const manager = await setManager(root, contract, owner);
 
   await manager.call(
@@ -138,19 +145,19 @@ workspace.test('bulk add a few validators', async (test, context) => {
     },
   );
 
-  test.is(await contract.view('get_total_weight'), 30);
+  t.is(await contract.view('get_total_weight'), 30);
 
   const validators: [any] = await contract.view('get_validators', {
     offset: 0,
     limit: 10,
   });
 
-  test.is(validators.filter((v) => v.account_id === 'foo')[0].weight, 10);
-  test.is(validators.filter((v) => v.account_id === 'bar')[0].weight, 20);
+  t.is(validators.filter((v) => v.account_id === 'foo')[0].weight, 10);
+  t.is(validators.filter((v) => v.account_id === 'bar')[0].weight, 20);
 });
 
-workspace.test('bulk add a lot validators', async (test, context) => {
-  const { root, owner, contract } = context;
+test('bulk add a lot validators', async (t) => {
+  const { root, owner, contract } = t.context;
   const manager = await setManager(root, contract, owner);
 
   for (let i = 0; i < 2; i++) {
@@ -173,7 +180,7 @@ workspace.test('bulk add a lot validators', async (test, context) => {
     );
   }
 
-  test.is(await contract.view('get_total_weight'), 10);
+  t.is(await contract.view('get_total_weight'), 10);
 
   // read all validators
   for (let i = 0; i < 2; i++) {
@@ -194,8 +201,8 @@ workspace.test('bulk add a lot validators', async (test, context) => {
   }
 });
 
-workspace.test('whitelist', async (test, context) => {
-  const { root, owner, contract } = context;
+test('whitelist', async (t) => {
+  const { root, owner, contract } = t.context;
 
   // set a new whitelist
   const whitelist = await initAndSetWhitelist(root, contract, owner, false);
@@ -222,7 +229,7 @@ workspace.test('whitelist', async (test, context) => {
     offset: 0,
     limit: 10,
   });
-  test.assert(validators.length === 0, 'bar should not be added');
+  t.assert(validators.length === 0, 'bar should not be added');
 
   // try to add an validator in whitelist
   await owner.call(
@@ -241,12 +248,12 @@ workspace.test('whitelist', async (test, context) => {
     offset: 0,
     limit: 10,
   });
-  test.assert(validators.length === 1, 'foo should be added');
-  test.assert(validators[0].account_id === 'foo');
+  t.assert(validators.length === 1, 'foo should be added');
+  t.assert(validators[0].account_id === 'foo');
 });
 
-workspace.test('remove validator', async (test, context) => {
-  const { root, owner, contract } = context;
+test('remove validator', async (t) => {
+  const { root, owner, contract } = t.context;
   const manager = await setManager(root, contract, owner);
 
   // add foo, bar
@@ -278,32 +285,32 @@ workspace.test('remove validator', async (test, context) => {
     validator_id: 'foo',
   });
 
-  test.is(await contract.view('get_total_weight'), 20);
+  t.is(await contract.view('get_total_weight'), 20);
 
-  let validators: [any] = await contract.view('get_validators', {
+  let validators = await contract.view<any[]>('get_validators', {
     offset: 0,
     limit: 10,
   });
 
-  test.is(validators.length, 1);
-  test.is(validators[0].account_id, 'bar');
+  t.is(validators.length, 1);
+  t.is(validators[0].account_id, 'bar');
 
   // remove bar
   await manager.call(contract, 'remove_validator', {
     validator_id: 'bar',
   });
-  test.is(await contract.view('get_total_weight'), 0);
+  t.is(await contract.view('get_total_weight'), 0);
 
-  validators = await manager.call(contract, 'get_validators', {
+  validators = await manager.call<any[]>(contract, 'get_validators', {
     offset: 0,
     limit: 10,
   });
 
-  test.is(validators.length, 0);
+  t.is(validators.length, 0);
 });
 
-workspace.test('update weight', async (test, context) => {
-  const { root, owner, contract } = context;
+test('update weight', async (t) => {
+  const { root, owner, contract } = t.context;
   const manager = await setManager(root, contract, owner);
 
   // add foo, bar
@@ -335,18 +342,18 @@ workspace.test('update weight', async (test, context) => {
     validator_id: 'foo',
     weight: 30,
   });
-  test.is(await contract.view('get_total_weight'), 50);
+  t.is(await contract.view('get_total_weight'), 50);
 
   // update bar
   await manager.call(contract, 'update_weight', {
     validator_id: 'bar',
     weight: 5,
   });
-  test.is(await contract.view('get_total_weight'), 35);
+  t.is(await contract.view('get_total_weight'), 35);
 });
 
-workspace.test('update weights', async (test, context) => {
-  const { root, owner, contract } = context;
+test('update weights', async (t) => {
+  const { root, owner, contract } = t.context;
   const manager = await setManager(root, contract, owner);
 
   // add foo, bar
@@ -367,11 +374,11 @@ workspace.test('update weights', async (test, context) => {
     validator_ids: ['foo', 'bar'],
     weights: [30, 5],
   });
-  test.is(await contract.view('get_total_weight'), 35);
+  t.is(await contract.view('get_total_weight'), 35);
 });
 
-workspace.test('update base stake amount', async (test, context) => {
-  const { root, owner, contract } = context;
+test('update base stake amount', async (t) => {
+  const { root, owner, contract } = t.context;
   const manager = await setManager(root, contract, owner);
 
   // add foo, bar
@@ -403,8 +410,8 @@ workspace.test('update base stake amount', async (test, context) => {
   await updateBaseStakeAmounts(contract, manager, ['foo', 'bar'], amounts);
 
   const foo = await getValidator(contract, 'foo');
-  test.is(foo.base_stake_amount, amounts[0].toString());
+  t.is(foo.base_stake_amount, amounts[0].toString());
 
   const bar = await getValidator(contract, 'bar');
-  test.is(bar.base_stake_amount, amounts[1].toString());
+  t.is(bar.base_stake_amount, amounts[1].toString());
 });

@@ -8,11 +8,9 @@ import {
   getValidator,
   initWorkSpace,
   setManager,
-  skip,
+  test,
 } from './helper';
-import { Gas, NEAR, NearAccount, ONE_NEAR, stake } from 'near-workspaces-ava';
-
-const workspace = initWorkSpace();
+import { Gas, NEAR, NearAccount } from 'near-workspaces';
 
 function assertValidatorAmountHelper(
   test: any,
@@ -32,10 +30,19 @@ function assertValidatorAmountHelper(
   };
 }
 
-workspace.test(
+test.before(async (t) => {
+  t.context = await initWorkSpace();
+});
+
+test.after(async (t) => {
+  await t.context.worker.tearDown();
+});
+
+test(
   'sync balance failure after stake/unstake',
-  async (test, { root, contract, alice, owner }) => {
-    const assertValidator = assertValidatorAmountHelper(test, contract, owner);
+  async (t) => {
+    const { root, contract, alice, owner } = t.context;
+    const assertValidator = assertValidatorAmountHelper(t, contract, owner);
     const v1 = await createStakingPool(root, 'v1');
     const v2 = await createStakingPool(root, 'v2');
 
@@ -104,10 +111,11 @@ workspace.test(
   },
 );
 
-workspace.test(
+test(
   'sync balance after stake/unstake',
-  async (test, { root, contract, alice, owner }) => {
-    const assertValidator = assertValidatorAmountHelper(test, contract, owner);
+  async (t) => {
+    const { root, contract, alice, owner } = t.context;
+    const assertValidator = assertValidatorAmountHelper(t, contract, owner);
     const v1 = await createStakingPool(root, 'v1');
     const v2 = await createStakingPool(root, 'v2');
 
@@ -182,13 +190,14 @@ workspace.test(
   },
 );
 
-workspace.test(
+test(
   'sync balance by manager failure',
-  async (test, { root, contract, alice, bob, owner }) => {
+  async (t) => {
+    const { root, contract, alice, bob, owner } = t.context;
     // set bob as manager
     await setManager(root, contract, owner, bob);
 
-    const assertValidator = assertValidatorAmountHelper(test, contract, owner);
+    const assertValidator = assertValidatorAmountHelper(t, contract, owner);
     const v1 = await createStakingPool(root, 'v1');
     const v2 = await createStakingPool(root, 'v2');
     await owner.call(
@@ -236,7 +245,7 @@ workspace.test(
 
     // sync balance only allowed by manager
     await assertFailure(
-      test,
+      t,
       alice.call(
         contract,
         'sync_balance_from_validator',
@@ -298,13 +307,14 @@ workspace.test(
   },
 );
 
-workspace.test(
+test(
   'sync balance by manager',
-  async (test, { root, contract, alice, bob, owner }) => {
+  async (t) => {
+    const { root, contract, alice, bob, owner } = t.context;
     // set bob as manager
     await setManager(root, contract, owner, bob);
 
-    const assertValidator = assertValidatorAmountHelper(test, contract, owner);
+    const assertValidator = assertValidatorAmountHelper(t, contract, owner);
     const v1 = await createStakingPool(root, 'v1');
     const v2 = await createStakingPool(root, 'v2');
     await owner.call(

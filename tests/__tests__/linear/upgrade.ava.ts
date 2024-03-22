@@ -1,7 +1,8 @@
 import { readFileSync } from 'fs';
 import { Gas, NEAR } from 'near-units';
-import { NearAccount, Workspace } from 'near-workspaces-ava';
+import { NearAccount, Worker } from 'near-workspaces';
 import {
+  createAndDeploy,
   createStakingPool,
   epochHeightFastforward,
   epochStake,
@@ -9,25 +10,39 @@ import {
   epochWithdraw,
   getValidator,
   initAndSetWhitelist,
-  skip,
   updateBaseStakeAmounts,
 } from './helper';
+import anyTest, { TestFn } from "ava";
+
+const test = anyTest as TestFn<WorkSpace>;
+
+interface WorkSpace {
+  worker: Worker;
+  root: NearAccount;
+  contract: NearAccount;
+  owner: NearAccount;
+  manager: NearAccount;
+  alice: NearAccount;
+  bob: NearAccount;
+  carol: NearAccount;
+}
 
 async function deployLinearAtVersion(
   root: NearAccount,
   owner_id: string,
   version: string,
 ) {
-  return root.createAndDeploy(
+  return createAndDeploy(
+    root,
     'linear',
     `compiled-contracts/linear_${version}.wasm`,
     {
-      method: 'new',
+      methodName: 'new',
       args: {
         owner_id,
-      },
-    },
-  );
+      }
+    }
+  )
 }
 
 async function upgrade(contract: NearAccount, owner: NearAccount) {
@@ -82,43 +97,55 @@ async function setManager(
   return manager;
 }
 
-function initWorkSpace(version: string) {
-  return Workspace.init(async ({ root }) => {
-    // deposit 1M $NEAR for each account
-    const owner = await root.createAccount('linear_owner', {
-      initialBalance: NEAR.parse('1000000').toString(),
-    });
-    const alice = await root.createAccount('alice', {
-      initialBalance: NEAR.parse('1000000').toString(),
-    });
-    const bob = await root.createAccount('bob', {
-      initialBalance: NEAR.parse('1000000').toString(),
-    });
-    const carol = await root.createAccount('carol', {
-      initialBalance: NEAR.parse('1000000').toString(),
-    });
-
-    const contract = await deployLinearAtVersion(
-      root,
-      owner.accountId,
-      version,
-    );
-
-    await initAndSetWhitelist(root, contract, owner, true);
-    const manager = await setManager(root, contract, owner);
-
-    return { contract, owner, manager, alice, bob, carol };
+async function initWorkSpace(version: string): Promise<WorkSpace> {
+  const worker = await Worker.init({
+    network: 'sandbox',
+    rm: true,
   });
+
+  const root = worker.rootAccount;
+
+  // deposit 1M $NEAR for each account
+  const owner = await root.createAccount('linear_owner', {
+    initialBalance: NEAR.parse('1000000').toString(),
+  });
+  const alice = await root.createAccount('alice', {
+    initialBalance: NEAR.parse('1000000').toString(),
+  });
+  const bob = await root.createAccount('bob', {
+    initialBalance: NEAR.parse('1000000').toString(),
+  });
+  const carol = await root.createAccount('carol', {
+    initialBalance: NEAR.parse('1000000').toString(),
+  });
+
+  const contract = await deployLinearAtVersion(
+    root,
+    owner.accountId,
+    version,
+  );
+
+  await initAndSetWhitelist(root, contract, owner, true);
+  const manager = await setManager(root, contract, owner);
+
+  return { worker, root, contract, owner, manager, alice, bob, carol };
 }
 
-const baseVersion = 'v1_5_1'; // change this to the version that you want to upgrade from
-const workspace = initWorkSpace(baseVersion);
+const BASE_VERSION = 'v1_5_1'; // change this to the version that you want to upgrade from
+
+test.before(async (t) => {
+  t.context = await initWorkSpace(BASE_VERSION);
+});
+
+test.after(async (t) => {
+  await t.context.worker.tearDown();
+});
 
 // The upgrade() test has run successfully in sandbox by migrating the states of 50 validators.
 // Skip the test in CI because upgrade varies between versions and is almost a one-time effort.
 // Keep this test case to make it easier to be reused in future upgrade.
-skip('upgrade contract from v1.2.0 to v1.3.0 on testnet', async (test, context) => {
-  const { root, contract, owner, manager, alice, bob } = context;
+test.skip('upgrade contract from v1.2.0 to v1.3.0 on testnet', async (t) => {
+  const { root, contract, owner, manager, alice, bob } = t.context;
 
   const groups = 10;
   const limit = 5;
@@ -147,7 +174,7 @@ skip('upgrade contract from v1.2.0 to v1.3.0 on testnet', async (test, context) 
     );
   }
 
-  test.is(await contract.view('get_total_weight'), groups * limit);
+  t.is(await contract.view('get_total_weight'), groups * limit);
 
   // user stake
   const staked = 5000;
@@ -172,11 +199,11 @@ skip('upgrade contract from v1.2.0 to v1.3.0 on testnet', async (test, context) 
       limit,
     });
     for (const v of validators) {
-      test.is(
+      t.is(
         v.staked_amount,
         NEAR.parse((staked / groups / limit).toFixed(0)).toString(),
       );
-      test.is(v.base_stake_amount, undefined);
+      t.is(v.base_stake_amount, undefined);
     }
   }
 
@@ -192,15 +219,15 @@ skip('upgrade contract from v1.2.0 to v1.3.0 on testnet', async (test, context) 
       limit,
     });
     for (const v of validators) {
-      test.is(
+      t.is(
         v.staked_amount,
         NEAR.parse((staked / groups / limit).toFixed(0)).toString(),
       );
-      test.is(v.base_stake_amount, '0');
+      t.is(v.base_stake_amount, '0');
     }
   }
 
-  test.is(await contract.view('get_total_weight'), groups * limit);
+  t.is(await contract.view('get_total_weight'), groups * limit);
 
   // update base stake amount after upgrade
 
@@ -233,15 +260,15 @@ skip('upgrade contract from v1.2.0 to v1.3.0 on testnet', async (test, context) 
   await updateBaseStakeAmounts(contract, manager, ['foo', 'bar'], amounts);
 
   const foo = await getValidator(contract, 'foo');
-  test.is(foo.base_stake_amount, amounts[0].toString());
+  t.is(foo.base_stake_amount, amounts[0].toString());
 
   const bar = await getValidator(contract, 'bar');
-  test.is(bar.base_stake_amount, amounts[1].toString());
+  t.is(bar.base_stake_amount, amounts[1].toString());
 });
 
 // test drain unstake and withdraw
-skip('upgrade from v1.3.3 to v1.4.0', async (test, context) => {
-  const { root, contract, owner, manager, alice } = context;
+test.skip('upgrade from v1.3.3 to v1.4.0', async (t) => {
+  const { root, contract, owner, manager, alice } = t.context;
 
   // add some validators
   const names = Array.from({ length: 5 }, (_, i) => `validator-${i}`);
@@ -282,7 +309,7 @@ skip('upgrade from v1.3.3 to v1.4.0', async (test, context) => {
   // read validators to verify upgrade
   for (const validator of validators) {
     const v = await getValidator(contract, validator.accountId);
-    test.assert(v.draining === false);
+    t.assert(v.draining === false);
   }
 
   // try to drain one of the validators
@@ -305,7 +332,7 @@ skip('upgrade from v1.3.3 to v1.4.0', async (test, context) => {
     },
   );
 
-  test.assert(
+  t.assert(
     (await getValidator(contract, targetValidator.accountId)).draining,
   );
 
@@ -323,14 +350,14 @@ skip('upgrade from v1.3.3 to v1.4.0', async (test, context) => {
     },
   );
 
-  test.assert(
+  t.assert(
     !(await getValidator(contract, targetValidator.accountId)).draining,
   );
 });
 
 // test validator execution status
-skip('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
-  const { root, contract, owner, manager, alice } = context;
+test.skip('upgrade from v1.4.4 to v1.5.0', async (t) => {
+  const { root, contract, owner, manager, alice } = t.context;
 
   // add some validators
   const names = Array.from({ length: 5 }, (_, i) => `validator-${i}`);
@@ -371,7 +398,7 @@ skip('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
   // read validators to verify upgrade
   for (const validator of validators) {
     const v = await getValidator(contract, validator.accountId);
-    test.true(!v.executing);
+    t.true(!v.executing);
   }
 
   // fast-forward
@@ -410,12 +437,12 @@ skip('upgrade from v1.4.4 to v1.5.0', async (test, context) => {
   await Promise.all([delayedEpochStake(1000), watch()]);
 
   // once be executing
-  test.true(executed);
+  t.true(executed);
 });
 
 // regression test after upgrade
-skip('upgrade from v1.5.1 to v1.6.0', async (test, context) => {
-  const { root, contract, owner, manager, alice } = context;
+test.skip('upgrade from v1.5.1 to v1.6.0', async (t) => {
+  const { root, contract, owner, manager, alice } = t.context;
 
   // add some validators
   const names = Array.from({ length: 5 }, (_, i) => `validator-${i}`);
@@ -470,11 +497,11 @@ skip('upgrade from v1.5.1 to v1.6.0', async (test, context) => {
   // withdraw all after 4 epoches
   await alice.call(contract, 'withdraw_all', {});
 
-  test.is(
+  t.is(
     await contract.view('get_account_staked_balance', { account_id: alice }),
     stakeAmount.sub(unstakeAmount).toString(),
   );
-  test.is(
+  t.is(
     await contract.view('get_account_unstaked_balance', { account_id: alice }),
     '0',
   );
@@ -493,11 +520,11 @@ skip('upgrade from v1.5.1 to v1.6.0', async (test, context) => {
   const withdrawAmount = NEAR.parse('1');
   await alice.call(contract, 'withdraw', { amount: withdrawAmount.toString() });
 
-  test.is(
+  t.is(
     await contract.view('get_account_staked_balance', { account_id: alice }),
     '0',
   );
-  test.is(
+  t.is(
     await contract.view('get_account_unstaked_balance', { account_id: alice }),
     stakeAmount.sub(unstakeAmount).sub(withdrawAmount).toString(),
   );

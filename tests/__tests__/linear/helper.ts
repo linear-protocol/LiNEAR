@@ -58,18 +58,21 @@ export async function initWorkSpace(): Promise<WorkSpace> {
   return { worker, root, contract, owner, alice, bob, carol };
 }
 
-async function createAndDeploy(
+export async function createAndDeploy(
   root: NearAccount,
   contractId: string,
   code: string | Uint8Array,
   init?: {
-    methodName: string;
-    args: Record<string, unknown>;
+    methodName?: string;
+    args?: Record<string, unknown>;
+    balance?: string;
   },
 ): Promise<NearAccount> {
-  const contract = await root.createSubAccount(contractId);
+  const contract = await root.createSubAccount(contractId, {
+    initialBalance: init?.balance
+  });
   await contract.deploy(code);
-  if (init) {
+  if (init?.methodName && init.args) {
     await contract.call(contract, init.methodName, init.args);
   }
   return contract;

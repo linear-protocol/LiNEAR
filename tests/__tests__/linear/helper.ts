@@ -91,7 +91,7 @@ export async function deployLinear(
     };
   }
 
-  return createAndDeploy(root, contractId, 'compiled-contracts/linear.wasm', {
+  return createAndDeploy(root, contractId, 'tests/compiled-contracts/linear.wasm', {
     methodName: 'new',
     args: {
       owner_id,

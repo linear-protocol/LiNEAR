@@ -17,6 +17,8 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      TEST_CONCURRENCY: 1
     steps:
       - uses: actions/checkout@v3
       # Setup Rust environment

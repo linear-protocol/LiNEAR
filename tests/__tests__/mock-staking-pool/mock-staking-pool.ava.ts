@@ -56,6 +56,14 @@ test(
   },
 );
 
+test.before(async (t) => {
+  t.context = await initWorkSpace();
+});
+
+test.after(async (t) => {
+  await t.context.worker.tearDown();
+});
+
 test('deposit and stake', async (t) => {
   const { contract, alice } = t.context;
   const deposit = NEAR.parse('10');

@@ -34,7 +34,7 @@ jobs:
           node-version: 16.13
           cache: npm
       - name: Install Dependencies
-        run: cd tests && npm install
+        run: npm install
       # Run tests
       - name: Run tests
         run: make test

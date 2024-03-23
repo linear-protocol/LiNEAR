@@ -57,7 +57,7 @@ test-unit:
 	cargo test --features "test"
 
 monkey-patch:
-	cp ./tests/patches/*.js node_modules/near-workspaces/node_modules/near-api-js/lib/utils/
+	cp ./tests/patches/fetch_json.js node_modules/@near-js/providers/lib
 
 TEST_FILE ?= **
 LOGS ?=

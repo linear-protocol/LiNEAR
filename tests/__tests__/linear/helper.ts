@@ -8,7 +8,7 @@ import {
 } from 'near-workspaces';
 import anyTest, { TestFn } from 'ava';
 
-export const test = anyTest as TestFn<WorkSpace>;
+export const test = anyTest as TestFn<Workspace>;
 
 export const ONE_YOCTO = '1';
 export const NUM_EPOCHS_TO_UNLOCK = 4;
@@ -20,7 +20,7 @@ interface RewardFee {
   denominator: number;
 }
 
-export interface WorkSpace {
+export interface Workspace {
   worker: Worker;
   root: NearAccount;
   contract: NearAccount;
@@ -30,7 +30,7 @@ export interface WorkSpace {
   carol: NearAccount;
 }
 
-export async function initWorkSpace(): Promise<WorkSpace> {
+export async function initWorkspace(): Promise<Workspace> {
   const worker = await Worker.init({
     network: 'sandbox',
     rm: true,

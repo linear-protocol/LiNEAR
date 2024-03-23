@@ -2,7 +2,7 @@ import { Gas, NEAR } from 'near-units';
 import { NearAccount } from 'near-workspaces';
 import {
   assertFailure,
-  initWorkSpace,
+  initWorkspace,
   ONE_YOCTO,
   registerFungibleTokenUser,
   test,
@@ -52,7 +52,7 @@ async function transferCall(
 }
 
 test.beforeEach(async (t) => {
-  t.context = await initWorkSpace();
+  t.context = await initWorkspace();
 });
 
 test.afterEach(async (t) => {

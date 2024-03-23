@@ -1,4 +1,4 @@
-import {initWorkSpace, test} from './helper';
+import {initWorkspace, test} from './helper';
 
 interface ContractSourceMetadata {
   version: String;
@@ -6,7 +6,7 @@ interface ContractSourceMetadata {
 }
 
 test.beforeEach(async (t) => {
-  t.context = await initWorkSpace();
+  t.context = await initWorkspace();
 });
 
 test.afterEach(async (t) => {

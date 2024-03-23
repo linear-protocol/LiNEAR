@@ -1,7 +1,7 @@
 import { BN, Gas, NEAR, NearAccount } from 'near-workspaces';
 import {
   assertFailure,
-  initWorkSpace,
+  initWorkspace,
   createStakingPool,
   updateBaseStakeAmounts,
   setManager,
@@ -27,7 +27,7 @@ async function unstakeAll(owner: NearAccount, contract: NearAccount) {
 }
 
 test.beforeEach(async (t) => {
-  t.context = await initWorkSpace();
+  t.context = await initWorkspace();
 });
 
 test.afterEach(async (t) => {

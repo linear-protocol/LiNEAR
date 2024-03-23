@@ -1,7 +1,7 @@
-import {initWorkSpace, test} from './helper';
+import {initWorkspace, test} from './helper';
 
 test.beforeEach(async (t) => {
-  t.context = await initWorkSpace();
+  t.context = await initWorkspace();
 });
 
 test.afterEach(async (t) => {

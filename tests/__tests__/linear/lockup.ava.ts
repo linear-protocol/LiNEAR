@@ -1,5 +1,5 @@
 import { NearAccount, NEAR, Gas } from 'near-workspaces';
-import {createAndDeploy, initWorkSpace, test} from './helper';
+import {createAndDeploy, initWorkspace, test} from './helper';
 
 async function createLockupAccount(root: NearAccount, owner: NearAccount) {
   const lockupAccount = await createAndDeploy(
@@ -39,7 +39,7 @@ async function createLockupAccount(root: NearAccount, owner: NearAccount) {
 }
 
 test.beforeEach(async (t) => {
-  t.context = await initWorkSpace();
+  t.context = await initWorkspace();
 });
 
 test.afterEach(async (t) => {

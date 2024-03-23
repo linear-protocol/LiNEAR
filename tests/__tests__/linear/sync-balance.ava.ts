@@ -6,7 +6,7 @@ import {
   epochStake,
   epochUnstake,
   getValidator,
-  initWorkSpace,
+  initWorkspace,
   setManager,
   test,
 } from './helper';
@@ -31,7 +31,7 @@ function assertValidatorAmountHelper(
 }
 
 test.beforeEach(async (t) => {
-  t.context = await initWorkSpace();
+  t.context = await initWorkspace();
 });
 
 test.afterEach(async (t) => {

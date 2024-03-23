@@ -1,6 +1,6 @@
 import { NEAR, NearAccount, BN, Gas } from 'near-workspaces';
 import {
-  initWorkSpace,
+  initWorkspace,
   assertFailure,
   registerFungibleTokenUser,
   ONE_YOCTO,
@@ -59,7 +59,7 @@ async function transferCall(
 }
 
 test.beforeEach(async (t) => {
-  t.context = await initWorkSpace();
+  t.context = await initWorkspace();
 });
 
 test.afterEach(async (t) => {

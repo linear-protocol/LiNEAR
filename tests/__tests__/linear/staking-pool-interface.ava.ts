@@ -1,6 +1,6 @@
 import { NEAR, Gas } from 'near-workspaces';
 import {
-  initWorkSpace,
+  initWorkspace,
   assertFailure,
   epochHeightFastforward,
   epochStake,
@@ -11,7 +11,7 @@ const ERR_UNSTAKED_BALANCE_NOT_AVAILABLE =
   'The unstaked balance is not yet available due to unstaking delay';
 
 test.beforeEach(async (t) => {
-  t.context = await initWorkSpace();
+  t.context = await initWorkspace();
 });
 
 test.afterEach(async (t) => {

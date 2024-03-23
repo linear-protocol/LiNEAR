@@ -1,6 +1,6 @@
 import { NearAccount, NEAR, Gas } from 'near-workspaces';
 import {
-  initWorkSpace,
+  initWorkspace,
   createStakingPool,
   getValidator,
   epochStake,
@@ -37,7 +37,7 @@ function assertValidatorHelper(
 }
 
 test.beforeEach(async (t) => {
-  t.context = await initWorkSpace();
+  t.context = await initWorkspace();
 });
 
 test.afterEach(async (t) => {

@@ -1,16 +1,16 @@
-import { assertFailure, initWorkSpace, WorkSpace } from './helper';
+import { assertFailure, initWorkspace, Workspace } from './helper';
 import { ExecutionContext } from 'ava';
 import { test } from './helper';
 
 test.beforeEach(async (t) => {
-  t.context = await initWorkSpace();
+  t.context = await initWorkspace();
 });
 
 test.afterEach(async (t) => {
   await t.context.worker.tearDown();
 });
 
-test('non-owner call beneficiaries', async (t: ExecutionContext<WorkSpace>) => {
+test('non-owner call beneficiaries', async (t: ExecutionContext<Workspace>) => {
   const { alice, contract } = t.context;
   await assertFailure(
     t,
@@ -30,7 +30,7 @@ test('non-owner call beneficiaries', async (t: ExecutionContext<WorkSpace>) => {
   );
 });
 
-test('beneficiaries sum > 1', async (t: ExecutionContext<WorkSpace>) => {
+test('beneficiaries sum > 1', async (t: ExecutionContext<Workspace>) => {
   const { contract, owner } = t.context;
   await owner.call(contract, 'set_beneficiary', {
     account_id: 'foo',
@@ -47,7 +47,7 @@ test('beneficiaries sum > 1', async (t: ExecutionContext<WorkSpace>) => {
   );
 });
 
-test('too many beneficiaries', async (t: ExecutionContext<WorkSpace>) => {
+test('too many beneficiaries', async (t: ExecutionContext<Workspace>) => {
   const { contract, owner } = t.context;
   for (let i = 0; i < 10; i++) {
     await owner.call(contract, 'set_beneficiary', {
@@ -66,7 +66,7 @@ test('too many beneficiaries', async (t: ExecutionContext<WorkSpace>) => {
   );
 });
 
-test('set beneficiaries', async (t: ExecutionContext<WorkSpace>) => {
+test('set beneficiaries', async (t: ExecutionContext<Workspace>) => {
   const { contract, owner } = t.context;
   const initValues: object = await owner.call(
     contract,

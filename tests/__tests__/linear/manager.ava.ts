@@ -1,7 +1,7 @@
-import { assertFailure, initWorkSpace, test } from './helper';
+import { assertFailure, initWorkspace, test } from './helper';
 
 test.beforeEach(async (t) => {
-  t.context = await initWorkSpace();
+  t.context = await initWorkspace();
 });
 
 test.afterEach(async (t) => {

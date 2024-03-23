@@ -1,7 +1,7 @@
 import { NearAccount, NEAR, Gas } from 'near-workspaces';
 import {
   assertFailure,
-  initWorkSpace,
+  initWorkspace,
   createStakingPool,
   setManager,
   assertValidatorAmountHelper,
@@ -21,7 +21,7 @@ async function stakeAll(signer: NearAccount, contract: NearAccount) {
 }
 
 test.beforeEach(async (t) => {
-  t.context = await initWorkSpace();
+  t.context = await initWorkspace();
 });
 
 test.afterEach(async (t) => {

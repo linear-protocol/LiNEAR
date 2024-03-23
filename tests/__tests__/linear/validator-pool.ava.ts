@@ -4,7 +4,7 @@ import {
   assertFailure,
   getValidator,
   initAndSetWhitelist,
-  initWorkSpace, test,
+  initWorkspace, test,
   updateBaseStakeAmounts,
 } from './helper';
 
@@ -26,7 +26,7 @@ async function setManager(
 }
 
 test.beforeEach(async (t) => {
-  t.context = await initWorkSpace();
+  t.context = await initWorkspace();
 });
 
 test.afterEach(async (t) => {

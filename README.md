@@ -32,7 +32,8 @@ The [v1.0.0 contract release](https://github.com/linear-protocol/LiNEAR/releases
 
 We adopt unit tests and heavily used the [`workspace-js`](https://github.com/near/workspaces-js) test framework to test the major scenarios and workflow of the LiNEAR smart contract in the [Sandbox](https://docs.near.org/docs/develop/contracts/sandbox) environment. Lint with `rustfmt` and `clippy` is also required when making changes to contract.
 
-- Run `npm i` under `./tests` folder first to set up the environment
+- Install node v16
+- Run `npm i` to set up the environment
 - Run lint with `rustfmt` and `clippy`: `make lint`
 - Run all tests: `make test`
 - Run LiNEAR simulation tests:

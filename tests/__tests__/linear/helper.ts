@@ -1,19 +1,19 @@
+import anyTest, { TestFn } from 'ava';
 import {
-  Worker,
-  NEAR,
-  NearAccount,
   BN,
   Gas,
+  NEAR,
+  NearAccount,
   TransactionResult,
+  Worker,
 } from 'near-workspaces';
-import anyTest, { TestFn } from 'ava';
 
 export const test = anyTest as TestFn<Workspace>;
 
 export const ONE_YOCTO = '1';
 export const NUM_EPOCHS_TO_UNLOCK = 4;
 export const MAX_SYNC_BALANCE_DIFF = NEAR.from(100);
-export const MANAGER_SYNC_BALANCE_DIFF_THRESHOLD = NEAR.from(1_000_000);
+export const SYNC_BALANCE_DIFF_THRESHOLD = NEAR.from(100);
 
 interface RewardFee {
   numerator: number;

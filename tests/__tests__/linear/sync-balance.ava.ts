@@ -1,16 +1,14 @@
+import { Gas, NEAR, NearAccount } from 'near-workspaces';
 import {
-  MANAGER_SYNC_BALANCE_DIFF_THRESHOLD,
   MAX_SYNC_BALANCE_DIFF,
-  assertFailure,
+  SYNC_BALANCE_DIFF_THRESHOLD,
   createStakingPool,
   epochStake,
   epochUnstake,
   getValidator,
   initWorkspace,
-  setManager,
-  test,
+  test
 } from './helper';
-import { Gas, NEAR, NearAccount } from 'near-workspaces';
 
 function assertValidatorAmountHelper(
   test: any,
@@ -191,11 +189,9 @@ test(
 );
 
 test(
-  'sync balance by manager failure',
+  'sync balance failure',
   async (t) => {
     const { root, contract, alice, bob, owner } = t.context;
-    // set bob as manager
-    await setManager(root, contract, owner, bob);
 
     const assertValidator = assertValidatorAmountHelper(t, contract, owner);
     const v1 = await createStakingPool(root, 'v1');
@@ -232,8 +228,8 @@ test(
       },
     );
 
-    // -- 1. total balance diff > MANAGER_SYNC_BALANCE_DIFF_THRESHOLD
-    const diff = MANAGER_SYNC_BALANCE_DIFF_THRESHOLD.addn(1);
+    // -- 1. total balance diff > SYNC_BALANCE_DIFF_THRESHOLD
+    const diff = SYNC_BALANCE_DIFF_THRESHOLD.addn(1);
     await owner.call(v1, 'set_balance_delta', {
       staked_delta: '0',
       unstaked_delta: diff.toString(10),
@@ -242,22 +238,6 @@ test(
     for (let i = 0; i < 2; i++) {
       await epochStake(owner, contract);
     }
-
-    // sync balance only allowed by manager
-    await assertFailure(
-      t,
-      alice.call(
-        contract,
-        'sync_balance_from_validator',
-        {
-          validator_id: v1.accountId,
-        },
-        {
-          gas: Gas.parse('200 Tgas'),
-        },
-      ),
-      'Only manager can perform this action',
-    );
 
     await bob.call(
       contract,
@@ -273,7 +253,7 @@ test(
     // v1 amount should not change
     await assertValidator(v1, '30000000000000000000000000', '0');
 
-    // -- 2. amount balance diff > MANAGER_SYNC_BALANCE_DIFF_THRESHOLD
+    // -- 2. amount balance diff > SYNC_BALANCE_DIFF_THRESHOLD
     await owner.call(v2, 'set_balance_delta', {
       staked_delta: diff.toString(10),
       unstaked_delta: diff.toString(10),
@@ -308,11 +288,9 @@ test(
 );
 
 test(
-  'sync balance by manager',
+  'sync balance',
   async (t) => {
     const { root, contract, alice, bob, owner } = t.context;
-    // set bob as manager
-    await setManager(root, contract, owner, bob);
 
     const assertValidator = assertValidatorAmountHelper(t, contract, owner);
     const v1 = await createStakingPool(root, 'v1');
@@ -349,8 +327,8 @@ test(
       },
     );
 
-    // -- amount balance diff < MANAGER_SYNC_BALANCE_DIFF_THRESHOLD
-    const diff = MANAGER_SYNC_BALANCE_DIFF_THRESHOLD.subn(1);
+    // -- amount balance diff < SYNC_BALANCE_DIFF_THRESHOLD
+    const diff = SYNC_BALANCE_DIFF_THRESHOLD.subn(1);
     await owner.call(v1, 'set_balance_delta', {
       staked_delta: diff.toString(10),
       unstaked_delta: diff.toString(10),

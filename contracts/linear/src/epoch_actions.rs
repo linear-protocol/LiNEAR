@@ -8,7 +8,6 @@ use crate::utils::*;
 
 const MIN_AMOUNT_TO_PERFORM_STAKE: Balance = ONE_NEAR;
 const MAX_SYNC_BALANCE_DIFF: Balance = 100;
-const MANAGER_SYNC_BALANCE_DIFF_THRESHOLD: Balance = 1_000_000;
 
 /// Actions that should be called by off-chain actors
 /// during each epoch.
@@ -266,11 +265,7 @@ trait EpochActionCallbacks {
 
     fn validator_get_balance_callback(&mut self, validator_id: AccountId);
 
-    fn validator_get_account_callback(
-        &mut self,
-        validator_id: AccountId,
-        post_action: bool,
-    ) -> bool;
+    fn validator_get_account_callback(&mut self, validator_id: AccountId) -> bool;
 
     fn validator_withdraw_callback(&mut self, validator_id: AccountId, amount: U128);
 }
@@ -307,7 +302,6 @@ impl LiquidStakingContract {
                 .sync_account_balance(&mut self.validator_pool, true)
                 .then(ext_self_action_cb::validator_get_account_callback(
                     validator_id,
-                    true,
                     env::current_account_id(),
                     NO_DEPOSIT,
                     GAS_CB_VALIDATOR_SYNC_BALANCE,
@@ -357,7 +351,6 @@ impl LiquidStakingContract {
                 .sync_account_balance(&mut self.validator_pool, true)
                 .then(ext_self_action_cb::validator_get_account_callback(
                     validator_id,
-                    true,
                     env::current_account_id(),
                     NO_DEPOSIT,
                     GAS_CB_VALIDATOR_SYNC_BALANCE,
@@ -421,19 +414,12 @@ impl LiquidStakingContract {
     pub fn validator_get_account_callback(
         &mut self,
         validator_id: AccountId,
-        post_action: bool,
         #[callback_result] result: Result<HumanReadableAccount, PromiseError>,
     ) -> bool {
         let mut validator = self
             .validator_pool
             .get_validator(&validator_id)
             .unwrap_or_else(|| panic!("{}: {}", ERR_VALIDATOR_NOT_EXIST, &validator_id));
-
-        let max_sync_balance_diff = if !post_action && self.signed_by_manager() {
-            MANAGER_SYNC_BALANCE_DIFF_THRESHOLD
-        } else {
-            MAX_SYNC_BALANCE_DIFF
-        };
 
         match result {
             Ok(account) => {
@@ -442,15 +428,15 @@ impl LiquidStakingContract {
                 if abs_diff_eq(
                     new_total_balance,
                     validator.total_balance(),
-                    max_sync_balance_diff,
+                    MAX_SYNC_BALANCE_DIFF,
                 ) && abs_diff_eq(
                     account.staked_balance.0,
                     validator.staked_amount,
-                    max_sync_balance_diff,
+                    MAX_SYNC_BALANCE_DIFF,
                 ) && abs_diff_eq(
                     account.unstaked_balance.0,
                     validator.unstaked_amount,
-                    max_sync_balance_diff,
+                    MAX_SYNC_BALANCE_DIFF,
                 ) {
                     Event::SyncValidatorBalanceSuccess {
                         validator_id: &validator_id,

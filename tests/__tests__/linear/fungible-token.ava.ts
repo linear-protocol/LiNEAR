@@ -6,7 +6,7 @@ import {
   ONE_YOCTO,
   epochHeightFastforward,
   deployDex,
-  test
+  test,
 } from './helper';
 
 const ERR_NO_ENOUGH_BALANCE = "The account doesn't have enough balance";
@@ -79,99 +79,90 @@ test('ft price', async (t) => {
   t.is(NEAR.from(price).toString(), NEAR.parse('1').toString());
 });
 
-test(
-  'cannot transfer with no balance',
-  async (t) => {
-    const { contract, alice, bob } = t.context;
-    await registerFungibleTokenUser(contract, alice);
+test('cannot transfer with no balance', async (t) => {
+  const { contract, alice, bob } = t.context;
+  await registerFungibleTokenUser(contract, alice);
 
-    await assertFailure(
-      t,
-      transfer(contract, alice, bob, NEAR.parse('1')),
-      ERR_NO_ENOUGH_BALANCE,
-    );
-  },
-);
+  await assertFailure(
+    t,
+    transfer(contract, alice, bob, NEAR.parse('1')),
+    ERR_NO_ENOUGH_BALANCE,
+  );
+});
 
-test(
-  'stake NEAR and transfer LiNEAR',
-  async (t) => {
-    const { contract, alice, bob } = t.context;
-    await registerFungibleTokenUser(contract, alice);
-    await registerFungibleTokenUser(contract, bob);
+test('stake NEAR and transfer LiNEAR', async (t) => {
+  const { contract, alice, bob } = t.context;
+  await registerFungibleTokenUser(contract, alice);
+  await registerFungibleTokenUser(contract, bob);
 
-    // deposit and stake 10 NEAR
-    const stakeAmount = NEAR.parse('10');
-    await alice.call(
-      contract,
-      'deposit_and_stake',
-      {},
-      { attachedDeposit: stakeAmount },
-    );
+  // deposit and stake 10 NEAR
+  const stakeAmount = NEAR.parse('10');
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    { attachedDeposit: stakeAmount },
+  );
 
-    // transfer 2 LiNEAR from alice to bob
-    const transferAmount1 = NEAR.parse('2');
-    await transfer(contract, alice, bob, transferAmount1);
-    t.is(
-      await contract.view('ft_balance_of', { account_id: alice }),
-      stakeAmount.sub(transferAmount1).toString(),
-    );
-    t.is(
-      await contract.view('ft_balance_of', { account_id: bob }),
-      transferAmount1.toString(),
-    );
+  // transfer 2 LiNEAR from alice to bob
+  const transferAmount1 = NEAR.parse('2');
+  await transfer(contract, alice, bob, transferAmount1);
+  t.is(
+    await contract.view('ft_balance_of', { account_id: alice }),
+    stakeAmount.sub(transferAmount1).toString(),
+  );
+  t.is(
+    await contract.view('ft_balance_of', { account_id: bob }),
+    transferAmount1.toString(),
+  );
 
-    // transfer 1 LiNEAR from bob to alice
-    const transferAmount2 = NEAR.parse('1');
-    await transfer(contract, bob, alice, transferAmount2);
-    t.is(
-      await contract.view('ft_balance_of', { account_id: alice }),
-      stakeAmount.sub(transferAmount1).add(transferAmount2).toString(),
-    );
-    t.is(
-      await contract.view('ft_balance_of', { account_id: bob }),
-      transferAmount1.sub(transferAmount2).toString(),
-    );
+  // transfer 1 LiNEAR from bob to alice
+  const transferAmount2 = NEAR.parse('1');
+  await transfer(contract, bob, alice, transferAmount2);
+  t.is(
+    await contract.view('ft_balance_of', { account_id: alice }),
+    stakeAmount.sub(transferAmount1).add(transferAmount2).toString(),
+  );
+  t.is(
+    await contract.view('ft_balance_of', { account_id: bob }),
+    transferAmount1.sub(transferAmount2).toString(),
+  );
 
-    // cannot transfer 2 LiNEAR from bob
-    await assertFailure(
-      t,
-      transfer(contract, bob, alice, NEAR.parse('2')),
-      ERR_NO_ENOUGH_BALANCE,
-    );
-  },
-);
+  // cannot transfer 2 LiNEAR from bob
+  await assertFailure(
+    t,
+    transfer(contract, bob, alice, NEAR.parse('2')),
+    ERR_NO_ENOUGH_BALANCE,
+  );
+});
 
 // Ensure LiNEAR transfer work well with NEAR Wallet
-test(
-  'register LiNEAR with 0.00125Ⓝ storage balance',
-  async (t) => {
-    const { contract, alice, bob } = t.context;
-    await registerFungibleTokenUser(contract, alice, NEAR.parse('0.00125'));
-    await registerFungibleTokenUser(contract, bob, NEAR.parse('0.00125'));
+test('register LiNEAR with 0.00125Ⓝ storage balance', async (t) => {
+  const { contract, alice, bob } = t.context;
+  await registerFungibleTokenUser(contract, alice, NEAR.parse('0.00125'));
+  await registerFungibleTokenUser(contract, bob, NEAR.parse('0.00125'));
 
-    // deposit and stake 10 NEAR
-    const stakeAmount = NEAR.parse('10');
-    await alice.call(
-      contract,
-      'deposit_and_stake',
-      {},
-      { attachedDeposit: stakeAmount },
-    );
+  // deposit and stake 10 NEAR
+  const stakeAmount = NEAR.parse('10');
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    { attachedDeposit: stakeAmount },
+  );
 
-    // transfer 2 LiNEAR from alice to bob
-    const transferAmount1 = NEAR.parse('2');
-    await transfer(contract, alice, bob, transferAmount1);
-    t.is(
-      await contract.view('ft_balance_of', { account_id: alice }),
-      stakeAmount.sub(transferAmount1).toString(),
-    );
-    t.is(
-      await contract.view('ft_balance_of', { account_id: bob }),
-      transferAmount1.toString(),
-    );
-  },
-);
+  // transfer 2 LiNEAR from alice to bob
+  const transferAmount1 = NEAR.parse('2');
+  await transfer(contract, alice, bob, transferAmount1);
+  t.is(
+    await contract.view('ft_balance_of', { account_id: alice }),
+    stakeAmount.sub(transferAmount1).toString(),
+  );
+  t.is(
+    await contract.view('ft_balance_of', { account_id: bob }),
+    transferAmount1.toString(),
+  );
+});
 
 test.skip('storage unregister', async (t) => {
   const { contract, alice, bob } = t.context;
@@ -191,10 +182,7 @@ test.skip('storage unregister', async (t) => {
     {},
     { attachedDeposit: ONE_YOCTO },
   );
-  t.is(
-    await contract.view('storage_balance_of', { account_id: alice }),
-    null,
-  );
+  t.is(await contract.view('storage_balance_of', { account_id: alice }), null);
 
   // Alice deposit and stake 10 NEAR
   await alice.call(
@@ -212,10 +200,7 @@ test.skip('storage unregister', async (t) => {
     { force: true },
     { attachedDeposit: ONE_YOCTO },
   );
-  t.is(
-    await contract.view('storage_balance_of', { account_id: alice }),
-    null,
-  );
+  t.is(await contract.view('storage_balance_of', { account_id: alice }), null);
   t.is(await contract.view('ft_balance_of', { account_id: alice }), '0');
 
   // Alice deposit and stake 10 NEAR
@@ -278,73 +263,67 @@ test.skip('storage unregister', async (t) => {
     {},
     { attachedDeposit: ONE_YOCTO },
   );
-  t.is(
-    await contract.view('storage_balance_of', { account_id: alice }),
-    null,
-  );
+  t.is(await contract.view('storage_balance_of', { account_id: alice }), null);
 });
 
-test(
-  'ft_transfer_call LiNEAR',
-  async (t) => {
-    const { root, contract, alice } = t.context;
-    // Deploy the decentralized exchange
-    const dex = await deployDex(root);
-    await registerFungibleTokenUser(contract, alice, NEAR.parse('0.00125'));
-    await registerFungibleTokenUser(contract, dex, NEAR.parse('0.00125'));
+test('ft_transfer_call LiNEAR', async (t) => {
+  const { root, contract, alice } = t.context;
+  // Deploy the decentralized exchange
+  const dex = await deployDex(root);
+  await registerFungibleTokenUser(contract, alice, NEAR.parse('0.00125'));
+  await registerFungibleTokenUser(contract, dex, NEAR.parse('0.00125'));
 
-    // deposit and stake 10 NEAR
-    const stakeAmount = NEAR.parse('10');
-    await alice.call(
-      contract,
-      'deposit_and_stake',
-      {},
-      { attachedDeposit: stakeAmount },
-    );
+  // deposit and stake 10 NEAR
+  const stakeAmount = NEAR.parse('10');
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    { attachedDeposit: stakeAmount },
+  );
 
-    // ft_transfer_call() with `ft_on_trasfer()` passed
-    const transferAmount1 = NEAR.parse('1');
-    await transferCall(
-      contract,
-      alice,
-      dex,
-      transferAmount1,
-      'pass',
-      'keep my money',
-    );
-    t.is(
-      await contract.view('ft_balance_of', { account_id: alice }),
-      stakeAmount.sub(transferAmount1).toString(),
-    );
+  // ft_transfer_call() with `ft_on_trasfer()` passed
+  const transferAmount1 = NEAR.parse('1');
+  await transferCall(
+    contract,
+    alice,
+    dex,
+    transferAmount1,
+    'pass',
+    'keep my money',
+  );
+  t.is(
+    await contract.view('ft_balance_of', { account_id: alice }),
+    stakeAmount.sub(transferAmount1).toString(),
+  );
 
-    // ft_transfer_call() with `ft_on_trasfer()` failed, all assets refunded
-    const transferAmount2 = NEAR.parse('2');
-    await transferCall(
-      contract,
-      alice,
-      dex,
-      transferAmount2,
-      'fail',
-      'pay me 1B $NEAR',
-    );
-    t.is(
-      await contract.view('ft_balance_of', { account_id: alice }),
-      stakeAmount.sub(transferAmount1).toString(),
-    );
+  // ft_transfer_call() with `ft_on_trasfer()` failed, all assets refunded
+  const transferAmount2 = NEAR.parse('2');
+  await transferCall(
+    contract,
+    alice,
+    dex,
+    transferAmount2,
+    'fail',
+    'pay me 1B $NEAR',
+  );
+  t.is(
+    await contract.view('ft_balance_of', { account_id: alice }),
+    stakeAmount.sub(transferAmount1).toString(),
+  );
 
-    // ft_transfer_call() with `ft_on_trasfer()` refunded, all assets refunded
-    const transferAmount3 = NEAR.parse('3');
-    await transferCall(
-      contract,
-      alice,
-      dex,
-      transferAmount3,
-      'refund',
-      'refund all my assets',
-    );
-    t.is(
-      await contract.view('ft_balance_of', { account_id: alice }),
-      stakeAmount.sub(transferAmount1).toString(),
-    );
-  },
-);
+  // ft_transfer_call() with `ft_on_trasfer()` refunded, all assets refunded
+  const transferAmount3 = NEAR.parse('3');
+  await transferCall(
+    contract,
+    alice,
+    dex,
+    transferAmount3,
+    'refund',
+    'refund all my assets',
+  );
+  t.is(
+    await contract.view('ft_balance_of', { account_id: alice }),
+    stakeAmount.sub(transferAmount1).toString(),
+  );
+});

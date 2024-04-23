@@ -1,14 +1,14 @@
-import {NEAR, NearAccount, Worker} from 'near-workspaces';
-import {assertFailure, createAndDeploy} from '../linear/helper';
+import { NEAR, NearAccount, Worker } from 'near-workspaces';
+import { assertFailure, createAndDeploy } from '../linear/helper';
 
-import anyTest, { TestFn } from "ava";
+import anyTest, { TestFn } from 'ava';
 
 const test = anyTest as TestFn<WorkSpace>;
 
 interface WorkSpace {
-  worker: Worker,
-  contract: NearAccount,
-  alice: NearAccount,
+  worker: Worker;
+  contract: NearAccount;
+  alice: NearAccount;
 }
 
 async function initWorkSpace(): Promise<WorkSpace> {
@@ -29,32 +29,29 @@ async function initWorkSpace(): Promise<WorkSpace> {
       methodName: 'new',
       args: {},
     },
-  )
+  );
 
   return { worker, contract, alice };
 }
 
-test(
-  'check balance after initlization',
-  async (t) => {
-    const { contract, alice } = t.context;
-    // await root.call(contract, 'set_status', {message: 'lol'});
-    t.is(
-      await contract.view('get_account_staked_balance', { account_id: alice }),
-      '0',
-    );
-    t.is(
-      await contract.view('get_account_unstaked_balance', {
-        account_id: alice,
-      }),
-      '0',
-    );
-    t.is(
-      await contract.view('get_account_total_balance', { account_id: alice }),
-      '0',
-    );
-  },
-);
+test('check balance after initlization', async (t) => {
+  const { contract, alice } = t.context;
+  // await root.call(contract, 'set_status', {message: 'lol'});
+  t.is(
+    await contract.view('get_account_staked_balance', { account_id: alice }),
+    '0',
+  );
+  t.is(
+    await contract.view('get_account_unstaked_balance', {
+      account_id: alice,
+    }),
+    '0',
+  );
+  t.is(
+    await contract.view('get_account_total_balance', { account_id: alice }),
+    '0',
+  );
+});
 
 test.beforeEach(async (t) => {
   t.context = await initWorkSpace();

@@ -1,4 +1,4 @@
-import {initWorkspace, test} from './helper';
+import { initWorkspace, test } from './helper';
 
 interface ContractSourceMetadata {
   version: String;

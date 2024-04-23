@@ -4,7 +4,8 @@ import {
   assertFailure,
   getValidator,
   initAndSetWhitelist,
-  initWorkspace, test,
+  initWorkspace,
+  test,
   updateBaseStakeAmounts,
 } from './helper';
 
@@ -33,62 +34,59 @@ test.afterEach(async (t) => {
   await t.context.worker.tearDown();
 });
 
-test(
-  'not manager',
-  async (t) => {
-    const { contract, alice, root, owner } = t.context;
-    await setManager(root, contract, owner);
+test('not manager', async (t) => {
+  const { contract, alice, root, owner } = t.context;
+  await setManager(root, contract, owner);
 
-    let errMsg = 'Only manager can perform this action';
-    await assertFailure(
-      t,
-      alice.call(
-        contract,
-        'add_validator',
-        {
-          validator_id: 'foo',
-          weight: 10,
-        },
-        {
-          gas: Gas.parse('100 Tgas'),
-        },
-      ),
-      errMsg,
-    );
-
-    await assertFailure(
-      t,
-      alice.call(contract, 'add_validators', {
-        validator_ids: ['foo'],
-        weights: [10],
-      }),
-      errMsg,
-    );
-
-    await assertFailure(
-      t,
-      alice.call(contract, 'remove_validator', {
-        validator_id: 'foo',
-      }),
-      errMsg,
-    );
-
-    await assertFailure(
-      t,
-      alice.call(contract, 'update_weight', {
+  let errMsg = 'Only manager can perform this action';
+  await assertFailure(
+    t,
+    alice.call(
+      contract,
+      'add_validator',
+      {
         validator_id: 'foo',
         weight: 10,
-      }),
-      errMsg,
-    );
+      },
+      {
+        gas: Gas.parse('100 Tgas'),
+      },
+    ),
+    errMsg,
+  );
 
-    await assertFailure(
-      t,
-      updateBaseStakeAmounts(contract, alice, ['foo'], [NEAR.parse('25,000')]),
-      errMsg,
-    );
-  },
-);
+  await assertFailure(
+    t,
+    alice.call(contract, 'add_validators', {
+      validator_ids: ['foo'],
+      weights: [10],
+    }),
+    errMsg,
+  );
+
+  await assertFailure(
+    t,
+    alice.call(contract, 'remove_validator', {
+      validator_id: 'foo',
+    }),
+    errMsg,
+  );
+
+  await assertFailure(
+    t,
+    alice.call(contract, 'update_weight', {
+      validator_id: 'foo',
+      weight: 10,
+    }),
+    errMsg,
+  );
+
+  await assertFailure(
+    t,
+    updateBaseStakeAmounts(contract, alice, ['foo'], [NEAR.parse('25,000')]),
+    errMsg,
+  );
+});
 
 test('add validator', async (t) => {
   const { root, owner, contract } = t.context;

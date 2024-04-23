@@ -1,4 +1,4 @@
-import {initWorkspace, test} from './helper';
+import { initWorkspace, test } from './helper';
 
 test.beforeEach(async (t) => {
   t.context = await initWorkspace();
@@ -8,24 +8,17 @@ test.afterEach(async (t) => {
   await t.context.worker.tearDown();
 });
 
-test(
-  'read/write test epoch height',
-  async (t) => {
-    const  { contract, alice } = t.context;
-    t.is(
-      await contract.view('read_epoch_height'),
-      10,
-      'init epoch height should be 10',
-    );
+test('read/write test epoch height', async (t) => {
+  const { contract, alice } = t.context;
+  t.is(
+    await contract.view('read_epoch_height'),
+    10,
+    'init epoch height should be 10',
+  );
 
-    await alice.call(contract, 'set_epoch_height', {
-      epoch: 14,
-    });
+  await alice.call(contract, 'set_epoch_height', {
+    epoch: 14,
+  });
 
-    t.is(
-      await contract.view('read_epoch_height'),
-      14,
-      'epoch should be set',
-    );
-  },
-);
+  t.is(await contract.view('read_epoch_height'), 14, 'epoch should be set');
+});

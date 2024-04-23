@@ -59,100 +59,86 @@ test.afterEach(async (t) => {
   await t.context.worker.tearDown();
 });
 
-test(
-  'pause/resume could not be called by non-owner',
-  async (t) => {
-    const { contract, alice } = t.context;
-    await assertFailure(
-      t,
-      alice.call(contract, 'pause', {}),
-      'Only owner can perform this action',
-    );
+test('pause/resume could not be called by non-owner', async (t) => {
+  const { contract, alice } = t.context;
+  await assertFailure(
+    t,
+    alice.call(contract, 'pause', {}),
+    'Only owner can perform this action',
+  );
 
-    await assertFailure(
-      t,
-      alice.call(contract, 'resume', {}),
-      'Only owner can perform this action',
-    );
-  },
-);
+  await assertFailure(
+    t,
+    alice.call(contract, 'resume', {}),
+    'Only owner can perform this action',
+  );
+});
 
-test(
-  'could not perform any actions when paused',
-  async (t) => {
-    const { contract, owner, alice } = t.context;
-    // deposit and stake 10 NEAR
-    const stakeAmount = NEAR.parse('10');
-    await alice.call(
-      contract,
-      'deposit_and_stake',
-      {},
-      { attachedDeposit: stakeAmount },
-    );
+test('could not perform any actions when paused', async (t) => {
+  const { contract, owner, alice } = t.context;
+  // deposit and stake 10 NEAR
+  const stakeAmount = NEAR.parse('10');
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    { attachedDeposit: stakeAmount },
+  );
 
-    await owner.call(contract, 'pause', {});
+  await owner.call(contract, 'pause', {});
 
-    // cannot transfer LiNEAR
+  // cannot transfer LiNEAR
 
-    const amount = NEAR.parse('2');
-    await assertFailure(
-      t,
-      transfer(contract, alice, owner, amount),
-      'The contract is paused now. Please try later',
-    );
+  const amount = NEAR.parse('2');
+  await assertFailure(
+    t,
+    transfer(contract, alice, owner, amount),
+    'The contract is paused now. Please try later',
+  );
 
-    await assertFailure(
-      t,
-      transferCall(contract, alice, owner, amount, ''),
-      'The contract is paused now. Please try later',
-    );
+  await assertFailure(
+    t,
+    transferCall(contract, alice, owner, amount, ''),
+    'The contract is paused now. Please try later',
+  );
 
-    // cannot stake/unstake
+  // cannot stake/unstake
 
-    await assertFailure(
-      t,
-      alice.call(
-        contract,
-        'deposit_and_stake',
-        {},
-        { attachedDeposit: amount },
-      ),
-      'The contract is paused now. Please try later',
-    );
+  await assertFailure(
+    t,
+    alice.call(contract, 'deposit_and_stake', {}, { attachedDeposit: amount }),
+    'The contract is paused now. Please try later',
+  );
 
-    await assertFailure(
-      t,
-      alice.call(contract, 'unstake_all', {}),
-      'The contract is paused now. Please try later',
-    );
-  },
-);
+  await assertFailure(
+    t,
+    alice.call(contract, 'unstake_all', {}),
+    'The contract is paused now. Please try later',
+  );
+});
 
-test(
-  'resume contract after pause',
-  async (t) => {
-    const { contract, owner, alice, bob } = t.context;
-    // deposit and stake 10 NEAR
-    const stakeAmount = NEAR.parse('10');
-    await alice.call(
-      contract,
-      'deposit_and_stake',
-      {},
-      { attachedDeposit: stakeAmount },
-    );
+test('resume contract after pause', async (t) => {
+  const { contract, owner, alice, bob } = t.context;
+  // deposit and stake 10 NEAR
+  const stakeAmount = NEAR.parse('10');
+  await alice.call(
+    contract,
+    'deposit_and_stake',
+    {},
+    { attachedDeposit: stakeAmount },
+  );
 
-    await owner.call(contract, 'pause', {});
+  await owner.call(contract, 'pause', {});
 
-    const transferAmount = NEAR.parse('2');
-    await assertFailure(
-      t,
-      transfer(contract, alice, owner, transferAmount),
-      'The contract is paused now. Please try later',
-    );
+  const transferAmount = NEAR.parse('2');
+  await assertFailure(
+    t,
+    transfer(contract, alice, owner, transferAmount),
+    'The contract is paused now. Please try later',
+  );
 
-    await owner.call(contract, 'resume', {});
+  await owner.call(contract, 'resume', {});
 
-    await registerFungibleTokenUser(contract, bob);
-    await transfer(contract, alice, bob, transferAmount);
-  },
-);
+  await registerFungibleTokenUser(contract, bob);
+  await transfer(contract, alice, bob, transferAmount);
+});

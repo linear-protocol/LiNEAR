@@ -1,14 +1,14 @@
-import {NEAR, NearAccount, Worker} from 'near-workspaces';
-import {createAndDeploy} from "../linear/helper";
-import anyTest, { TestFn } from "ava";
+import { NEAR, NearAccount, Worker } from 'near-workspaces';
+import { createAndDeploy } from '../linear/helper';
+import anyTest, { TestFn } from 'ava';
 
 const test = anyTest as TestFn<WorkSpace>;
 
 interface WorkSpace {
-  worker: Worker,
-  contract: NearAccount,
-  alice: NearAccount,
-  bob: NearAccount,
+  worker: Worker;
+  contract: NearAccount;
+  alice: NearAccount;
+  bob: NearAccount;
 }
 
 const ONE_YOCTO_NEAR = '1';
@@ -30,9 +30,9 @@ async function initWorkSpace(): Promise<WorkSpace> {
     'compiled-contracts/mock_fungible_token.wasm',
     {
       methodName: 'new',
-      args: {}
-    }
-  )
+      args: {},
+    },
+  );
 
   return { worker, contract, alice, bob };
 }

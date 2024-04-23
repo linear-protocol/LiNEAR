@@ -12,7 +12,7 @@ import {
   initAndSetWhitelist,
   updateBaseStakeAmounts,
 } from './helper';
-import anyTest, { TestFn } from "ava";
+import anyTest, { TestFn } from 'ava';
 
 const test = anyTest as TestFn<WorkSpace>;
 
@@ -40,9 +40,9 @@ async function deployLinearAtVersion(
       methodName: 'new',
       args: {
         owner_id,
-      }
-    }
-  )
+      },
+    },
+  );
 }
 
 async function upgrade(contract: NearAccount, owner: NearAccount) {
@@ -119,11 +119,7 @@ async function initWorkSpace(version: string): Promise<WorkSpace> {
     initialBalance: NEAR.parse('1000000').toString(),
   });
 
-  const contract = await deployLinearAtVersion(
-    root,
-    owner.accountId,
-    version,
-  );
+  const contract = await deployLinearAtVersion(root, owner.accountId, version);
 
   await initAndSetWhitelist(root, contract, owner, true);
   const manager = await setManager(root, contract, owner);
@@ -332,9 +328,7 @@ test.skip('upgrade from v1.3.3 to v1.4.0', async (t) => {
     },
   );
 
-  t.assert(
-    (await getValidator(contract, targetValidator.accountId)).draining,
-  );
+  t.assert((await getValidator(contract, targetValidator.accountId)).draining);
 
   // fast-forward
   await owner.call(contract, 'set_epoch_height', { epoch: 14 });
@@ -350,9 +344,7 @@ test.skip('upgrade from v1.3.3 to v1.4.0', async (t) => {
     },
   );
 
-  t.assert(
-    !(await getValidator(contract, targetValidator.accountId)).draining,
-  );
+  t.assert(!(await getValidator(contract, targetValidator.accountId)).draining);
 });
 
 // test validator execution status

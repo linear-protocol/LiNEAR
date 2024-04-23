@@ -69,7 +69,7 @@ export async function createAndDeploy(
   },
 ): Promise<NearAccount> {
   const contract = await root.createSubAccount(contractId, {
-    initialBalance: init?.balance
+    initialBalance: init?.balance,
   });
   await contract.deploy(code);
   if (init?.methodName && init.args) {

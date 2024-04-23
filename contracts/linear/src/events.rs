@@ -149,6 +149,32 @@ pub enum Event<'a> {
     ValidatorRemoved {
         account_id: &'a AccountId,
     },
+    // Owner
+    ChangeOwner {
+        old_owner_id: &'a AccountId,
+        new_owner_id: &'a AccountId,
+    },
+    AddManager {
+        manager_id: &'a AccountId,
+    },
+    RemoveManager {
+        manager_id: &'a AccountId,
+    },
+    SetBeneficiary {
+        account_id: &'a AccountId,
+        bps: &'a u32,
+    },
+    RemoveBeneficiary {
+        account_id: &'a AccountId,
+    },
+    SetTreasury {
+        account_id: &'a AccountId,
+    },
+    SetWhitelist {
+        account_id: &'a AccountId,
+    },
+    PauseContract {},
+    ResumeContract {},
 }
 
 impl Event<'_> {

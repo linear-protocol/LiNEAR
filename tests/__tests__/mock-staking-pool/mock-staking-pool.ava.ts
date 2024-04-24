@@ -34,7 +34,7 @@ async function initWorkSpace(): Promise<WorkSpace> {
   return { worker, contract, alice };
 }
 
-test('check balance after initlization', async (t) => {
+test('check balance after initialization', async (t) => {
   const { contract, alice } = t.context;
   // await root.call(contract, 'set_status', {message: 'lol'});
   t.is(

@@ -18,7 +18,7 @@ test.afterEach(async (t) => {
   await t.context.worker.tearDown();
 });
 
-test('check balances after initlization', async (t) => {
+test('check balances after initialization', async (t) => {
   const { contract, alice } = t.context;
   t.is(
     await contract.view('get_account_staked_balance', { account_id: alice }),

@@ -1,5 +1,5 @@
 // initialization
-pub const ERR_ALREADY_INITIALZED: &str = "Already initialized";
+pub const ERR_ALREADY_INITIALIZED: &str = "Already initialized";
 pub const ERR_ACCOUNT_STAKING_WHILE_INIT: &str =
     "The current account has staking balance while initialization";
 pub const ERR_NO_ENOUGH_INIT_DEPOSIT: &str =

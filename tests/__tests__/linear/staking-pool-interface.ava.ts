@@ -37,7 +37,7 @@ test('check balances after initialization', async (t) => {
   );
 });
 
-test.only('deposit 0 NEAR is not allowed', async (t) => {
+test('deposit 0 NEAR is not allowed', async (t) => {
   const { contract, alice } = t.context;
   // deposit 0 NEAR will fail
   await assertFailure(

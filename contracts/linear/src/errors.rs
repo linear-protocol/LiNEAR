@@ -53,6 +53,9 @@ pub const ERR_DRAINING: &str = "Validator is currently in draining process";
 pub const ERR_NOT_IN_DRAINING: &str =
     "Validator is not in draining process. Cannot run drain withdraw";
 
+// deposit
+pub const ERR_NON_POSITIVE_DEPOSIT_AMOUNT: &str = "Deposit amount should be positive";
+
 // withdraw
 pub const ERR_NON_POSITIVE_WITHDRAWAL_AMOUNT: &str = "Withdrawal amount should be positive";
 pub const ERR_NO_ENOUGH_UNSTAKED_BALANCE_TO_WITHDRAW: &str =

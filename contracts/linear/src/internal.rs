@@ -339,12 +339,10 @@ impl LiquidStakingContract {
 // -- manager related methods
 impl LiquidStakingContract {
     pub(crate) fn internal_add_manager(&mut self, manager_id: &AccountId) {
-        self.assert_running();
         self.managers.insert(manager_id);
     }
 
     pub(crate) fn internal_remove_manager(&mut self, manager_id: &AccountId) -> bool {
-        self.assert_running();
         self.managers.remove(manager_id)
     }
 

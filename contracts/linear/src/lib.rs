@@ -108,7 +108,7 @@ impl LiquidStakingContract {
     /// It prevents inflating the price of the share too much.
     #[init]
     pub fn new(owner_id: AccountId) -> Self {
-        require!(!env::state_exists(), ERR_ALREADY_INITIALZED);
+        require!(!env::state_exists(), ERR_ALREADY_INITIALIZED);
         require!(
             env::account_locked_balance() == 0,
             ERR_ACCOUNT_STAKING_WHILE_INIT

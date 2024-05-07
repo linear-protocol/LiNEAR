@@ -7,6 +7,7 @@ import {
   test,
 } from './helper';
 
+const ERR_NON_POSITIVE_DEPOSIT_AMOUNT = "Deposit amount should be positive";
 const ERR_UNSTAKED_BALANCE_NOT_AVAILABLE =
   'The unstaked balance is not yet available due to unstaking delay';
 
@@ -18,7 +19,7 @@ test.afterEach(async (t) => {
   await t.context.worker.tearDown();
 });
 
-test('check balances after initlization', async (t) => {
+test('check balances after initialization', async (t) => {
   const { contract, alice } = t.context;
   t.is(
     await contract.view('get_account_staked_balance', { account_id: alice }),
@@ -33,6 +34,16 @@ test('check balances after initlization', async (t) => {
   t.is(
     await contract.view('get_account_total_balance', { account_id: alice }),
     '0',
+  );
+});
+
+test('deposit 0 NEAR is not allowed', async (t) => {
+  const { contract, alice } = t.context;
+  // deposit 0 NEAR will fail
+  await assertFailure(
+    t,
+    alice.call(contract, 'deposit', {}, { attachedDeposit: '0' }),
+    ERR_NON_POSITIVE_DEPOSIT_AMOUNT
   );
 });
 

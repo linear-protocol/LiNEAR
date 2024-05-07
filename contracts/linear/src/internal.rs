@@ -15,6 +15,7 @@ impl LiquidStakingContract {
 
     pub(crate) fn internal_deposit(&mut self, amount: Balance) {
         self.assert_running();
+        require!(amount > 0, ERR_NON_POSITIVE_DEPOSIT_AMOUNT);
 
         let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);

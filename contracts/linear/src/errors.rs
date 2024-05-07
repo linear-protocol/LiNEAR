@@ -1,5 +1,5 @@
 // initialization
-pub const ERR_ALREADY_INITIALZED: &str = "Already initialized";
+pub const ERR_ALREADY_INITIALIZED: &str = "Already initialized";
 pub const ERR_ACCOUNT_STAKING_WHILE_INIT: &str =
     "The current account has staking balance while initialization";
 pub const ERR_NO_ENOUGH_INIT_DEPOSIT: &str =
@@ -52,6 +52,9 @@ pub const ERR_NON_ZERO_STAKED_AMOUNT: &str =
 pub const ERR_DRAINING: &str = "Validator is currently in draining process";
 pub const ERR_NOT_IN_DRAINING: &str =
     "Validator is not in draining process. Cannot run drain withdraw";
+
+// deposit
+pub const ERR_NON_POSITIVE_DEPOSIT_AMOUNT: &str = "Deposit amount should be positive";
 
 // withdraw
 pub const ERR_NON_POSITIVE_WITHDRAWAL_AMOUNT: &str = "Withdrawal amount should be positive";

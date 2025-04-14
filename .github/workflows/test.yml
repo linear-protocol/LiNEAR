@@ -18,15 +18,17 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       # Setup Rust environment
-      - name: Rust toolchain
+      - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.66.1 # stable
+          toolchain: 1.69.0
+          default: true
           override: true
-      - uses: Swatinem/rust-cache@v1
+          target: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
       # Set up Node environment
       - name: Setup Node
         uses: actions/setup-node@v3.1.1
@@ -43,15 +45,17 @@ jobs:
     name: clippy and fmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       # Setup Rust environment
-      - name: Install stable toolchain
+      - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.66.1 # stable
+          toolchain: 1.69.0
+          default: true
+          override: true
           components: rustfmt, clippy
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       # Run lint
       - name: Test Format
         run: cargo fmt -- --check

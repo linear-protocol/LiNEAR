@@ -4,7 +4,7 @@ import { NearAccount, Worker } from 'near-workspaces';
 import {
   createAndDeploy,
   createStakingPool,
-  epochHeightFastforward,
+  epochHeightFastForward,
   epochStake,
   epochUnstake,
   epochWithdraw,
@@ -470,7 +470,7 @@ test.skip('upgrade from v1.5.1 to v1.6.0', async (t) => {
   await stakeAll(manager, contract);
 
   // wait 1 epoch
-  await epochHeightFastforward(contract, alice, 1);
+  await epochHeightFastForward(contract, alice, 1);
 
   // upgrade linear contract to the latest
   await upgrade(contract, owner);
@@ -482,11 +482,11 @@ test.skip('upgrade from v1.5.1 to v1.6.0', async (t) => {
   // run epoch unstake
   await unstakeAll(manager, contract);
 
-  // wait 4 epoches
-  await epochHeightFastforward(contract, alice);
+  // wait 4 epochs
+  await epochHeightFastForward(contract, alice);
   await withdrawAll(manager, contract);
 
-  // withdraw all after 4 epoches
+  // withdraw all after 4 epochs
   await alice.call(contract, 'withdraw_all', {});
 
   t.is(
@@ -504,11 +504,11 @@ test.skip('upgrade from v1.5.1 to v1.6.0', async (t) => {
   // run epoch unstake
   await unstakeAll(manager, contract);
 
-  // wait 4 epoches
-  await epochHeightFastforward(contract, alice);
+  // wait 4 epochs
+  await epochHeightFastForward(contract, alice);
   await withdrawAll(manager, contract);
 
-  // withdraw all after 4 epoches
+  // withdraw all after 4 epochs
   const withdrawAmount = NEAR.parse('1');
   await alice.call(contract, 'withdraw', { amount: withdrawAmount.toString() });
 

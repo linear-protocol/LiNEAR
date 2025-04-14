@@ -36,5 +36,5 @@ exports.handler = async function (argv) {
   });
 
   console.log(outcome);
-  console.log('withdrawed');
+  console.log('withdrawn');
 }

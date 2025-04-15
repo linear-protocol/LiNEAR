@@ -4,7 +4,7 @@ import {
   assertFailure,
   registerFungibleTokenUser,
   ONE_YOCTO,
-  epochHeightFastforward,
+  epochHeightFastForward,
   deployDex,
   test,
 } from './helper';
@@ -193,7 +193,7 @@ test.skip('storage unregister', async (t) => {
   );
 
   // Force unregister Alice successfully.
-  // The $LiNEAR owned by Alice are all burnt. Now $LiNEAR price increased to 2 $NEAER.
+  // The $LiNEAR owned by Alice are all burnt. Now $LiNEAR price increased to 2 $NEAR.
   await alice.call(
     contract,
     'storage_unregister',
@@ -237,8 +237,8 @@ test.skip('storage unregister', async (t) => {
     ERR_UNREGISTER_POSITIVE_UNSTAKED,
   );
 
-  // 4 epoches later, Alice withdraws 2 NEAR
-  await epochHeightFastforward(contract, alice);
+  // 4 epochs later, Alice withdraws 2 NEAR
+  await epochHeightFastForward(contract, alice);
   await alice.call(contract, 'withdraw', { amount: NEAR.parse('2') });
 
   // non-force unregister when Alice has some LiNEAR, should fail
@@ -282,7 +282,7 @@ test('ft_transfer_call LiNEAR', async (t) => {
     { attachedDeposit: stakeAmount },
   );
 
-  // ft_transfer_call() with `ft_on_trasfer()` passed
+  // ft_transfer_call() with `ft_on_transfer()` passed
   const transferAmount1 = NEAR.parse('1');
   await transferCall(
     contract,
@@ -297,7 +297,7 @@ test('ft_transfer_call LiNEAR', async (t) => {
     stakeAmount.sub(transferAmount1).toString(),
   );
 
-  // ft_transfer_call() with `ft_on_trasfer()` failed, all assets refunded
+  // ft_transfer_call() with `ft_on_transfer()` failed, all assets refunded
   const transferAmount2 = NEAR.parse('2');
   await transferCall(
     contract,
@@ -312,7 +312,7 @@ test('ft_transfer_call LiNEAR', async (t) => {
     stakeAmount.sub(transferAmount1).toString(),
   );
 
-  // ft_transfer_call() with `ft_on_trasfer()` refunded, all assets refunded
+  // ft_transfer_call() with `ft_on_transfer()` refunded, all assets refunded
   const transferAmount3 = NEAR.parse('3');
   await transferCall(
     contract,

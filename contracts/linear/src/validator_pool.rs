@@ -330,7 +330,7 @@ impl ValidatorPool {
         }
 
         // no enough available validators to unstake
-        // double the unstake wating time
+        // double the unstake waiting time
         2 * NUM_EPOCHS_TO_UNLOCK
     }
 }
@@ -654,7 +654,7 @@ trait ValidatorDrainCallbacks {
 impl LiquidStakingContract {
     /// This method is designed to drain a validator.
     /// The weight of target validator should be set to 0 before calling this.
-    /// And a following call to drain_withdraw MUST be made after 4 epoches.
+    /// And a following call to drain_withdraw MUST be made after 4 epochs.
     pub fn drain_unstake(&mut self, validator_id: AccountId) -> Promise {
         self.assert_running();
         self.assert_manager();
@@ -1339,7 +1339,7 @@ mod tests {
             .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 100 in total, 50 already staked, 50 to stake,
-        // the total stake amount is less than total base stake amount, satisfay base stake amount first.
+        // the total stake amount is less than total base stake amount, satisfy base stake amount first.
         // thus foo is the most unbalanced one.
 
         let candidate = validator_pool.get_candidate_to_stake(50 * ONE_NEAR, 100 * ONE_NEAR);
@@ -1369,7 +1369,7 @@ mod tests {
             .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 150 in total, 100 already staked, 50 to stake,
-        // the total stake amount is less than total base stake amount, satisfay base stake amount first.
+        // the total stake amount is less than total base stake amount, satisfy base stake amount first.
         // thus bar is the most unbalanced one.
 
         let candidate = validator_pool.get_candidate_to_stake(50 * ONE_NEAR, 150 * ONE_NEAR);
@@ -1640,7 +1640,7 @@ mod tests {
             .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 450 already staked, 250 to unstake, target total 200,
-        // the total stake amount is less than total base stake amount, satisfay base stake amount first,
+        // the total stake amount is less than total base stake amount, satisfy base stake amount first,
         // thus zoo is the most unbalanced one.
 
         let candidate = validator_pool.get_candidate_to_unstake(200 * ONE_NEAR, 200 * ONE_NEAR);
@@ -1670,7 +1670,7 @@ mod tests {
             .insert(&zoo.account_id, &zoo.clone().into());
 
         // we have currently 300 already staked, 150 to unstake, target total 150,
-        // the total stake amount is less than total base stake amount, satisfay base stake amount first,
+        // the total stake amount is less than total base stake amount, satisfy base stake amount first,
         // thus bar is the most unbalanced one.
 
         let candidate = validator_pool.get_candidate_to_unstake(150 * ONE_NEAR, 150 * ONE_NEAR);

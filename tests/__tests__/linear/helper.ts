@@ -258,15 +258,15 @@ export function parseNEAR(a: number): NEAR {
   return NEAR.from(yoctoString);
 }
 
-export async function epochHeightFastforward(
+export async function epochHeightFastForward(
   contract: NearAccount,
   user: NearAccount,
-  numEpoches = NUM_EPOCHS_TO_UNLOCK,
+  numEpochs = NUM_EPOCHS_TO_UNLOCK,
 ) {
   // read current epoch
   let epoch: number = await contract.view('read_epoch_height', {});
   // increase epoch height
-  epoch += numEpoches;
+  epoch += numEpochs;
   await user.call(contract, 'set_epoch_height', { epoch });
 }
 

@@ -16,7 +16,7 @@ exports.builder = yargs => {
     })
     .option('network', networkOption)
     .option('signer', {
-      describe: 'signer account ID to call new'
+      describe: 'signer account ID to submit proposal'
     })
     .option('dao', {
       describe: 'DAO account Id'

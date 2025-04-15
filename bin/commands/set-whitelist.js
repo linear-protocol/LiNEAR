@@ -49,6 +49,5 @@ exports.handler = async function (argv) {
     }
   );
 
-
   console.log('done');
 }

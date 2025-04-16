@@ -37,6 +37,8 @@ exports.handler = async function (argv) {
   const near = await init(network);
   const account = await near.account(argv.signer);
 
+  const blobSize = (BigInt(code.length + 32) * 10n ** 19n).toString();
+
   // store blob first
   const outcome = await account.signAndSendTransaction(
     {
@@ -46,7 +48,7 @@ exports.handler = async function (argv) {
           'store_blob',
           code,
           100000000000000,
-          "6185190000000000000000000"
+          blobSize
         )
       ]
     }

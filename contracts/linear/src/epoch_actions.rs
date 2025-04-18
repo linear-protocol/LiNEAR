@@ -409,7 +409,6 @@ impl LiquidStakingContract {
     ///
     /// Params:
     /// - validator_id: the validator to sync balance
-    /// - post_action: sync balance is called after stake or unstake
     #[private]
     pub fn validator_get_account_callback(
         &mut self,

@@ -43,7 +43,7 @@ We adopt unit tests and heavily used the [`workspace-js`](https://github.com/nea
 - Run LiNEAR simulation tests:
   - Run all: `make test-linear`
   - Run specific test file: `TEST_FILE={filename} make test-linear`
-  - Print contract logs: `LOGS=1 make test-linear`
+  - Print contract logs: `NO_LOGS=false make test-linear`
 
 ### Deploy
 

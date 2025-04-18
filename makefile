@@ -57,7 +57,8 @@ test-unit:
 	cargo test --features "test"
 
 TEST_FILE ?= **
-LOGS ?=
+NO_LOGS=true
+
 test-contracts: linear_test mock-staking-pool mock-fungible-token mock-dex mock-lockup mock-whitelist
 	@mkdir -p ./tests/compiled-contracts/
 	@cp ./res/linear_test.wasm ./tests/compiled-contracts/linear.wasm
@@ -68,7 +69,7 @@ test-contracts: linear_test mock-staking-pool mock-fungible-token mock-dex mock-
 	@cp ./res/mock_whitelist.wasm ./tests/compiled-contracts/mock_whitelist.wasm
 
 test-linear: test-contracts
-	cd tests && NEAR_PRINT_LOGS=$(LOGS) npx ava --timeout=2m __tests__/linear/$(TEST_FILE).ava.ts --verbose
+	cd tests && NEAR_WORKSPACES_NO_LOGS=$(NO_LOGS) npx ava --timeout=2m __tests__/linear/$(TEST_FILE).ava.ts --verbose
 
 test-mock-staking-pool: mock-staking-pool
 	@mkdir -p ./tests/compiled-contracts/

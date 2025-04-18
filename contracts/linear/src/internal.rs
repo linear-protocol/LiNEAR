@@ -357,8 +357,4 @@ impl LiquidStakingContract {
             ERR_NOT_MANAGER
         );
     }
-
-    pub(crate) fn signed_by_manager(&self) -> bool {
-        self.managers.contains(&env::signer_account_id())
-    }
 }

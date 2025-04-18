@@ -1,39 +1,53 @@
-const { init } = require("../near");
+const { init, funcCall } = require("../near");
+const prompts = require('prompts');
 const { networkOption } = require("./common");
 
-exports.command = 'del-manager <address>';
-exports.desc = 'Remove manager';
+exports.command = 'del-manager <address> <manager>';
+exports.desc = 'Propose removing a manager from LiNEAR contract';
 exports.builder = yargs => {
   yargs
     .positional('address', {
       describe: 'Contract address',
       type: 'string'
     })
+    .positional('manager', {
+      describe: 'Manager account to remove',
+      type: 'string'
+    })
     .option('network', networkOption)
     .option('signer', {
-      describe: 'signer account Id to call contract'
+      describe: 'signer account ID to submit proposal'
     })
-    .option('manager', {
-      describe: 'manager ID to remove'
+    .option('dao', {
+      describe: 'DAO account Id'
     })
-    .demandOption(['signer', 'manager'])
+    .demandOption(['signer', 'dao'])
 }
 
 exports.handler = async function (argv) {
-  const { address, manager } = argv;
-  
+  const { address, manager, dao } = argv;
   const near = await init(argv.network);
   const signer = await near.account(argv.signer);
 
-  console.log(`Removing manager ${manager}`);
+  console.log(`Propose to remove manager ${manager} from linear contract ${address}`);
 
-  await signer.functionCall({
-    contractId: address,
-    methodName: 'remove_manager',
-    args: {
+  const res = await prompts({
+    type: 'confirm',
+    name: 'confirm',
+    message: 'Confirm update?'
+  });
+  if (!res.confirm) return;
+
+  await funcCall(
+    signer,
+    dao,
+    `Remove manager ${manager} from linear contract`,
+    address,
+    'remove_manager',
+    {
       manager_id: manager
     }
-  });
+  );
 
   console.log('done');
 }

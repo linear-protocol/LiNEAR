@@ -587,10 +587,8 @@ impl LiquidStakingContract {
     }
 
     /// Sync contract staked and unstaked balance from validator
-    /// - Only allowed by manager
     pub fn sync_balance_from_validator(&mut self, validator_id: AccountId) {
         self.assert_running();
-        self.assert_manager();
 
         let min_gas = GAS_SYNC_BALANCE + GAS_EXT_GET_ACCOUNT + GAS_CB_VALIDATOR_SYNC_BALANCE;
         require!(
@@ -607,7 +605,6 @@ impl LiquidStakingContract {
             .sync_account_balance(&mut self.validator_pool, false)
             .then(ext_self_action_cb::validator_get_account_callback(
                 validator.account_id,
-                false,
                 env::current_account_id(),
                 NO_DEPOSIT,
                 GAS_CB_VALIDATOR_SYNC_BALANCE,
@@ -798,7 +795,6 @@ impl LiquidStakingContract {
                 .sync_account_balance(&mut self.validator_pool, true)
                 .then(ext_self_action_cb::validator_get_account_callback(
                     validator_id,
-                    true,
                     env::current_account_id(),
                     NO_DEPOSIT,
                     GAS_CB_VALIDATOR_SYNC_BALANCE,

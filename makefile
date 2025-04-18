@@ -44,6 +44,16 @@ mock-whitelist: contracts/mock-whitelist
 	mkdir -p res
 	cp target/wasm32-unknown-unknown/release/mock_whitelist.wasm ./res/mock_whitelist.wasm
 
+docker:
+	docker build -t linear-builder .
+	docker run \
+		--mount type=bind,source=${PWD},target=/host \
+		--cap-add=SYS_PTRACE --security-opt seccomp=unconfined \
+		-w /host \
+		-e RUSTFLAGS=$(RFLAGS) \
+		-i -t linear-builder \
+		make
+
 clean:
 	rm res/*.wasm
 

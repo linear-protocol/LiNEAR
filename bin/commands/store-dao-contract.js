@@ -9,7 +9,7 @@ exports.desc = 'Store DAO contract code from DAO factory';
 exports.builder = yargs => {
   yargs
     .positional('dao', {
-      describe: 'DAO contract address to deploy to',
+      describe: 'DAO contract address to store DAO contract code',
       type: 'string'
     })
     .option('network', networkOption)
@@ -18,7 +18,7 @@ exports.builder = yargs => {
       default: 'res/sputnikdao.wasm'
     })
     .option('signer', {
-      describe: 'signer account ID to call new'
+      describe: 'signer account ID'
     })
     .option('hash', {
       describe: 'DAO contract code hash to store'
@@ -28,6 +28,7 @@ exports.builder = yargs => {
 
 exports.handler = async function (argv) {
   const { dao, hash, network } = argv;
+
   const factory = dao.split('.').slice(1).join('.');
   console.log(`Fetch DAO contract code from factory ${factory} with code hash ${hash} ...`);
 
@@ -39,13 +40,13 @@ exports.handler = async function (argv) {
   writeFileSync(argv.wasm, code);
   const codeHash = getBase58CodeHash(code);
   if(codeHash !== hash) {
-    console.error(`Fetched code hash ${codeHash} is not the same as ${hash}`);
+    console.error(`The fetched code hash ${codeHash} is not the same as the provided ${hash}`);
     return;
   }
 
   const deposit = (BigInt(code.length + 32) * 10n ** 19n).toString()
 
-  console.log(`Store DAO contract code with code hash ${codeHash} to DAO ${dao}`);
+  console.log(`Store DAO contract code with hash ${codeHash} to DAO ${dao}`);
   console.log(`- Code hash: ${codeHash}`);
   console.log(`- Storage cost: ${NEAR.from(deposit).toHuman()}`);
   console.log(`- DAO: ${dao}`);

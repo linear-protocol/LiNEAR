@@ -18,7 +18,7 @@ exports.builder = yargs => {
       default: 'res/linear.wasm'
     })
     .option('signer', {
-      describe: 'signer account ID to call new'
+      describe: 'signer account ID'
     })
     .option('dao', {
       describe: 'DAO account Id'

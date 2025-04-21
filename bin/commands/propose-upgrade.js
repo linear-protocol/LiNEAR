@@ -3,7 +3,8 @@ const sha256 = require('sha256');
 const { readFileSync, appendFileSync, existsSync } = require("fs");
 const { NEAR, Gas } = require("near-units");
 const { init } = require("../near");
-const { networkOption } = require("./common");
+const nearAPI = require('near-api-js');
+const { networkOption, doubleCheck } = require("./common");
 
 exports.command = 'propose-upgrade <address>';
 exports.desc = 'Propose an upgrade in DAO';
@@ -72,13 +73,13 @@ exports.handler = async function (argv) {
         console.error(`Old blob with ${lastHash} doesn't exist. The blob might have been removed. Continue?`);
         await doubleCheck();
       } else {
-        console.log(`Remove blob with hash ${lastHash}. Are you sure?`);
+        console.log(`Remove outdated blob with hash ${lastHash}. Are you sure?`);
         await doubleCheck();
         await signer.functionCall({
           contractId: dao,
           methodName: 'remove_blob',
           args: {
-            hash,
+            hash: lastHash,
           },
         });
         console.log(`Removed blob with hash ${lastHash}`);
@@ -96,15 +97,19 @@ exports.handler = async function (argv) {
     // store new blob
     console.log(`Store blob with hash ${codeHash}. Are you sure?`);
     await doubleCheck();
-    const outcome = await signer.functionCall({
-      contractId: dao,
-      methodName: 'store_blob',
-      args: {
-        code,
-      },
-      gas: Gas.parse('100 Tgas'),
-      attachedDeposit: deposit,
-    });
+    const outcome = await signer.signAndSendTransaction(
+      {
+        receiverId: dao,
+        actions: [
+          nearAPI.transactions.functionCall(
+            'store_blob',
+            code,
+            Gas.parse('100 Tgas'),
+            deposit
+          )
+        ]
+      }
+    );
     const hash = parseHashReturnValue(outcome);
     console.log(`Stored blob with hash ${hash}`);
   }

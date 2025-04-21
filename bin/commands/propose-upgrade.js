@@ -1,10 +1,8 @@
-const base58 = require('bs58');
-const sha256 = require('sha256');
 const { readFileSync, appendFileSync, existsSync } = require("fs");
 const { NEAR, Gas } = require("near-units");
 const { init } = require("../near");
 const nearAPI = require('near-api-js');
-const { networkOption, doubleCheck } = require("./common");
+const { networkOption, doubleCheck, parseHashReturnValue, getBase58CodeHash } = require("./common");
 
 exports.command = 'propose-upgrade <address>';
 exports.desc = 'Propose an upgrade in DAO';
@@ -140,20 +138,4 @@ exports.handler = async function (argv) {
   })
 
   console.log('proposed!');
-}
-
-function parseHashReturnValue(outcome) {
-  const status = outcome.status;
-  const data = status.SuccessValue;
-  if (!data) {
-    throw new Error('bad return value');
-  }
-
-  const buff = Buffer.from(data, 'base64');
-  return buff.toString('ascii').replaceAll('"', "");
-}
-
-function getBase58CodeHash(code) {
-  const hash = Buffer.from(sha256(code), 'hex');
-  return base58.encode(hash);
 }

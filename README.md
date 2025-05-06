@@ -36,7 +36,7 @@ The LiNEAR smart contracts have been audited by [BlockSec](https://www.blocksect
 
 We adopt unit tests and heavily used the [`workspace-js`](https://github.com/near/workspaces-js) test framework to test the major scenarios and workflow of the LiNEAR smart contract in the [Sandbox](https://docs.near.org/docs/develop/contracts/sandbox) environment. Lint with `rustfmt` and `clippy` is also required when making changes to contract.
 
-- Install node v16
+- Install Node.js v20
 - Run `npm i` to set up the environment
 - Run lint with `rustfmt` and `clippy`: `make lint`
 - Run all tests: `make test`

@@ -1,5 +1,4 @@
 // use crate::legacy::*;
-use self::legacy::ContractV1_3_0;
 use crate::*;
 
 #[near_bindgen]
@@ -12,25 +11,8 @@ impl LiquidStakingContract {
     #[init(ignore_state)]
     #[private]
     pub fn migrate() -> Self {
-        let contract: ContractV1_3_0 = env::state_read().expect("ERR_NOT_INITIALIZED");
-        Self {
-            owner_id: contract.owner_id,
-            managers: contract.managers,
-            treasury_id: contract.treasury_id,
-            total_share_amount: contract.total_share_amount,
-            total_staked_near_amount: contract.total_staked_near_amount,
-            accounts: contract.accounts,
-            paused: contract.paused,
-            account_storage_usage: contract.account_storage_usage,
-            beneficiaries: contract.beneficiaries,
-            validator_pool: contract.validator_pool,
-            whitelist_account_id: contract.whitelist_account_id,
-            epoch_requested_stake_amount: contract.epoch_requested_stake_amount,
-            epoch_requested_unstake_amount: contract.epoch_requested_unstake_amount,
-            stake_amount_to_settle: contract.stake_amount_to_settle,
-            unstake_amount_to_settle: contract.unstake_amount_to_settle,
-            last_settlement_epoch: contract.last_settlement_epoch,
-        }
+        let contract: LiquidStakingContract = env::state_read().expect("ERR_NOT_INITIALIZED");
+        contract
     }
 }
 

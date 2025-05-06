@@ -1,9 +1,8 @@
-const base58 = require('bs58');
-const sha256 = require('sha256');
 const { readFileSync, appendFileSync, existsSync } = require("fs");
 const { NEAR, Gas } = require("near-units");
 const { init } = require("../near");
-const { networkOption } = require("./common");
+const nearAPI = require('near-api-js');
+const { networkOption, doubleCheck, parseHashReturnValue, getBase58CodeHash } = require("./common");
 
 exports.command = 'propose-upgrade <address>';
 exports.desc = 'Propose an upgrade in DAO';
@@ -19,7 +18,7 @@ exports.builder = yargs => {
       default: 'res/linear.wasm'
     })
     .option('signer', {
-      describe: 'signer account ID to call new'
+      describe: 'signer account ID'
     })
     .option('dao', {
       describe: 'DAO account Id'
@@ -72,13 +71,13 @@ exports.handler = async function (argv) {
         console.error(`Old blob with ${lastHash} doesn't exist. The blob might have been removed. Continue?`);
         await doubleCheck();
       } else {
-        console.log(`Remove blob with hash ${lastHash}. Are you sure?`);
+        console.log(`Remove outdated blob with hash ${lastHash}. Are you sure?`);
         await doubleCheck();
         await signer.functionCall({
           contractId: dao,
           methodName: 'remove_blob',
           args: {
-            hash,
+            hash: lastHash,
           },
         });
         console.log(`Removed blob with hash ${lastHash}`);
@@ -96,15 +95,19 @@ exports.handler = async function (argv) {
     // store new blob
     console.log(`Store blob with hash ${codeHash}. Are you sure?`);
     await doubleCheck();
-    const outcome = await signer.functionCall({
-      contractId: dao,
-      methodName: 'store_blob',
-      args: {
-        code,
-      },
-      gas: Gas.parse('100 Tgas'),
-      attachedDeposit: deposit,
-    });
+    const outcome = await signer.signAndSendTransaction(
+      {
+        receiverId: dao,
+        actions: [
+          nearAPI.transactions.functionCall(
+            'store_blob',
+            code,
+            Gas.parse('100 Tgas'),
+            deposit
+          )
+        ]
+      }
+    );
     const hash = parseHashReturnValue(outcome);
     console.log(`Stored blob with hash ${hash}`);
   }
@@ -135,20 +138,4 @@ exports.handler = async function (argv) {
   })
 
   console.log('proposed!');
-}
-
-function parseHashReturnValue(outcome) {
-  const status = outcome.status;
-  const data = status.SuccessValue;
-  if (!data) {
-    throw new Error('bad return value');
-  }
-
-  const buff = Buffer.from(data, 'base64');
-  return buff.toString('ascii').replaceAll('"', "");
-}
-
-function getBase58CodeHash(code) {
-  const hash = Buffer.from(sha256(code), 'hex');
-  return base58.encode(hash);
 }

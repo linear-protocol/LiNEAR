@@ -9,7 +9,17 @@ use near_sdk::{
 
 // allocate enough gas for ft_resolve_transfer() to avoid unexpected failure
 const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(12 * TGAS);
-const GAS_FOR_FT_TRANSFER_CALL: Gas = Gas(35 * TGAS + GAS_FOR_RESOLVE_TRANSFER.0);
+// allocate enough gas for ft_on_transfer() to avoid unexpected failure
+const MIN_GAS_FOR_FT_ON_TRANSFER: Gas = Gas(5 * TGAS);
+// gas for ft_transfer_call() function itself (not including ft_on_transfer() and ft_resolve_transfer())
+const GAS_FOR_INTERNAL_FT_TRANSFER_CALL: Gas = Gas(35 * TGAS);
+// gas for ft_transfer_call()
+const MIN_GAS_FOR_FT_TRANSFER_CALL: Gas = Gas(GAS_FOR_INTERNAL_FT_TRANSFER_CALL.0
+    + MIN_GAS_FOR_FT_ON_TRANSFER.0
+    + GAS_FOR_RESOLVE_TRANSFER.0);
+// gas reserved for ft_transfer_call() itself and ft_resolve_transfer()
+const GAS_RESERVED_FOR_FT_TRANSFER_CALL: Gas =
+    Gas(GAS_FOR_INTERNAL_FT_TRANSFER_CALL.0 + GAS_FOR_RESOLVE_TRANSFER.0);
 
 #[ext_contract(ext_fungible_token_receiver)]
 pub trait FungibleTokenReceiver {
@@ -52,10 +62,10 @@ impl FungibleTokenCore for LiquidStakingContract {
         assert_one_yocto();
         // Ensure minimum required gas is attached
         require!(
-            env::prepaid_gas() > GAS_FOR_FT_TRANSFER_CALL,
+            env::prepaid_gas() > MIN_GAS_FOR_FT_TRANSFER_CALL,
             format!(
                 "{}. require at least {:?}",
-                ERR_NO_ENOUGH_GAS, GAS_FOR_FT_TRANSFER_CALL
+                ERR_NO_ENOUGH_GAS, MIN_GAS_FOR_FT_TRANSFER_CALL
             )
         );
         let sender_id = env::predecessor_account_id();
@@ -68,7 +78,7 @@ impl FungibleTokenCore for LiquidStakingContract {
             msg,
             receiver_id.clone(),
             NO_DEPOSIT,
-            env::prepaid_gas() - GAS_FOR_FT_TRANSFER_CALL,
+            env::prepaid_gas() - GAS_RESERVED_FOR_FT_TRANSFER_CALL, // > MIN_GAS_FOR_FT_ON_TRANSFER
         )
         .then(ext_ft_self::ft_resolve_transfer(
             sender_id,

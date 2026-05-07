@@ -227,23 +227,29 @@ impl LiquidStakingContract {
     /// given to executor, manager or treasury by minting new LiNEAR tokens.
     pub(crate) fn internal_distribute_staking_rewards(&mut self, rewards: Balance) {
         let hashmap: HashMap<AccountId, u32> = self.internal_get_beneficiaries();
+        let total_share_amount = self.total_share_amount;
+        let total_staked_near_amount = self.total_staked_near_amount;
         for (account_id, bps) in hashmap.iter() {
             let reward_near_amount: Balance = bps_mul(rewards, *bps);
+            let shares = Self::num_shares_from_staked_amount_rounded_down_with_totals(
+                reward_near_amount,
+                total_share_amount,
+                total_staked_near_amount,
+            );
             // mint extra LiNEAR for him
-            self.internal_mint_beneficiary_rewards(account_id, reward_near_amount);
+            self.internal_mint_beneficiary_reward_shares(account_id, shares);
         }
     }
 
-    /// Mint new LiNEAR tokens to given account at the current price.
+    /// Mint new LiNEAR tokens to given account.
     /// This will DECREASE the LiNEAR price.
-    fn internal_mint_beneficiary_rewards(
+    fn internal_mint_beneficiary_reward_shares(
         &mut self,
         account_id: &AccountId,
-        near_amount: Balance,
+        shares: ShareBalance,
     ) -> ShareBalance {
         self.assert_running();
 
-        let shares = self.num_shares_from_staked_amount_rounded_down(near_amount);
         // mint to account
         if self.accounts.get(account_id).is_none() {
             self.internal_register_account(account_id);
@@ -271,13 +277,24 @@ impl LiquidStakingContract {
         &self,
         amount: Balance,
     ) -> ShareBalance {
+        Self::num_shares_from_staked_amount_rounded_down_with_totals(
+            amount,
+            self.total_share_amount,
+            self.total_staked_near_amount,
+        )
+    }
+
+    fn num_shares_from_staked_amount_rounded_down_with_totals(
+        amount: Balance,
+        total_share_amount: ShareBalance,
+        total_staked_near_amount: Balance,
+    ) -> ShareBalance {
         require!(
-            self.total_staked_near_amount > 0,
+            total_staked_near_amount > 0,
             ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE
         );
-        (U256::from(self.total_share_amount) * U256::from(amount)
-            / U256::from(self.total_staked_near_amount))
-        .as_u128()
+        (U256::from(total_share_amount) * U256::from(amount) / U256::from(total_staked_near_amount))
+            .as_u128()
     }
 
     /// Returns the number of "stake" shares rounded up corresponding to the given staked balance
@@ -355,6 +372,67 @@ impl LiquidStakingContract {
         require!(
             self.managers.contains(&env::predecessor_account_id()),
             ERR_NOT_MANAGER
+        );
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use near_sdk::test_utils::{accounts, VMContextBuilder};
+    use near_sdk::testing_env;
+
+    use super::*;
+
+    fn new_contract() -> LiquidStakingContract {
+        let owner = accounts(1);
+        let mut context = VMContextBuilder::new();
+        context
+            .current_account_id(accounts(0))
+            .signer_account_id(owner.clone())
+            .predecessor_account_id(owner.clone())
+            .account_balance(20 * ONE_NEAR);
+        testing_env!(context.build());
+        LiquidStakingContract::new(owner)
+    }
+
+    #[test]
+    fn beneficiary_reward_mint_matches_existing_single_beneficiary_formula() {
+        let mut contract = new_contract();
+        let beneficiary = accounts(2);
+        let rewards = 2 * ONE_NEAR;
+
+        contract.set_beneficiary(beneficiary.clone(), 1000);
+        contract.total_staked_near_amount += rewards;
+        contract.internal_distribute_staking_rewards(rewards);
+
+        let account = contract.internal_get_account(&beneficiary);
+        assert_eq!(account.stake_shares, 166_666_666_666_666_666_666_666);
+        assert_eq!(
+            contract.total_share_amount,
+            10 * ONE_NEAR + 166_666_666_666_666_666_666_666
+        );
+    }
+
+    #[test]
+    fn beneficiary_reward_mint_uses_same_price_snapshot_for_each_beneficiary() {
+        let mut contract = new_contract();
+        let beneficiary_a = accounts(2);
+        let beneficiary_b = accounts(3);
+        let rewards = 2 * ONE_NEAR;
+
+        contract.set_beneficiary(beneficiary_a.clone(), 1000);
+        contract.set_beneficiary(beneficiary_b.clone(), 1000);
+        contract.total_staked_near_amount += rewards;
+        contract.internal_distribute_staking_rewards(rewards);
+
+        let expected_shares = 166_666_666_666_666_666_666_666;
+        let account_a = contract.internal_get_account(&beneficiary_a);
+        let account_b = contract.internal_get_account(&beneficiary_b);
+        assert_eq!(account_a.stake_shares, expected_shares);
+        assert_eq!(account_b.stake_shares, expected_shares);
+        assert_eq!(
+            contract.total_share_amount,
+            10 * ONE_NEAR + 2 * expected_shares
         );
     }
 }

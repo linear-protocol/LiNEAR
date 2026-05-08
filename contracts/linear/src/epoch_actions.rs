@@ -378,12 +378,24 @@ impl LiquidStakingContract {
     pub fn validator_get_balance_callback(
         &mut self,
         validator_id: AccountId,
-        #[callback] total_balance: U128,
+        #[callback_result] result: Result<U128, PromiseError>,
     ) {
         let mut validator = self
             .validator_pool
             .get_validator(&validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST);
+
+        let total_balance = match result {
+            Ok(total_balance) => total_balance,
+            Err(_) => {
+                validator.on_refresh_total_balance_failed(&mut self.validator_pool);
+                log!(
+                    "Failed to refresh total balance from validator {}",
+                    validator_id
+                );
+                return;
+            }
+        };
 
         let new_balance = total_balance.0;
         let rewards = new_balance - validator.total_balance();

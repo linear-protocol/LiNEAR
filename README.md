@@ -77,10 +77,45 @@ In order to use it, run `npm i` first.
 Drain is to totally remove a validator from candidate list, all funds on it will be re-distributed
 among others.
 
-1. Make sure there is currently no unstaked balance on it. If there is, call `epoch_withdraw` to withdraw.
-2. Set validator weight to 0, which can be done by either removing this validator from nodes list or set its weight to 0 directly. Run `set-node` command to update the weight.
-3. Run `drain-unstake` to unstake all funds from the validator.
-4. After 4 epochs, run `drain-withdraw` to withdraw and restake those funds.
+Drain is a manager operation. Before starting it, make sure the local validator
+accounting has been synced with the validator staking pool so the drain amount is
+selected from the latest balances.
+
+1. Stop assigning new stake to the validator:
+   - Set validator weight to `0`, which can be done by either removing this
+     validator from nodes list or setting its weight to `0` directly. Run
+     `set-node` command to update the weight.
+   - Set validator base stake amount to `0`. Run `set-node-base-amounts` command
+     to update the base stake amount.
+2. Sync the validator balance before drain:
+   - Call `epoch_update_rewards` for the validator and wait for the callback to
+     succeed. This records any staking pool rewards before the drain amount is
+     selected.
+   - Call `sync_balance_from_validator` for the validator and wait for the
+     callback to succeed. This aligns local `staked_amount` and `unstaked_amount`
+     with the staking pool account.
+   - If either callback fails, retry and do not continue to `drain-unstake`.
+3. Settle unstaked balance before drain:
+   - If `get_validator` shows `unstaked_amount` greater than or equal to `1 NEAR`,
+     call `epoch_withdraw` and wait for the callback to succeed.
+   - After `epoch_withdraw`, call `sync_balance_from_validator` again and wait
+     for the callback to succeed.
+4. Verify `get_validator` before `drain-unstake`:
+   - `weight` is `0`.
+   - `base_stake_amount` is `0`.
+   - `pending_release` is `false`.
+   - `unstaked_amount` is less than `1 NEAR`.
+   - `draining` is `false`.
+5. Run `drain-unstake` to unstake all funds from the validator.
+6. After 4 epochs, verify `get_validator` again:
+   - `weight` is `0`.
+   - `base_stake_amount` is `0`.
+   - `staked_amount` is `0`.
+   - `pending_release` is `false`.
+   - `draining` is `true`.
+7. Run `drain-withdraw` to withdraw the drained funds. The callback adds the
+   withdrawn amount back to the epoch stake request so it can be restaked to
+   other validators.
 
 ## Design
 

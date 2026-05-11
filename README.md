@@ -96,18 +96,22 @@ selected from the latest balances.
      with the staking pool account.
    - If either callback fails, retry and do not continue to `drain-unstake`.
 3. Settle unstaked balance before drain:
-   - If `get_validator` shows `unstaked_amount` greater than or equal to `1 NEAR`,
-     call `epoch_withdraw` and wait for the callback to succeed.
+   - If `get_validator` shows `unstaked_amount` greater than or equal to `1 NEAR`
+     (`1_000_000_000_000_000_000_000_000 yoctoNEAR`), call `epoch_withdraw`
+     and wait for the callback to succeed. The drain guard only tolerates less
+     than `1 NEAR` as staking-pool precision dust.
    - After `epoch_withdraw`, call `sync_balance_from_validator` again and wait
      for the callback to succeed.
 4. Verify `get_validator` before `drain-unstake`:
    - `weight` is `0`.
    - `base_stake_amount` is `0`.
    - `pending_release` is `false`.
-   - `unstaked_amount` is less than `1 NEAR`.
+   - `unstaked_amount` is less than `1 NEAR`
+     (`1_000_000_000_000_000_000_000_000 yoctoNEAR`).
    - `draining` is `false`.
 5. Run `drain-unstake` to unstake all funds from the validator.
-6. After 4 epochs, verify `get_validator` again:
+6. After 4 full epochs have passed since the `drain-unstake` transaction
+   finalized and its callback succeeded on-chain, verify `get_validator` again:
    - `weight` is `0`.
    - `base_stake_amount` is `0`.
    - `staked_amount` is `0`.

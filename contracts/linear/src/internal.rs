@@ -227,6 +227,9 @@ impl LiquidStakingContract {
     /// given to executor, manager or treasury by minting new LiNEAR tokens.
     pub(crate) fn internal_distribute_staking_rewards(&mut self, rewards: Balance) {
         let hashmap: HashMap<AccountId, u32> = self.internal_get_beneficiaries();
+        // Use one share-price snapshot for all beneficiaries. Each reward mint
+        // increases total_share_amount and decreases the LiNEAR price, so
+        // recalculating inside the loop would overpay later beneficiaries.
         let total_share_amount = self.total_share_amount;
         let total_staked_near_amount = self.total_staked_near_amount;
         for (account_id, bps) in hashmap.iter() {

@@ -441,4 +441,22 @@ test('get balance failure', async (t) => {
 
   // balance should not change
   await assertValidator(v1, '60', '0');
+
+  await v1.call(v1, 'set_panic', {
+    panic: false,
+  });
+
+  // update reward should be retryable after the failed callback releases executing
+  await owner.call(
+    contract,
+    'epoch_update_rewards',
+    {
+      validator_id: v1.accountId,
+    },
+    {
+      gas: Gas.parse('200 Tgas'),
+    },
+  );
+
+  await assertValidator(v1, '61', '0');
 });

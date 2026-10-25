@@ -152,16 +152,13 @@ More useful information for developers who're building with LiNEAR
 
 Data source: https://github.com/aurora-is-near/bridge-assets/tree/master/tokens
 
-### $LiNEAR Oracles
+### $LiNEAR price
 
-Oracles on Aurora mainnet:
+The LINEAR / NEAR price is read from the contract itself (24 decimals):
 
-- LINEAR / NEAR (Flux): [`0x8f975aC6deFD2c9d50c58BABF4B1f880E6dE7996`](https://aurorascan.dev/address/0x8f975aC6deFD2c9d50c58BABF4B1f880E6dE7996)
-- LINEAR / USD (Flux): [`0x2eBf49106814Fcd8685ed6c8a7315Ca528CdA232`](https://aurorascan.dev/address/0x2eBf49106814Fcd8685ed6c8a7315Ca528CdA232)
+- `NEAR_ENV=mainnet near view linear-protocol.near ft_price`
 
-Oracles on NEAR mainnet:
-
-- LINEAR / NEAR (Flux): `NEAR_ENV=mainnet near view fpo.opfilabs.near get_entry '{"pair": "LINEAR/NEAR", "provider": "opfilabs.near"}'`
-- LINEAR / USD (price oracle): `NEAR_ENV=mainnet near view priceoracle.near get_price_data '{"asset_ids": ["linear-protocol.near"]}'`
-
-More details about Flux oracles can be found from [Flux docs](https://docs.fluxprotocol.org/docs/live-data-feeds/fpo-live-networks-and-pairs)
+The Flux feeds listed here before no longer update: LINEAR / NEAR and LINEAR / USD on Aurora
+(`0x8f975aC6deFD2c9d50c58BABF4B1f880E6dE7996`, `0x2eBf49106814Fcd8685ed6c8a7315Ca528CdA232`) last updated
+on 2023-09-07, and `fpo.opfilabs.near` LINEAR/NEAR on 2022-05-19. `priceoracle.near` returns no price for
+`linear-protocol.near`. Do not use them to price LiNEAR.
